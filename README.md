@@ -6,7 +6,7 @@ The AI Flight Simulator for Thai Midwifery
 
 AI virtual patient simulator (Thai) for training Thai traditional medicine / midwifery learners to recognize red flags and decide when to stop and refer. **Education tool, not a medical device.**
 
-Rules, layout, and conventions: [AGENTS.md](AGENTS.md). Requirements: [docs/SIM-TAMY_PRD.md](docs/SIM-TAMY_PRD.md).
+Rules, layout, and conventions: [AGENTS.md](AGENTS.md). Requirements: [docs/PRD.md](docs/PRD.md).
 
 ## Quick start
 
