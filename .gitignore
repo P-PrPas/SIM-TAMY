@@ -1,0 +1,28 @@
+# secrets / local env
+.env
+.env.*
+!.env.example
+
+# python
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.pytest_tmp/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# node / next
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# misc
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
