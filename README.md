@@ -1,5 +1,9 @@
 # SIM-TAMY
 
+The AI Flight Simulator for Thai Midwifery
+
+เอกสารออกแบบ: [หลักสูตร 4 ระยะและแนวคิดโซลูชัน](docs/SIM-TAMY-curriculum-and-solution.md)
+
 AI virtual patient simulator (Thai) for training Thai traditional medicine / midwifery learners to recognize red flags and decide when to stop and refer. **Education tool, not a medical device.**
 
 Rules, layout, and conventions: [AGENTS.md](AGENTS.md). Requirements: [docs/SIM-TAMY_PRD.md](docs/SIM-TAMY_PRD.md).
