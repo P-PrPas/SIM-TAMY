@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: sim
+      POSTGRES_PASSWORD: sim
+      POSTGRES_DB: simtamy
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sim -d simtamy"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./apps/api
+    environment:
+      DATABASE_URL: postgresql+psycopg://sim:sim@db:5432/simtamy
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL_INTERPRETER: ${LLM_MODEL_INTERPRETER:-}
+      LLM_MODEL_GENERATOR: ${LLM_MODEL_GENERATOR:-}
+      LLM_MODEL_DEBRIEF: ${LLM_MODEL_DEBRIEF:-}
+      LLM_TIMEOUT_S: ${LLM_TIMEOUT_S:-15}
+      INSTRUCTOR_SECRET: ${INSTRUCTOR_SECRET:-}
+      CONTENT_DIR: /content
+      ALLOW_DRAFT_CASES: ${ALLOW_DRAFT_CASES:-true}
+      GLASS_BOX_LIVE: ${GLASS_BOX_LIVE:-false}
+      LOG_RETENTION_DAYS: ${LOG_RETENTION_DAYS:-30}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    volumes:
+      - ./content:/content:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./apps/web
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  dbdata:
