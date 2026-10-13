@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Environment config (PRD 6.5). Secrets are SecretStr so they never print."""
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
 
     database_url: str = "postgresql+psycopg://sim:sim@localhost:5432/simtamy"
     llm_provider: str = "mock"
