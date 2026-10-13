@@ -284,3 +284,15 @@ def test_llm_client_backend_runs_offline_on_mock(monkeypatch: pytest.MonkeyPatch
     finally:
         get_settings.cache_clear()
         llm_client._cached_provider.cache_clear()
+
+
+def test_llm_client_empty_env_values_mean_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name in ("LLM_API_KEY", "LLM_BASE_URL", "MOCK_LLM_SCRIPT", "LLM_REASONING_EFFORT"):
+        monkeypatch.setenv(name, "")
+    s = Settings()
+    assert (s.llm_api_key, s.llm_base_url, s.mock_llm_script, s.llm_reasoning_effort) == (
+        None,
+        None,
+        None,
+        None,
+    )
