@@ -1,4 +1,5 @@
 # DEV-001: synthetic ENGINEERING FIXTURE. Not clinical content. Never use in a real demo.
+# Each hidden fact has one sentinel token that appears in its text, keywords, leak terms and fallback.
 # All wording is placeholder text ("test signal X") so no clinical claim can be mistaken for fact.
 case_id: DEV-001
 version: "0.1"
@@ -16,31 +17,31 @@ facts:
     text_th: "ข้อมูลตั้งต้นทดสอบ: ผู้รับบริการมาขอรับบริการทดสอบ"
   - id: H1
     kind: hidden
-    text_th: "ข้อเท็จจริงลับทดสอบ H1 (สัญญาณทดสอบ ก)"
+    text_th: "ผู้รับบริการมีสัญญาณทดสอบก"
     unlock_on: [A03]
-    keywords_th: ["สัญญาณก"]
-    leak_terms_th: ["รหัสลับเอชหนึ่ง"]
-    fallback_utterances_th: ["ไม่แน่ใจค่ะ ช่วยถามใหม่อีกครั้งได้ไหมคะ"]
+    keywords_th: ["สัญญาณทดสอบก"]
+    leak_terms_th: ["สัญญาณทดสอบก"]
+    fallback_utterances_th: ["ค่ะ มีสัญญาณทดสอบกค่ะ"]
     risk_relevance: critical
     source: "[ชุดทดสอบสังเคราะห์ DEV-001]"
     status: Draft
   - id: H2
     kind: hidden
-    text_th: "ข้อเท็จจริงลับทดสอบ H2 (สัญญาณทดสอบ ข)"
+    text_th: "ผู้รับบริการมีสัญญาณทดสอบข"
     unlock_on: [A04]
-    keywords_th: ["สัญญาณข"]
-    leak_terms_th: ["รหัสลับเอชสอง"]
-    fallback_utterances_th: ["ยังไม่ได้สังเกตค่ะ"]
+    keywords_th: ["สัญญาณทดสอบข"]
+    leak_terms_th: ["สัญญาณทดสอบข"]
+    fallback_utterances_th: ["ใช่ค่ะ มีสัญญาณทดสอบขค่ะ"]
     risk_relevance: critical
     source: "[ชุดทดสอบสังเคราะห์ DEV-001]"
     status: Draft
   - id: H3
     kind: hidden
-    text_th: "ข้อเท็จจริงลับทดสอบ H3 (บริบททดสอบ ค)"
+    text_th: "ผู้รับบริการมีบริบททดสอบค"
     unlock_on: [A05]
-    keywords_th: ["บริบทค"]
-    leak_terms_th: ["รหัสลับเอชสาม"]
-    fallback_utterances_th: ["จำไม่ค่อยได้ค่ะ"]
+    keywords_th: ["บริบททดสอบค"]
+    leak_terms_th: ["บริบททดสอบค"]
+    fallback_utterances_th: ["เรื่องบริบททดสอบคนี้จำได้ค่ะ"]
     risk_relevance: contextual
     source: "[ชุดทดสอบสังเคราะห์ DEV-001]"
     status: Draft
