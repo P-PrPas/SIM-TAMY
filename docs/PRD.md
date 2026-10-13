@@ -359,10 +359,13 @@ sim-tamy/
 | ตัวแปร | ตัวอย่าง/ค่าเริ่มต้น | หมายเหตุ |
 |---|---|---|
 | `DATABASE_URL` | `postgresql+psycopg://...` | |
-| `LLM_PROVIDER` | `mock` \| ชื่อ provider | `mock` เป็นค่าเริ่มต้นใน dev |
+| `LLM_PROVIDER` | `mock` \| `openai_like` | `mock` เป็นค่าเริ่มต้นใน dev |
 | `LLM_API_KEY` | — | **ห้ามมีฝั่ง frontend** |
 | `LLM_MODEL_INTERPRETER` / `LLM_MODEL_GENERATOR` / `LLM_MODEL_DEBRIEF` | — | แยกได้เพื่อใช้โมเดลถูก/เร็วกับ Interpreter |
 | `LLM_TIMEOUT_S` | 15 | ต่อ call |
+| `LLM_BASE_URL` | `https://api.z.ai/api/paas/v4` | provider `openai_like` เท่านั้น (OpenAI-compatible `/chat/completions`) |
+| `LLM_REASONING_EFFORT` | `low` \| `high` \| `max` | ไม่ตั้ง = ไม่ส่ง; GLM-5.3 ใช้ค่านี้คุมความลึกของ thinking |
+| `MOCK_LLM_SCRIPT` | path ของ YAML | T-003 รองรับ `match_contains`/`return` และ `default` เท่านั้น; `when_directive`/`return_from_fact` ในภาคผนวก กเป็นงาน T-033 ที่ยังไม่รองรับ; ไม่ตั้ง = ค่าเริ่มต้นในโค้ด |
 | `INSTRUCTOR_SECRET` | — | |
 | `CONTENT_DIR` | `./content` | |
 | `ALLOW_DRAFT_CASES` | `true` (dev/แข่ง) | production ตั้ง `false` เมื่อมี Approved |
@@ -671,7 +674,7 @@ CREATE TABLE score_overrides (          -- Could (FR-INS-04)
 
 **Input:** ข้อความผู้เรียนปัจจุบัน, 4 turns ล่าสุด (learner+patient), Action Catalogue (เฉพาะ category HX, COM; `id`, `label_th`, `examples_th` ที่ตัดให้สั้น), ข้อมูล phase ปัจจุบัน
 
-**Output Schema (บังคับด้วย Structured Output/JSON Schema ของ provider):**
+**Output Schema:** ใช้ provider-enforced Structured Output/JSON Schema เมื่อ provider รองรับ สำหรับ `openai_like` ที่รองรับเฉพาะ JSON object อนุญาตให้ใช้ `response_format: json_object` พร้อมแนบ JSON Schema ใน system prompt และตรวจคำตอบด้วย Pydantic ก่อนส่งให้ caller ตามข้อยกเว้นที่อนุมัติใน [ADR-13](adr/ADR-13-json-object-validation.md) การแนบ schema ใน prompt ไม่ถือเป็นการบังคับ schema โดย provider; คำตอบผิด schema ต้อง retry 1 ครั้ง แล้วเข้าสู่ fallback ตาม §9.1 โดยห้ามใช้ผลที่ยังไม่ผ่าน validation
 
 ```json
 {

@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     llm_model_generator: str | None = None
     llm_model_debrief: str | None = None
     llm_timeout_s: int = 15
+    llm_base_url: str | None = None  # openai_like provider, e.g. https://api.z.ai/api/paas/v4
+    llm_reasoning_effort: str | None = None  # passed through when set (GLM-5.3: low|high|max)
+    mock_llm_script: Path | None = None  # YAML script for the mock provider
     instructor_secret: SecretStr | None = None
     content_dir: Path = Path("./content")
     allow_draft_cases: bool = True
