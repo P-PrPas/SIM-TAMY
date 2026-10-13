@@ -93,7 +93,13 @@ def check(loaded: LoadedCase, *, strict: bool = False) -> list[Issue]:
             option_ids,
             "decision option",
         )
-        in_rubric(f"{p}.check", getattr(c, "fact_ids", []), fact_ids, "fact id")
+        revealed = [getattr(c, "when_fact_revealed", None)]
+        in_rubric(
+            f"{p}.check",
+            [*getattr(c, "fact_ids", []), *filter(None, revealed)],
+            fact_ids,
+            "fact id",
+        )
         for finding in (item.pass_finding, item.fail_finding):
             in_rubric(f"{p}.{finding.id}.references", finding.references, ref_ids, "reference id")
 

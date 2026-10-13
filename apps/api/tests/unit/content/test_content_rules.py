@@ -48,6 +48,28 @@ BROKEN: list[tuple[str, Callable[[Docs], object], str, str]] = [
         "rubric.yaml",
         "items.0.check",
     ),
+    *[
+        (
+            f"blank_{field}",
+            lambda d, field=field, v=v: d["case.yaml"]["facts"][1].update({field: v}),
+            "case.yaml",
+            field,
+        )
+        for field in ("leak_terms_th", "fallback_utterances_th")
+        for v in ([""], ["  "], ["ok", " 	"])
+    ],
+    (
+        "decision_not_unknown_fact",
+        lambda d: d["rubric.yaml"]["items"].append(
+            {
+                **d["rubric.yaml"]["items"][1],
+                "id": "R-DEC-02",
+                "check": {"type": "decision_not", "option": "proceed", "when_fact_revealed": "H9"},
+            }
+        ),
+        "rubric.yaml",
+        "items.2.check",
+    ),
     (
         "known_fact_is_hidden",
         lambda d: d["case.yaml"]["patient_profile"].update(known_facts=["H1"]),

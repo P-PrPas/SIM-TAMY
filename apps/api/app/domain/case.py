@@ -5,11 +5,14 @@ Frozen + extra="forbid": a typo in a YAML key is an error with a path, not silen
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 Phase = Literal["INTRO", "INTERVIEW", "PRESSURE", "CLOSING", "COMPLETED"]
 Status = Literal["Draft", "In Review", "Approved"]
 VariantId = Literal["A", "B", "C"]
+
+
+NonBlank = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 
 class Model(BaseModel):
@@ -29,8 +32,8 @@ class HiddenFact(Model):
     text_th: str
     unlock_on: list[str]
     keywords_th: list[str] = []
-    leak_terms_th: list[str] = Field(min_length=1)
-    fallback_utterances_th: list[str] = Field(min_length=1)
+    leak_terms_th: list[NonBlank] = Field(min_length=1)
+    fallback_utterances_th: list[NonBlank] = Field(min_length=1)
     risk_relevance: Literal["critical", "contextual", "none"]
     source: str | None = None
     status: Status | None = None

@@ -97,3 +97,18 @@ def test_cli_with_no_cases_says_nothing_was_validated(
 
 def test_cli_missing_content_dir_is_an_error(tmp_path: Path, cli: Callable[..., int]) -> None:
     assert cli(tmp_path / "nope", []) == 1
+
+
+def test_mutating_a_returned_case_does_not_change_the_pinned_one(
+    build: Callable[..., Path],
+) -> None:
+    store = ContentStore(build().parents[1])
+    first = store.load("TEST-001")
+    first.actions.clear()
+    first.case.facts.clear()  # frozen=True does not stop this; the store must
+
+    again = store.get("TEST-001", first.case_hash)
+    assert again is not None and again.actions and again.case.facts
+    again.actions.clear()
+    refetched = store.get("TEST-001", first.case_hash)
+    assert refetched is not None and refetched.actions

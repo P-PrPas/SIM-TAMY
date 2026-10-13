@@ -1,5 +1,6 @@
 """Load and pin a case: content/cases/<case_id>/{case,actions,rubric}.yaml."""
 
+import copy
 import hashlib
 from dataclasses import dataclass
 from pathlib import Path
@@ -79,8 +80,10 @@ class ContentStore:
 
     def load(self, case_id: str) -> LoadedCase:
         loaded = load_case(self.cases_dir / case_id)
-        self._by_hash[(case_id, loaded.case_hash)] = loaded
+        self._by_hash[(case_id, loaded.case_hash)] = copy.deepcopy(loaded)
         return loaded
 
     def get(self, case_id: str, case_hash: str) -> LoadedCase | None:
-        return self._by_hash.get((case_id, case_hash))
+        # ponytail: deepcopy per get (frozen models don't freeze inner lists); cheap at this size
+        stored = self._by_hash.get((case_id, case_hash))
+        return copy.deepcopy(stored) if stored else None
