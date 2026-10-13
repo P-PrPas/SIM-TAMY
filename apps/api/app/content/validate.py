@@ -1,9 +1,11 @@
 """Cross-file content rules (PRD 7.1 "กฎการ validate", FR-CASE-04). Pure, no I/O."""
 
 from collections.abc import Iterable
+from typing import get_args
 
 from app.content.loader import Issue, LoadedCase
 from app.domain.case import Case, HiddenFact
+from app.domain.state import RiskState
 
 # Phase moves the engine owns; branch_rules never spell them out (PRD 7.1 example has neither).
 _IMPLICIT_EDGES = [("INTRO", "INTERVIEW"), ("CLOSING", "COMPLETED")]
@@ -51,6 +53,13 @@ def check(loaded: LoadedCase, *, strict: bool = False) -> list[Issue]:
             f"branch_rules.{n}.on_action_any", rule.on_action_any or [], action_ids, "action id"
         )
         in_case(f"branch_rules.{n}.if_variant", rule.if_variant or [], variant_ids, "variant")
+        if rule.set_risk_state:
+            in_case(
+                f"branch_rules.{n}.set_risk_state",
+                [rule.set_risk_state],
+                set(get_args(RiskState)),
+                "risk state",
+            )
         if rule.on_decision:
             in_case(
                 f"branch_rules.{n}.on_decision", [rule.on_decision], option_ids, "decision option"

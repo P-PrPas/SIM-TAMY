@@ -164,7 +164,7 @@ Session ──1 Report          (scoring + debrief + glass box + replay)
 | ID | Requirement | P | AC |
 |---|---|---|---|
 | FR-ENG-01 | State machine ตาม `branch_rules` ของเคส (หัวข้อ 7.1) | M | Unit test ครอบคลุมทุก transition |
-| FR-ENG-02 | ปลดล็อก Hidden Fact เมื่อ Action ใน `unlock_on` ถูกยิง | M | Given A03 ยิงครั้งแรก, Then `H1` ใน `revealed` + event `FACT_REVEALED` |
+| FR-ENG-02 | ปลดล็อก Hidden Fact เมื่อ Action ใน `unlock_on` ถูกยิง | M | Given A03 ยิงครั้งแรก, Then `H1` ใน `revealed` + event `FACT_REVEALED` · `allowed_facts` ที่ส่งให้ Generator = known facts + hidden fact ที่ปลดล็อกแล้ว **และ** `unlock_on` ตรงกับ Action ของเทิร์นนี้ (เฉพาะ `id` + `text_th`); `must_convey_fact_ids` = fact ที่เพิ่งปลดล็อกเทิร์นนี้; `set_risk_state` ต้องเป็น `unrecognized`/`recognized`/`escalated` |
 | FR-ENG-03 | Decision Panel: commit ตัวเลือกผ่าน `POST /decision` (ไม่ใช้การตีความข้อความ) | M | Given option `refer`, Then actions `B01`,`B02` ถูกบันทึก, phase เปลี่ยนตามกติกา |
 | FR-ENG-04 | ตรวจ Unsafe Action ตาม `unsafe_actions` ของเคส | M | Given เปิดเผย H1 แล้ว commit `proceed_service`, Then event `UNSAFE_ACTION` |
 | FR-ENG-05 | Pressure Phase (Variant C): หลัง commit การส่งต่อ ระบบส่ง `pressure_script` ที่เขียนไว้ล่วงหน้า (ไม่ใช้ LLM) แล้วรอผู้เรียนตอบ ≤ 2 turns | S | Given C, When commit refer, Then speaker=relative ส่งข้อความจาก script |

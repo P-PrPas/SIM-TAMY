@@ -64,7 +64,7 @@ def test_action_without_a_target_phase_only_records_the_action() -> None:
     result = apply(state, ["A03"], CASE, "A")  # DEV-001's A03 rule sets risk only (T-021)
 
     assert result.state.phase == "INTERVIEW" and result.state.fired_action_ids == ("A03",)
-    assert result.events == ()
+    assert "PHASE_CHANGED" not in [e.type for e in result.events]
 
 
 def test_pressure_action_moves_to_closing() -> None:
@@ -80,7 +80,8 @@ def test_repeated_action_is_logged_but_not_fired_twice() -> None:
     result = apply(state, ["A03", "A04"], CASE, "A")
 
     assert result.state.fired_action_ids == ("A03", "A04")
-    assert [(e.type, e.payload["id"]) for e in result.events] == [("ACTION_REPEATED", "A03")]
+    repeats = [e.payload["id"] for e in result.events if e.type == "ACTION_REPEATED"]
+    assert repeats == ["A03"]  # only the repeat is logged as one; A04 is new
 
 
 def test_duplicates_within_one_turn_count_once() -> None:

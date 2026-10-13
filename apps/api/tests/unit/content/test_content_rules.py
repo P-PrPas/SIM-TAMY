@@ -71,6 +71,12 @@ BROKEN: list[tuple[str, Callable[[Docs], object], str, str]] = [
         "items.2.check",
     ),
     (
+        "invalid_risk_state",
+        lambda d: d["case.yaml"]["branch_rules"][0].update(set_risk_state="panicking"),
+        "case.yaml",
+        "branch_rules.0.set_risk_state",
+    ),
+    (
         "known_fact_is_hidden",
         lambda d: d["case.yaml"]["patient_profile"].update(known_facts=["H1"]),
         "case.yaml",
