@@ -59,10 +59,20 @@ class OpenAILikeProvider:
             raise LLMProviderError(f"http_{status}", retryable=status == 429 or status >= 500)
         try:
             data = resp.json()
-            text = data["choices"][0]["message"]["content"] or ""
+            text = data["choices"][0]["message"]["content"]
+            if not isinstance(text, str) or not text.strip():
+                raise ValueError("invalid content")
+            usage = data.get("usage")
+            if usage is None:
+                usage = {}
+            if not isinstance(usage, dict):
+                raise ValueError("invalid usage")
+            for field in ("prompt_tokens", "completion_tokens"):
+                value = usage.get(field)
+                if value is not None and (type(value) is not int or value < 0):
+                    raise ValueError("invalid token count")
         except (ValueError, KeyError, IndexError, TypeError) as exc:
             raise LLMInvalidResponse("invalid_response") from exc
-        usage = data.get("usage") or {}
         return LLMResponse(
             text=text,
             prompt_tokens=usage.get("prompt_tokens"),

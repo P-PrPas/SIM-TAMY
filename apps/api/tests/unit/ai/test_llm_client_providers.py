@@ -195,6 +195,35 @@ def test_llm_client_openai_like_odd_payloads(payload) -> None:
     assert resp.text == ""  # content missing -> empty text, which the client then rejects
 
 
+@pytest.mark.parametrize(
+    ("content", "usage"),
+    [
+        (None, {}),
+        ("", {}),
+        ("   ", {}),
+        (["bad"], {}),
+        ("ok", "bad"),
+        ("ok", {"prompt_tokens": "bad"}),
+        ("ok", {"completion_tokens": -1}),
+    ],
+)
+def test_llm_client_malformed_envelope_retries_and_records(content, usage) -> None:
+    attempts: list[int] = []
+    records = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        attempts.append(1)
+        return httpx2.Response(
+            200, json={"choices": [{"message": {"content": content}}], "usage": usage}
+        )
+
+    client = LLMClient(provider_with(handler), model="m", timeout_s=2, on_call=records.append)
+    with pytest.raises(LLMInvalidResponse):
+        client.complete_text(purpose="generator", system="s", prompt="p")
+    assert len(attempts) == len(records) == 2
+    assert all(not record.ok and record.error == "invalid_response" for record in records)
+
+
 def test_llm_client_openai_like_end_to_end_through_client() -> None:
     answers = iter(["garbage", '{"actions": [], "needs_clarification": true}'])
     provider = provider_with(lambda r: httpx2.Response(200, json=ok_body(next(answers))))
