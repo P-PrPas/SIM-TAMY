@@ -2,11 +2,12 @@ from alembic import context
 from sqlalchemy import create_engine
 
 from app.core.config import get_settings
+from app.db.models import Base
 
-# TODO(T-004): set to Base.metadata once db/models.py exists.
-target_metadata = None
+target_metadata = Base.metadata
 
-url = get_settings().database_url
+# Tests override sqlalchemy.url to point at a throwaway database.
+url = context.config.get_main_option("sqlalchemy.url") or get_settings().database_url
 
 
 def run_migrations_offline() -> None:

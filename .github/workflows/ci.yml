@@ -15,6 +15,22 @@ concurrency:
 jobs:
   api:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: sim
+          POSTGRES_PASSWORD: sim
+          POSTGRES_DB: simtamy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sim -d simtamy"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://sim:sim@localhost:5432/simtamy
     defaults:
       run:
         working-directory: apps/api
