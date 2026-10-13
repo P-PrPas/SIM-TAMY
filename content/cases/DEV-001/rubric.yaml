@@ -1,0 +1,229 @@
+# DEV-001 synthetic rubric: exercises all 10 check types (PRD 10.2). Not clinical.
+rubric_version: '0.1'
+competencies:
+- id: HX
+  name_th: การซักประวัติ (ทดสอบ)
+  weight: 20
+- id: RISK
+  name_th: การรับรู้ความเสี่ยง (ทดสอบ)
+  weight: 25
+- id: DEC
+  name_th: การตัดสินใจ (ทดสอบ)
+  weight: 30
+- id: ESC
+  name_th: ความแม่นยำของการส่งต่อ (ทดสอบ)
+  weight: 5
+- id: COMM
+  name_th: การสื่อสาร (ทดสอบ)
+  weight: 15
+- id: DOC
+  name_th: การบันทึก (ทดสอบ)
+  weight: 5
+items:
+- id: R-HX-01
+  competency: HX
+  points: 10
+  check:
+    type: action_present_all
+    actions:
+    - A01
+    - A02
+  pass_finding:
+    id: R-HX-01-P
+    template_th: ข้อความผลทดสอบ R-HX-01-P
+  fail_finding:
+    id: R-HX-01-F
+    template_th: ข้อความผลทดสอบ R-HX-01-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'
+- id: R-HX-02
+  competency: HX
+  points: 10
+  check:
+    type: action_before
+    first: A02
+    then: A03
+  pass_finding:
+    id: R-HX-02-P
+    template_th: ข้อความผลทดสอบ R-HX-02-P
+  fail_finding:
+    id: R-HX-02-F
+    template_th: ข้อความผลทดสอบ R-HX-02-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'
+- id: R-RISK-01
+  competency: RISK
+  points: 10
+  critical: true
+  applies_to_variants:
+  - A
+  - C
+  check:
+    type: action_present_any
+    actions:
+    - A03
+    - A04
+  pass_finding:
+    id: R-RISK-01-P
+    template_th: ข้อความผลทดสอบ R-RISK-01-P
+  fail_finding:
+    id: R-RISK-01-F
+    template_th: ข้อความผลทดสอบ R-RISK-01-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'
+- id: R-RISK-02
+  competency: RISK
+  points: 15
+  check:
+    type: action_present_all
+    actions:
+    - A03
+    - A04
+  pass_finding:
+    id: R-RISK-02-P
+    template_th: ข้อความผลทดสอบ R-RISK-02-P
+  fail_finding:
+    id: R-RISK-02-F
+    template_th: ข้อความผลทดสอบ R-RISK-02-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'
+- id: R-DEC-01
+  competency: DEC
+  points: 10
+  critical: true
+  applies_to_variants:
+  - A
+  - C
+  check:
+    type: decision_equals
+    option: refer
+  pass_finding:
+    id: R-DEC-01-P
+    template_th: ข้อความผลทดสอบ R-DEC-01-P
+  fail_finding:
+    id: R-DEC-01-F
+    template_th: ข้อความผลทดสอบ R-DEC-01-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'
+- id: R-DEC-02
+  competency: DEC
+  points: 10
+  check:
+    type: within_turns_after_fact
+    decision: refer
+    fact_ids:
+    - H1
+    - H2
+    max_turns: 3
+  pass_finding:
+    id: R-DEC-02-P
+    template_th: ข้อความผลทดสอบ R-DEC-02-P
+  fail_finding:
+    id: R-DEC-02-F
+    template_th: ข้อความผลทดสอบ R-DEC-02-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'
+- id: R-DEC-03
+  competency: DEC
+  points: 10
+  check:
+    type: decision_not
+    option: proceed_service
+    when_fact_revealed: H1
+  pass_finding:
+    id: R-DEC-03-P
+    template_th: ข้อความผลทดสอบ R-DEC-03-P
+  fail_finding:
+    id: R-DEC-03-F
+    template_th: ข้อความผลทดสอบ R-DEC-03-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'
+- id: R-ESC-01
+  competency: ESC
+  points: 5
+  check:
+    type: no_unsafe_action
+  pass_finding:
+    id: R-ESC-01-P
+    template_th: ข้อความผลทดสอบ R-ESC-01-P
+  fail_finding:
+    id: R-ESC-01-F
+    template_th: ข้อความผลทดสอบ R-ESC-01-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'
+- id: R-COMM-01
+  competency: COMM
+  points: 5
+  check:
+    type: count_at_least
+    category: COM
+    n: 2
+  pass_finding:
+    id: R-COMM-01-P
+    template_th: ข้อความผลทดสอบ R-COMM-01-P
+  fail_finding:
+    id: R-COMM-01-F
+    template_th: ข้อความผลทดสอบ R-COMM-01-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'
+- id: R-COMM-02
+  competency: COMM
+  points: 5
+  applies_to_variants:
+  - C
+  check:
+    type: action_present_any
+    actions:
+    - C03
+    phase: PRESSURE
+  pass_finding:
+    id: R-COMM-02-P
+    template_th: ข้อความผลทดสอบ R-COMM-02-P
+  fail_finding:
+    id: R-COMM-02-F
+    template_th: ข้อความผลทดสอบ R-COMM-02-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'
+- id: R-COMM-03
+  competency: COMM
+  points: 5
+  applies_to_variants:
+  - C
+  check:
+    type: action_absent
+    actions:
+    - C04
+  pass_finding:
+    id: R-COMM-03-P
+    template_th: ข้อความผลทดสอบ R-COMM-03-P
+  fail_finding:
+    id: R-COMM-03-F
+    template_th: ข้อความผลทดสอบ R-COMM-03-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'
+- id: R-DOC-01
+  competency: DOC
+  points: 5
+  check:
+    type: note_submitted
+    min_chars: 20
+  pass_finding:
+    id: R-DOC-01-P
+    template_th: ข้อความผลทดสอบ R-DOC-01-P
+  fail_finding:
+    id: R-DOC-01-F
+    template_th: ข้อความผลทดสอบ R-DOC-01-F
+    references:
+    - REF1
+  source: '[ชุดทดสอบสังเคราะห์ DEV-001]'

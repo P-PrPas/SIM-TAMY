@@ -1,0 +1,84 @@
+# DEV-001: synthetic ENGINEERING FIXTURE. Not clinical content. Never use in a real demo.
+# All wording is placeholder text ("test signal X") so no clinical claim can be mistaken for fact.
+case_id: DEV-001
+version: "0.1"
+status: Draft
+title_th: "ชุดทดสอบวิศวกรรม DEV-001 (สังเคราะห์ ห้ามใช้เดโมจริง)"
+learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
+
+patient_profile:
+  display_th: "ผู้รับบริการจำลองสำหรับทดสอบระบบ มาขอรับบริการทดสอบตามปกติ"
+  known_facts: [K1]
+
+facts:
+  - id: K1
+    kind: known
+    text_th: "ข้อมูลตั้งต้นทดสอบ: ผู้รับบริการมาขอรับบริการทดสอบ"
+  - id: H1
+    kind: hidden
+    text_th: "ข้อเท็จจริงลับทดสอบ H1 (สัญญาณทดสอบ ก)"
+    unlock_on: [A03]
+    keywords_th: ["สัญญาณก"]
+    leak_terms_th: ["รหัสลับเอชหนึ่ง"]
+    fallback_utterances_th: ["ไม่แน่ใจค่ะ ช่วยถามใหม่อีกครั้งได้ไหมคะ"]
+    risk_relevance: critical
+    source: "[ชุดทดสอบสังเคราะห์ DEV-001]"
+    status: Draft
+  - id: H2
+    kind: hidden
+    text_th: "ข้อเท็จจริงลับทดสอบ H2 (สัญญาณทดสอบ ข)"
+    unlock_on: [A04]
+    keywords_th: ["สัญญาณข"]
+    leak_terms_th: ["รหัสลับเอชสอง"]
+    fallback_utterances_th: ["ยังไม่ได้สังเกตค่ะ"]
+    risk_relevance: critical
+    source: "[ชุดทดสอบสังเคราะห์ DEV-001]"
+    status: Draft
+  - id: H3
+    kind: hidden
+    text_th: "ข้อเท็จจริงลับทดสอบ H3 (บริบททดสอบ ค)"
+    unlock_on: [A05]
+    keywords_th: ["บริบทค"]
+    leak_terms_th: ["รหัสลับเอชสาม"]
+    fallback_utterances_th: ["จำไม่ค่อยได้ค่ะ"]
+    risk_relevance: contextual
+    source: "[ชุดทดสอบสังเคราะห์ DEV-001]"
+    status: Draft
+
+variants:
+  A:
+    persona: {minimization: low, family_pressure: false, style_th: "พูดสั้น สุภาพ (ทดสอบ)"}
+    fact_set: default
+  C:
+    persona: {minimization: high, family_pressure: true, style_th: "พูดเบา ลดทอน (ทดสอบ)"}
+    fact_set: default
+    pressure_script:
+      - {speaker: relative, text_th: "ข้อความกดดันทดสอบจากญาติ ครั้งที่ 1"}
+      - {speaker: relative, text_th: "ข้อความกดดันทดสอบจากญาติ ครั้งที่ 2"}
+
+forbidden_terms_th: ["คำต้องห้ามทดสอบ"]
+
+decision_options:
+  - {id: refer, label_th: "ตัวเลือกทดสอบ: ส่งต่อ", maps_to_actions: [B01, B02]}
+  - {id: proceed_service, label_th: "ตัวเลือกทดสอบ: ให้บริการต่อ", maps_to_actions: [B03]}
+
+branch_rules:
+  - {from: INTERVIEW, on_action_any: [A03, A04], set_risk_state: recognized}
+  - {from: INTERVIEW, on_decision: refer, to: PRESSURE, if_variant: [C]}
+  - {from: INTERVIEW, on_decision: refer, to: CLOSING, if_variant: [A]}
+  - {from: INTERVIEW, on_decision: proceed_service, to: CLOSING}
+  - {from: PRESSURE, on_action_any: [C03], to: CLOSING}
+  - {from: PRESSURE, on_action_any: [C04], to: CLOSING, mark_unsafe: true}
+
+critical_facts_for_replay: [H1, H2]
+
+outcome_scripts:
+  Referral:
+    timeline_th: ["ผลลัพธ์ทดสอบ: ส่งต่อ ขั้นที่ 1", "ผลลัพธ์ทดสอบ: ส่งต่อ ขั้นที่ 2"]
+    disclaimer_th: "ข้อความทดสอบ ไม่ใช่เนื้อหาทางคลินิก"
+  UnsafeProceed:
+    timeline_th: ["ผลลัพธ์ทดสอบ: ให้บริการต่อ ขั้นที่ 1", "ผลลัพธ์ทดสอบ: ให้บริการต่อ ขั้นที่ 2"]
+    disclaimer_th: "ข้อความทดสอบ ไม่ใช่เนื้อหาทางคลินิก"
+
+references:
+  - {id: REF1, title_th: "เอกสารอ้างอิงทดสอบ (ไม่มีอยู่จริง)", locator: "หัวข้อทดสอบ"}
