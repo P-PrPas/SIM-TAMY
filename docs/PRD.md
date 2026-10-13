@@ -359,10 +359,13 @@ sim-tamy/
 | ตัวแปร | ตัวอย่าง/ค่าเริ่มต้น | หมายเหตุ |
 |---|---|---|
 | `DATABASE_URL` | `postgresql+psycopg://...` | |
-| `LLM_PROVIDER` | `mock` \| ชื่อ provider | `mock` เป็นค่าเริ่มต้นใน dev |
+| `LLM_PROVIDER` | `mock` | `openai_like` | `mock` เป็นค่าเริ่มต้นใน dev |\| ชื่อ provider | `mock` เป็นค่าเริ่มต้นใน dev |
 | `LLM_API_KEY` | — | **ห้ามมีฝั่ง frontend** |
 | `LLM_MODEL_INTERPRETER` / `LLM_MODEL_GENERATOR` / `LLM_MODEL_DEBRIEF` | — | แยกได้เพื่อใช้โมเดลถูก/เร็วกับ Interpreter |
 | `LLM_TIMEOUT_S` | 15 | ต่อ call |
+| `LLM_BASE_URL` | `https://api.z.ai/api/paas/v4` | provider `openai_like` เท่านั้น (OpenAI-compatible `/chat/completions`) |
+| `LLM_REASONING_EFFORT` | `low` \| `high` \| `max` | ไม่ตั้ง = ไม่ส่ง; GLM-5.3 ใช้ค่านี้คุมความลึกของ thinking |
+| `MOCK_LLM_SCRIPT` | path ของ YAML | สคริปต์ของ `mock` (ภาคผนวก ก); ไม่ตั้ง = ค่าเริ่มต้นในโค้ด |
 | `INSTRUCTOR_SECRET` | — | |
 | `CONTENT_DIR` | `./content` | |
 | `ALLOW_DRAFT_CASES` | `true` (dev/แข่ง) | production ตั้ง `false` เมื่อมี Approved |
