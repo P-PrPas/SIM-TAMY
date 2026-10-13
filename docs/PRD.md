@@ -168,7 +168,7 @@ Session ──1 Report          (scoring + debrief + glass box + replay)
 | FR-ENG-03 | Decision Panel: commit ตัวเลือกผ่าน `POST /decision` (ไม่ใช้การตีความข้อความ) | M | Given option `refer`, Then actions `B01`,`B02` ถูกบันทึก, phase เปลี่ยนตามกติกา |
 | FR-ENG-04 | ตรวจ Unsafe Action ตาม `unsafe_actions` ของเคส | M | Given เปิดเผย H1 แล้ว commit `proceed_service`, Then event `UNSAFE_ACTION` |
 | FR-ENG-05 | Pressure Phase (Variant C): หลัง commit การส่งต่อ ระบบส่ง `pressure_script` ที่เขียนไว้ล่วงหน้า (ไม่ใช้ LLM) แล้วรอผู้เรียนตอบ ≤ 2 turns | S | Given C, When commit refer, Then speaker=relative ส่งข้อความจาก script |
-| FR-ENG-06 | `apply(state, actions, case)` เป็น pure function: input เดิม → output เดิม; ไม่เรียกเครือข่าย | M | Property test: รัน 100 ครั้ง ผลเท่ากัน |
+| FR-ENG-06 | `apply(state, actions, case, variant)` เป็น pure function: input เดิม → output เดิม; ไม่เรียกเครือข่าย (`variant` เป็น parameter แยก ไม่เก็บใน state; `INTRO` เลื่อนเป็น `INTERVIEW` เมื่อผู้เรียนส่งข้อความแรก) | M | Property test: รัน 100 ครั้ง ผลเท่ากัน |
 
 ## 4.6 Patient Generator & Validator
 
