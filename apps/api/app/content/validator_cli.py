@@ -1,23 +1,41 @@
-"""`make validate-content` entrypoint.
+"""`make validate-content [STRICT=1]`: exit 1 and print `file: field.path: message` on any error."""
 
-TODO(T-010): real validation (Pydantic models, action-ID references, branch reachability).
-Until then this only checks that CONTENT_DIR exists and says so loudly: it validates nothing.
-"""
-
+import argparse
 import sys
 
+from app.content.loader import ContentError, load_case
+from app.content.validate import check
 from app.core.config import get_settings
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="validate-content")
+    parser.add_argument("--strict", action="store_true", help="require `source` on clinical items")
+    args = parser.parse_args(argv)
+
     content_dir = get_settings().content_dir
     if not content_dir.is_dir():
         print(f"ERROR: CONTENT_DIR not found: {content_dir}", file=sys.stderr)
         return 1
-    print(
-        f"WARNING: validate-content is a stub (T-010); no content in {content_dir} was validated."
-    )
-    return 0
+    cases_dir = content_dir / "cases"
+    dirs = sorted(p for p in cases_dir.iterdir() if p.is_dir()) if cases_dir.is_dir() else []
+    if not dirs:
+        print(f"no cases in {cases_dir}; nothing validated")
+        return 0
+
+    failed = False
+    for d in dirs:
+        try:
+            loaded = load_case(d)
+            issues = check(loaded, strict=args.strict)
+        except ContentError as exc:
+            issues = exc.issues
+        for issue in issues:
+            print(f"{d.name}/{issue}", file=sys.stderr)
+        failed |= bool(issues)
+        if not issues:
+            print(f"OK {d.name} {loaded.case_hash[:12]}")
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

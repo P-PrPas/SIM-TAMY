@@ -49,7 +49,7 @@ apps/api/app/
   content/     loader + validate-content CLI
   db/          models, session, repo   (migrations in apps/api/migrations)
 apps/web/      Next.js (App Router) + TypeScript + Tailwind; i18n in lib/i18n/th.json
-content/       cases/<id>/{case,actions,rubric,outcomes}.yaml  ← Content team owns; schemas/ is generated
+content/       cases/<id>/{case,actions,rubric}.yaml  ← Content team owns; schemas/ is generated
 eval/          model_bench.py, run_eval.py, devset/, golden/T01..T10.yaml
 recordings/    recorded sessions for Replay Mode
 docs/          PRD, concept, ADRs

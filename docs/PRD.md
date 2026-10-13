@@ -454,6 +454,7 @@ references:                 # static references สำหรับ "ควรท
 4. `branch_rules` ต้องมีเส้นทางไปถึง `COMPLETED` ทุกกรณี (graph reachability check)
 5. ทุก `decision_option` ต้องถูกอ้างใน `branch_rules` อย่างน้อยหนึ่งกฎ
 6. `--strict`: ทุก item ที่เป็นข้อเท็จจริงทางคลินิกต้องมี `source`
+7. เฟสที่ engine เป็นเจ้าของและ `branch_rules` ไม่ต้องระบุ: `INTRO→INTERVIEW` และ `CLOSING→COMPLETED`; reachability ตรวจต่อ Variant (ทุกเฟสที่ไปถึงจาก INTRO ต้องไปถึง COMPLETED ได้)
 
 ## 7.2 Action Catalogue (`actions.yaml`)
 
@@ -465,6 +466,7 @@ references:                 # static references สำหรับ "ควรท
   description_th: "..."
   examples_th: ["เลือดที่ออกเป็นยังไงบ้างคะ", "ผ้าอนามัยเปลี่ยนบ่อยแค่ไหน", "เลือดออกเยอะไหมคะ", "สีของเลือดเป็นยังไง", "มีก้อนเลือดออกมาไหม"]   # ≥ 5
   keywords_th: ["เลือด", "ผ้าอนามัย", "ก้อน"]    # สำหรับ lexical fallback
+  source: "[เอกสาร, หน้า/หัวข้อ]"    # optional; required for type=critical_info under --strict
 ```
 
 รายการขั้นต่ำที่โค้ดต้องรองรับ: `A01–A07, B01–B03, C01–C04, D01` (ทีม Content เป็นผู้กำหนดเนื้อหา; `C04` = ยอมตามคำขอให้ให้บริการต่อทั้งที่พบสัญญาณ)
