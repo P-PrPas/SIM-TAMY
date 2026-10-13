@@ -17,6 +17,7 @@ curl localhost:8000/health
 ```
 
 Local (no Docker) dev: `make install`, then `make lint test validate-content`.
+DB integration tests need Postgres: `docker compose up -d db` (they skip locally if it is down, and fail in CI).
 Requires GNU make and a POSIX shell (Git Bash / WSL on Windows), Python 3.11+, Node 22+.
 
 ## Layout
