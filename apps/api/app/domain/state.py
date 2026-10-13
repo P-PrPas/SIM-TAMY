@@ -39,5 +39,17 @@ class SessionState(_Frozen):
     last_directive: Directive = Directive()
 
 
+class AllowedFact(_Frozen):
+    """All the Generator may see of a fact: id + text only (AGENTS.md rule 4)."""
+
+    id: str
+    text_th: str
+
+
+class AllowedFacts(_Frozen):
+    facts: tuple[AllowedFact, ...] = ()
+    must_convey_fact_ids: tuple[str, ...] = ()  # revealed this turn
+
+
 def initial_state() -> SessionState:
     return SessionState()
