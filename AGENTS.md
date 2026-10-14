@@ -65,6 +65,7 @@ Defined in the root `Makefile` (ticket T-001). If a target is missing, add it ra
 |---|---|
 | `make up` / `make down` | Start/stop Docker Compose (api, web, db) |
 | `make migrate` | Run Alembic migrations |
+| `make mock-api` | Prism mock of `docs/openapi.yaml` on :4010 (web can build before the backend); `make gen-api` regenerates `apps/web/lib/api/schema.d.ts` |
 | `make validate-content [STRICT=1]` | Validate `content/` against schemas (`STRICT=1` also requires `source` on clinical items) |
 | `make test` | Unit + integration tests (api + web) |
 | `make eval` | Golden Test Suite (T01–T10) with pass/fail table |
