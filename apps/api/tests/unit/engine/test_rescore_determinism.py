@@ -58,3 +58,11 @@ def test_rescore_diff_catches_list_length_and_type_changes() -> None:
     assert diff({"a": [1, 2]}, {"a": [1]})
     assert diff({"a": 1}, {"a": "1"})
     assert diff(None, {"a": 1}) == ["$: stored None != recomputed {'a': 1}"]
+
+
+def test_rescore_diff_separates_a_missing_key_from_an_explicit_null() -> None:
+    assert diff({"x": None}, {}) == ["x: stored None != recomputed <missing>"]
+    assert diff({}, {"x": None}) == ["x: stored <missing> != recomputed None"]
+    assert diff({"x": None}, {"x": None}) == []
+    nested = diff({"items": [{"evidence": None}]}, {"items": [{}]})
+    assert nested == ["items[0].evidence: stored None != recomputed <missing>"]

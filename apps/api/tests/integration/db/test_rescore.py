@@ -130,3 +130,29 @@ def test_rescore_refuses_when_the_case_changed_since_the_session(
 def test_rescore_unknown_session_is_an_error(db: Session, loaded: LoadedCase) -> None:
     with pytest.raises(RescoreError, match="not found"):
         rescore(db, FakeStore(loaded), uuid.uuid4())  # type: ignore[arg-type]
+
+
+def test_rescore_a_well_typed_event_with_a_bad_payload_is_a_clean_error(
+    db: Session, loaded: LoadedCase
+) -> None:
+    sid = completed_session(db, loaded, with_report=False)
+    EventRepo(db).append(session_id=sid, turn_idx=9, type="DECISION_COMMITTED", payload={})
+
+    with pytest.raises(RescoreError, match="cannot score this session.*option_id"):
+        rescore(db, FakeStore(loaded), sid)  # type: ignore[arg-type]  (used to be a KeyError)
+
+
+def test_rescore_an_invalid_rubric_is_a_clean_error(db: Session, loaded: LoadedCase) -> None:
+    sid = completed_session(db, loaded, with_report=False)
+    bad = loaded.rubric.model_copy(
+        update={
+            "competencies": tuple(
+                c.model_copy(update={"weight": w})
+                for c, w in zip(loaded.rubric.competencies, [200, -100, 0, 0, 0, 0], strict=True)
+            )
+        }
+    )
+    store = FakeStore(LoadedCase(loaded.case, loaded.actions, bad, loaded.case_hash))
+
+    with pytest.raises(RescoreError, match="weight must not be negative"):
+        rescore(db, store, sid)  # type: ignore[arg-type]

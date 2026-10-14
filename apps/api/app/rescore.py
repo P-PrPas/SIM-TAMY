@@ -21,7 +21,7 @@ from app.db.models import Report
 from app.db.repo import EventRepo, SessionRepo
 from app.db.session import get_sessionmaker
 from app.domain.events import LoggedEvent
-from app.engine.scoring import score
+from app.engine.scoring import InvalidRubric, MalformedEvent, score
 
 
 class RescoreError(Exception):
@@ -35,12 +35,19 @@ class Rescored:
     diffs: list[str]
 
 
+_MISSING = object()  # a key that is absent is not the same as a key that is null
+
+
 def diff(stored: Any, computed: Any, path: str = "") -> list[str]:
     """Every path where the two JSON values differ."""
     if isinstance(stored, dict) and isinstance(computed, dict):
         keys = sorted(set(stored) | set(computed))
         return [
-            d for k in keys for d in diff(stored.get(k), computed.get(k), f"{path}.{k}".lstrip("."))
+            d
+            for k in keys
+            for d in diff(
+                stored.get(k, _MISSING), computed.get(k, _MISSING), f"{path}.{k}".lstrip(".")
+            )
         ]
     if isinstance(stored, list) and isinstance(computed, list) and len(stored) == len(computed):
         return [
@@ -48,11 +55,11 @@ def diff(stored: Any, computed: Any, path: str = "") -> list[str]:
             for i, (a, b) in enumerate(zip(stored, computed, strict=True))
             for d in diff(a, b, f"{path}[{i}]")
         ]
-    return (
-        []
-        if stored == computed
-        else [f"{path or '$'}: stored {stored!r} != recomputed {computed!r}"]
-    )
+    if stored is _MISSING or computed is _MISSING or stored != computed:
+        a = "<missing>" if stored is _MISSING else repr(stored)
+        b = "<missing>" if computed is _MISSING else repr(computed)
+        return [f"{path or '$'}: stored {a} != recomputed {b}"]
+    return []
 
 
 def rescore(db: Session, store: ContentStore, session_id: uuid.UUID) -> Rescored:
@@ -76,7 +83,11 @@ def rescore(db: Session, store: ContentStore, session_id: uuid.UUID) -> Rescored
     except ValidationError as exc:
         raise RescoreError(f"the Event Log has an unknown event: {exc.errors()[0]['msg']}") from exc
 
-    computed = json.loads(score(log, loaded.rubric, loaded.actions, row.variant).model_dump_json())  # type: ignore[arg-type]
+    try:
+        scored = score(log, loaded.rubric, loaded.actions, row.variant)  # type: ignore[arg-type]
+    except (MalformedEvent, InvalidRubric) as exc:
+        raise RescoreError(f"cannot score this session: {exc}") from exc
+    computed = json.loads(scored.model_dump_json())
     report = db.get(Report, session_id)
     if report is None:
         return Rescored(computed, None, [])
