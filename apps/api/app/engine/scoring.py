@@ -89,12 +89,12 @@ class View:
                 reveals.setdefault(_need(e, "id", str), e)
             elif e.type == "DECISION_COMMITTED":
                 _need(e, "option_id", str)
+                linked = _need(e, "actions", list) if "actions" in e.payload else []
+                if not all(isinstance(a, str) for a in linked):
+                    raise MalformedEvent(f"event {e.id} (DECISION_COMMITTED): actions not ids")
                 if decision is None:
                     decision = e
                     # the option's linked actions (B01, B02...) count like any fired action
-                    linked = _need(e, "actions", list) if "actions" in e.payload else []
-                    if not all(isinstance(a, str) for a in linked):
-                        raise MalformedEvent(f"event {e.id} (DECISION_COMMITTED): actions not ids")
                     occurrences += [Occurrence(a, e, phase) for a in linked]
             elif e.type == "NOTE_SUBMITTED":
                 _need(e, "chars", int)
