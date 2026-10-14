@@ -91,6 +91,19 @@ def _operation_drift(
     return problems
 
 
+def _flatten(doc: Doc, schema: Doc) -> Doc:
+    """Merge `allOf` parts (the spec's CaseBrief) into one properties/required view."""
+    merged: Doc = {"properties": {}, "required": []}
+    for part in schema.get("allOf", [schema]):
+        part = _flatten(doc, _ref(doc, part)) if "allOf" in part or "$ref" in part else part
+        merged["properties"].update(part.get("properties", {}))
+        merged["required"] += part.get("required", [])
+    if "allOf" not in schema:
+        merged["properties"].update(schema.get("properties", {}))
+        merged["required"] += schema.get("required", [])
+    return merged
+
+
 def drift(generated: Doc, spec: Doc) -> list[str]:
     problems: list[str] = []
     for path, gitem in generated["paths"].items():
@@ -108,10 +121,10 @@ def drift(generated: Doc, spec: Doc) -> list[str]:
             )
 
     spec_schemas = spec["components"]["schemas"]
-    for name, schema in generated.get("components", {}).get("schemas", {}).items():
+    for name, raw in generated.get("components", {}).get("schemas", {}).items():
         if name not in spec_schemas:
             continue  # FastAPI helper schemas (HTTPValidationError, ...)
-        want = spec_schemas[name]
+        schema, want = _flatten(generated, raw), _flatten(spec, spec_schemas[name])
         props, want_props = schema.get("properties", {}), want.get("properties", {})
         if set(props) != set(want_props):
             problems.append(f"{name}: properties {sorted(props)} != spec {sorted(want_props)}")

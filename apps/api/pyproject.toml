@@ -34,7 +34,7 @@ dev = [
 include = ["app*"]
 
 [tool.setuptools.package-data]
-app = ["ai/prompts/*.md"]
+app = ["ai/prompts/*.md", "services/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
