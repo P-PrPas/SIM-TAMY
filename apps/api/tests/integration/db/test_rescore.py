@@ -142,6 +142,22 @@ def test_rescore_a_well_typed_event_with_a_bad_payload_is_a_clean_error(
         rescore(db, FakeStore(loaded), sid)  # type: ignore[arg-type]  (used to be a KeyError)
 
 
+@pytest.mark.parametrize("actions", [None, "B01", ["B01", 2]])
+def test_rescore_decision_actions_of_the_wrong_type_are_a_clean_error(
+    db: Session, loaded: LoadedCase, actions: object
+) -> None:
+    sid = completed_session(db, loaded, with_report=False)
+    EventRepo(db).append(
+        session_id=sid,
+        turn_idx=9,
+        type="DECISION_COMMITTED",
+        payload={"option_id": "refer", "actions": actions},
+    )
+
+    with pytest.raises(RescoreError, match="cannot score this session.*actions"):
+        rescore(db, FakeStore(loaded), sid)  # type: ignore[arg-type]
+
+
 def test_rescore_an_invalid_rubric_is_a_clean_error(db: Session, loaded: LoadedCase) -> None:
     sid = completed_session(db, loaded, with_report=False)
     bad = loaded.rubric.model_copy(
