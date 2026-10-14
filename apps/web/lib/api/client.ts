@@ -56,12 +56,15 @@ export function createApi({
       req.method === "GET" || (await req.clone().text()).includes('"client_turn_id"');
 
     for (let attempt = 0; ; attempt++) {
+      req.signal.throwIfAborted();
       let failure: ApiError;
       try {
         const res = await fetchImpl(req.clone());
         if (res.ok) return res;
         failure = await toApiError(res);
-      } catch {
+      } catch (e) {
+        // a cancelled request is not a network failure: never retry it, never wrap it
+        if (req.signal.aborted || (e instanceof DOMException && e.name === "AbortError")) throw e;
         failure = new ApiError("NETWORK_ERROR", 0);
         if (!replayable) throw failure;
       }

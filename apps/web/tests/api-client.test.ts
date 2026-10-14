@@ -97,6 +97,51 @@ describe("api client", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
+  it("propagates a cancelled request immediately instead of retrying it", async () => {
+    const abort = new DOMException("The operation was aborted.", "AbortError");
+    const { api, fetchImpl, sleeps } = setup(abort, json(200, {}));
+
+    const err = await api.GET("/health").catch((e: unknown) => e);
+
+    expect(err).toBe(abort);
+    expect(err).not.toBeInstanceOf(ApiError);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(sleeps).toEqual([]);
+  });
+
+  it("stops retrying when the caller aborts during the backoff", async () => {
+    const controller = new AbortController();
+    const fetchImpl = vi.fn(async () => json(503, envelope("LLM_UNAVAILABLE")));
+    const api = createApi({
+      baseUrl: "http://api.test",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      sleep: async () => controller.abort(),
+    });
+
+    const err = await api
+      .POST("/v1/sessions/{session_id}/turns", {
+        params: { path: { session_id: "s1" } },
+        body: { text: "hi", client_turn_id: "c-1" },
+        signal: controller.signal,
+      })
+      .catch((e: unknown) => e);
+
+    expect(err).not.toBeInstanceOf(ApiError);
+    expect((err as Error).name).toBe("AbortError");
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not start a request that is already aborted", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const { api, fetchImpl } = setup(json(200, {}));
+
+    await expect(api.GET("/health", { signal: controller.signal })).rejects.toMatchObject({
+      name: "AbortError",
+    });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   it("retries a network error for GET and for a turn, but not for other POSTs", async () => {
     const get = setup(new TypeError("down"), json(200, { status: "ok" }));
     await get.api.GET("/health");
