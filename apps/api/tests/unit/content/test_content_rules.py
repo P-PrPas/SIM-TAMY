@@ -71,6 +71,22 @@ BROKEN: list[tuple[str, Callable[[Docs], object], str, str]] = [
         "items.2.check",
     ),
     (
+        "critical_item_with_partial_credit_check",
+        lambda d: d["rubric.yaml"]["items"][0].update(
+            check={"type": "count_at_least", "category": "HX", "n": 2}
+        ),
+        "rubric.yaml",
+        "a critical item cannot use a partial-credit check",
+    ),
+    (
+        "critical_item_with_present_all",
+        lambda d: d["rubric.yaml"]["items"][0].update(
+            check={"type": "action_present_all", "actions": ["A03"]}
+        ),
+        "rubric.yaml",
+        "items.0.check",
+    ),
+    (
         "invalid_risk_state",
         lambda d: d["case.yaml"]["branch_rules"][0].update(set_risk_state="panicking"),
         "case.yaml",

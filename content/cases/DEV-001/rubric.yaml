@@ -148,6 +148,7 @@ items:
 - id: R-ESC-01
   competency: ESC
   points: 5
+  critical: true
   check:
     type: no_unsafe_action
   pass_finding:

@@ -844,6 +844,8 @@ items:
 | `note_submitted` | `min_chars?` | ส่งสรุปเคสและยาว ≥ ที่กำหนด |
 
 > ผลต่อ item: `pass` (ได้เต็ม points), `fail` (0), `partial` (เฉพาะ `action_present_all`/`count_at_least` — ได้ตามสัดส่วน), `na` (ไม่ใช้กับ Variant → ไม่นับ)
+>
+> Critical Safety gate ทำงานเฉพาะผล `fail` — จึง `validate-content` ห้าม item ที่ `critical: true` ใช้ check ที่ให้ `partial` ได้ (`action_present_all`, `count_at_least`). `score(log, rubric, actions, variant)` อยู่ใน `engine/scoring.py` (pure; ไม่พึ่ง content loader)
 
 ## 10.3 อัลกอริทึม
 

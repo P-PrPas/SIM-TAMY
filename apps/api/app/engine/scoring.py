@@ -24,10 +24,11 @@ from app.domain.rubric import (
     DecisionNot,
     NoteSubmitted,
     NoUnsafeAction,
+    Rubric,
     RubricItem,
     WithinTurnsAfterFact,
 )
-from app.domain.scoring import Evidence, ItemResult, Result
+from app.domain.scoring import CompetencyScore, Evidence, ItemResult, Result, Scoring
 
 
 class Occurrence(NamedTuple):
@@ -224,4 +225,39 @@ def evaluate_item(item: RubricItem, view: View, variant: VariantId) -> ItemResul
         evidence=tuple(
             Evidence(event_id=e.id, turn_idx=e.turn_idx, type=e.type) for e in outcome.events
         ),
+    )
+
+
+def score(
+    log: Sequence[LoggedEvent], rubric: Rubric, actions: Sequence[Action], variant: VariantId
+) -> Scoring:
+    """PRD 10.3. Safety is a gate: a failed critical item means SAFETY_NOT_MET at any total."""
+    view = View.build(log, actions)
+    items = tuple(evaluate_item(it, view, variant) for it in rubric.items)
+    applicable = [r for r in items if r.result != "na"]
+
+    active = [c for c in rubric.competencies if any(r.competency == c.id for r in applicable)]
+    total_weight = sum(c.weight for c in active)  # renormalised when a competency does not apply
+    competencies: list[CompetencyScore] = []
+    for c in active:
+        mine = [r for r in applicable if r.competency == c.id]
+        possible = float(sum(r.points for r in mine))
+        earned = sum(r.earned for r in mine)
+        competencies.append(
+            CompetencyScore(
+                id=c.id,
+                name_th=c.name_th,
+                weight=c.weight * 100 / total_weight if total_weight else 0.0,
+                score_pct=100 * earned / possible if possible else 0.0,
+                earned=earned,
+                possible=possible,
+            )
+        )
+    total = sum(c.score_pct * c.weight / 100 for c in competencies)
+    failed_critical = any(r.critical and r.result == "fail" for r in items)
+    return Scoring(
+        safety_status="SAFETY_NOT_MET" if failed_critical else "SAFETY_MET",
+        total_score=round(total, 1),
+        competencies=tuple(competencies),
+        items=items,
     )

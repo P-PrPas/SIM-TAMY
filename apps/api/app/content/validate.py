@@ -5,6 +5,7 @@ from typing import get_args
 
 from app.content.loader import Issue, LoadedCase
 from app.domain.case import Case, HiddenFact
+from app.domain.rubric import ActionPresentAll, CountAtLeast
 from app.domain.state import RiskState
 
 # Phase moves the engine owns; branch_rules never spell them out (PRD 7.1 example has neither).
@@ -109,6 +110,15 @@ def check(loaded: LoadedCase, *, strict: bool = False) -> list[Issue]:
             fact_ids,
             "fact id",
         )
+        if item.critical and isinstance(c, ActionPresentAll | CountAtLeast):
+            issues.append(
+                Issue(
+                    "rubric.yaml",
+                    f"{p}.check",
+                    "a critical item cannot use a partial-credit check "
+                    f"({c.type}): the Critical Safety gate only trips on fail",
+                )
+            )
         for finding in (item.pass_finding, item.fail_finding):
             in_rubric(f"{p}.{finding.id}.references", finding.references, ref_ids, "reference id")
 
