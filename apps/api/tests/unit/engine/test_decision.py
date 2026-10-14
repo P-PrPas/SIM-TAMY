@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from app.content.loader import load_case
-from app.domain.case import VariantId
+from app.domain.case import BranchRule, Case, VariantId
 from app.domain.state import SessionState, initial_state
 from app.engine.scenario import (
     DecisionAlreadyCommitted,
@@ -120,3 +120,57 @@ def test_decision_is_deterministic_and_does_not_mutate_its_input() -> None:
     }
 
     assert len(outputs) == 1 and state.model_dump() == before
+
+
+def _with_decision_rules(*specs: dict[str, object]) -> Case:
+    return CASE.model_copy(update={"branch_rules": [BranchRule.model_validate(s) for s in specs]})
+
+
+def test_decision_applies_set_risk_state_like_the_action_path() -> None:
+    case = _with_decision_rules(
+        {"from": "INTERVIEW", "on_action_any": ["A03"], "set_risk_state": "recognized"},
+        {
+            "from": "INTERVIEW",
+            "on_decision": "refer",
+            "to": "CLOSING",
+            "set_risk_state": "escalated",
+        },
+        {"from": "INTERVIEW", "on_decision": "proceed_service", "to": "CLOSING"},
+    )
+    start = apply(initial_state(), ["A03"], case, "A").state
+    assert start.risk_state == "recognized"
+
+    r = commit_decision(start, "refer", case, "A")
+    assert r.state.risk_state == "escalated"
+    change = [e for e in r.events if e.type == "RISK_STATE_CHANGED"]
+    assert [e.payload for e in change] == [{"from": "recognized", "to": "escalated"}]
+    assert types(r.events) == ["DECISION_COMMITTED", "RISK_STATE_CHANGED", "PHASE_CHANGED"]
+
+    # a rule without set_risk_state leaves it alone, and an unchanged value emits nothing
+    other = commit_decision(start, "proceed_service", case, "A")
+    assert other.state.risk_state == "recognized" and "RISK_STATE_CHANGED" not in types(
+        other.events
+    )
+
+
+def test_decision_risk_rule_may_exist_without_a_phase_change() -> None:
+    case = _with_decision_rules(
+        {"from": "INTERVIEW", "on_decision": "refer", "set_risk_state": "escalated"},
+        {"from": "INTERVIEW", "on_decision": "refer", "to": "CLOSING"},
+    )
+    r = commit_decision(interviewing("A01"), "refer", case, "A")
+    assert r.state.risk_state == "escalated" and r.state.phase == "CLOSING"
+
+
+def test_decision_replay_does_not_repeat_the_risk_change() -> None:
+    case = _with_decision_rules(
+        {
+            "from": "INTERVIEW",
+            "on_decision": "refer",
+            "to": "CLOSING",
+            "set_risk_state": "escalated",
+        }
+    )
+    first = commit_decision(interviewing("A01"), "refer", case, "A")
+    again = commit_decision(first.state, "refer", case, "A")
+    assert again.replayed and again.events == () and again.state.risk_state == "escalated"

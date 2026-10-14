@@ -81,6 +81,28 @@ def next_phase(
     return rule.to if rule else None
 
 
+def _risk(
+    risk: RiskState,
+    case: Case,
+    variant: VariantId,
+    phase: Phase,
+    actions: set[str],
+    decision: str | None,
+    idx: int,
+) -> tuple[RiskState, list[Event]]:
+    """First matching rule with `set_risk_state` (action or decision path); event only on change."""
+    for rule in _rules(case, variant, phase):  # the phase the trigger happened in
+        if rule.set_risk_state and _hit(rule, actions, decision):
+            new = cast(RiskState, rule.set_risk_state)  # values checked by validate-content
+            if new == risk:
+                return risk, []
+            event = Event(
+                type="RISK_STATE_CHANGED", turn_idx=idx, payload={"from": risk, "to": new}
+            )
+            return new, [event]
+    return risk, []
+
+
 def _unsafe(
     state: SessionState, case: Case, rule: BranchRule | None, trigger: str, ids: list[str], idx: int
 ) -> tuple[SessionState, list[Event]]:
@@ -137,20 +159,8 @@ def apply(
                 )
             )
 
-    risk = state.risk_state
-    for rule in _rules(case, variant, phase):  # phase the actions happened in
-        if rule.set_risk_state and _hit(rule, asked, None):
-            new_risk = cast(RiskState, rule.set_risk_state)  # values checked by validate-content
-            if new_risk != risk:
-                events.append(
-                    Event(
-                        type="RISK_STATE_CHANGED",
-                        turn_idx=idx,
-                        payload={"from": risk, "to": new_risk},
-                    )
-                )
-                risk = new_risk
-            break
+    risk, risk_events = _risk(state.risk_state, case, variant, phase, asked, None, idx)
+    events += risk_events
 
     step = _step(case, variant, phase, asked, None)
     target = step.to if step else None
@@ -196,13 +206,20 @@ def commit_decision(
             payload={"option_id": option_id, "actions": list(option.maps_to_actions)},
         )
     ]
+    risk, risk_events = _risk(state.risk_state, case, variant, state.phase, set(), option_id, idx)
+    events += risk_events
     rule = _step(case, variant, state.phase, set(), option_id)
     phase: Phase = state.phase
     if rule is not None and rule.to is not None and rule.to != phase:
         events.append(_phase_changed(idx, phase, rule.to, "decision"))
         phase = rule.to
     new_state = state.model_copy(
-        update={"decision": option_id, "fired_action_ids": fired, "phase": phase}
+        update={
+            "decision": option_id,
+            "fired_action_ids": fired,
+            "phase": phase,
+            "risk_state": risk,
+        }
     )
     new_state, unsafe_events = _unsafe(new_state, case, rule, "decision", [option_id], idx)
     return DecisionResult(new_state, (*events, *unsafe_events), False)
