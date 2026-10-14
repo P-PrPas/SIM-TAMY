@@ -561,6 +561,14 @@ CREATE TABLE score_overrides (          -- Could (FR-INS-04)
  "payload": {"actions": [{"id": "A03", "confidence": 0.93, "span": "เลือดที่ออกเป็นยังไงบ้าง"}], "source": "llm"}}
 ```
 
+**สัญญา Event Log ที่ Scoring (`engine/scoring.py`) พึ่งพา — API ต้องบันทึกตามนี้**
+
+1. เรียงตาม `id` ของ event เท่านั้น (ไม่ใช้เวลา)
+2. `ACTIONS_DETECTED.payload.actions` = เฉพาะ action ที่ **ผ่าน confidence policy แล้ว** (`[{"id": ..., ...}]`) และบันทึก **ก่อน** event ของ engine ในเทิร์นเดียวกัน (เพื่อให้ phase ขณะนั้นอ่านได้จาก `PHASE_CHANGED` ก่อนหน้า)
+3. `NOTE_SUBMITTED.payload = {"chars": <จำนวนตัวอักษร>}`
+4. `check.phase` ที่เป็น `INTRO` ถือเป็น `INTERVIEW`
+5. ผล pass/fail ที่อิงสิ่งที่ "ไม่เกิดขึ้น" (เช่น `no_unsafe_action` ผ่าน) ใช้ event สุดท้ายของ log เป็น evidence
+
 ---
 
 # 8. API Specification (v1)

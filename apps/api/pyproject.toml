@@ -37,6 +37,7 @@ app = ["ai/prompts/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]  # lets tests import shared helpers as tests.unit...
 addopts = "-ra"
 
 [tool.ruff]

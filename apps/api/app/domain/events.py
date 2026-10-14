@@ -30,3 +30,9 @@ class Event(BaseModel):
     type: EventType
     turn_idx: int
     payload: dict[str, Any] = {}
+
+
+class LoggedEvent(Event):
+    """An `Event` as stored in the Event Log: has its row id (the order scoring replays in)."""
+
+    id: int
