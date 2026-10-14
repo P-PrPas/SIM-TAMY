@@ -92,8 +92,10 @@ class View:
                 if decision is None:
                     decision = e
                     # the option's linked actions (B01, B02...) count like any fired action
-                    linked = e.payload.get("actions", [])
-                    occurrences += [Occurrence(a, e, phase) for a in linked if isinstance(a, str)]
+                    linked = _need(e, "actions", list) if "actions" in e.payload else []
+                    if not all(isinstance(a, str) for a in linked):
+                        raise MalformedEvent(f"event {e.id} (DECISION_COMMITTED): actions not ids")
+                    occurrences += [Occurrence(a, e, phase) for a in linked]
             elif e.type == "NOTE_SUBMITTED":
                 _need(e, "chars", int)
         return cls(
@@ -175,8 +177,9 @@ def _decision_not(v: View, c: DecisionNot) -> Outcome:
 
 def _within_turns(v: View, c: WithinTurnsAfterFact) -> Outcome:
     d = v.decision
-    shown = [r for f in c.fact_ids if (r := v.reveals.get(f))]
-    if d is None or d.payload["option_id"] != c.decision or len(shown) < len(set(c.fact_ids)):
+    wanted = set(c.fact_ids)  # duplicate ids in the rubric must not count twice
+    shown = [r for f in sorted(wanted) if (r := v.reveals.get(f))]
+    if d is None or d.payload["option_id"] != c.decision or len(shown) < len(wanted):
         return Outcome("fail", 0.0, _unique([*shown, *([d] if d else [])]) or v.end())
     gap = d.turn_idx - max(r.turn_idx for r in shown)
     # every reveal must come before the decision (event order), never after it
