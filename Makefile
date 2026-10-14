@@ -51,8 +51,10 @@ eval:
 	@echo "not implemented: Golden Test Suite (T-070)"; exit 1
 bench:
 	@echo "not implemented: model bench (T-005)"; exit 1
+# Rebuilds the score from the Event Log and diffs it with the stored report (needs DATABASE_URL).
 rescore:
-	@echo "not implemented: rescore SESSION=$(SESSION) (T-062)"; exit 1
+	@test -n "$(SESSION)" || { echo "usage: make rescore SESSION=<id>"; exit 2; }
+	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.rescore $(SESSION)
 stats:
 	@echo "not implemented: latency stats (T-044)"; exit 1
 cost-report:
