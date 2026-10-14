@@ -20,6 +20,15 @@ Local (no Docker) dev: `make install`, then `make lint test validate-content`.
 DB integration tests need Postgres: `docker compose up -d db` (they skip locally if it is down, and fail in CI).
 Requires GNU make and a POSIX shell (Git Bash / WSL on Windows), Python 3.11+, Node 22+.
 
+Until the sessions API is implemented, run the S1–S3 web flow against the OpenAPI Prism mock in separate terminals:
+
+```bash
+make mock-api
+NEXT_PUBLIC_API_URL=http://localhost:4010 npm --prefix apps/web run dev
+```
+
+The web app stores the anonymous session token in the current tab's `sessionStorage`. The decision button is present but disabled until the S4 decision-panel ticket is implemented.
+
 ## Layout
 
 | Path | What |
