@@ -27,8 +27,13 @@ from app.domain.rubric import (
     Rubric,
     RubricItem,
     WithinTurnsAfterFact,
+    rubric_problems,
 )
 from app.domain.scoring import CompetencyScore, Evidence, ItemResult, Result, Scoring
+
+
+class InvalidRubric(ValueError):
+    """The rubric breaks a rule `validate-content` enforces (negative weight, duplicate ids...)."""
 
 
 class MalformedEvent(ValueError):
@@ -254,6 +259,9 @@ def score(
     log: Sequence[LoggedEvent], rubric: Rubric, actions: Sequence[Action], variant: VariantId
 ) -> Scoring:
     """PRD 10.3. Safety is a gate: a failed critical item means SAFETY_NOT_MET at any total."""
+    problems = rubric_problems(rubric)
+    if problems:  # validate-content may not have run: refuse to score, never mis-score
+        raise InvalidRubric("; ".join(f"{path}: {msg}" for path, msg in problems))
     view = View.build(log, actions)
     items = tuple(evaluate_item(it, view, variant) for it in rubric.items)
     applicable = [r for r in items if r.result != "na"]
