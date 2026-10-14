@@ -323,6 +323,13 @@ def test_rubric_malformed_event_payloads_raise(
 # ---- applicability ----
 
 
+def test_rubric_a_later_malformed_decision_event_still_raises(dev001: LoadedCase) -> None:
+    ok = (1, "DECISION_COMMITTED", 1, {"option_id": "refer", "actions": []})
+    bad = (2, "DECISION_COMMITTED", 2, {"option_id": "refer", "actions": None})
+    with pytest.raises(MalformedEvent):
+        View.build(_log(ok, bad), dev001.actions)
+
+
 def test_rubric_item_for_another_variant_is_not_applicable(play: NewPlay) -> None:
     r = run(
         play("A").turn("A03"), {"type": "action_present_any", "actions": ["A03"]}, variants=["C"]
