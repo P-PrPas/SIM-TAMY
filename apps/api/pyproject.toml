@@ -24,6 +24,7 @@ dev = [
   "pytest>=8",
   "pytest-cov>=5",
   "types-pyyaml>=6",
+  "openapi-spec-validator>=0.7",  # docs/openapi.yaml must stay a valid spec
   "ruff>=0.6",
   "mypy>=1.11",
 ]

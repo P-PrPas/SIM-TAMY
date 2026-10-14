@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate lint test validate-content eval bench rescore stats cost-report purge-old demo
+.PHONY: help install up down migrate mock-api gen-api lint test validate-content eval bench rescore stats cost-report purge-old demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -27,6 +27,13 @@ down:
 
 migrate:
 	docker compose run --rm api alembic upgrade head
+
+# Prism serves docs/openapi.yaml on :4010 so the web app can be built before the backend exists.
+mock-api:
+	npx --yes @stoplight/prism-cli mock -p 4010 -h 127.0.0.1 docs/openapi.yaml
+
+gen-api:
+	cd $(WEB) && npm run gen:api
 
 lint:
 	cd $(API) && ../../$(PY) -m ruff check . && ../../$(PY) -m ruff format --check . && ../../$(PY) -m mypy app
