@@ -114,3 +114,38 @@ class Rubric(Model):
         if total != 100:
             raise ValueError(f"competency weights must sum to 100, got {total}")
         return self
+
+
+def rubric_problems(rubric: Rubric) -> list[tuple[str, str]]:
+    """(path, message) for every reason this rubric must not be scored or published.
+
+    Shared by `validate-content` and by `engine.scoring.score`, so the checks cannot be skipped
+    by loading a case without validating it. The Pydantic models stay as they are; these are
+    value rules, not schema shape.
+    """
+    problems: list[tuple[str, str]] = []
+    competency_ids: set[str] = set()
+    for n, c in enumerate(rubric.competencies):
+        if c.weight < 0:
+            problems.append(
+                (f"competencies.{n}.weight", f"weight must not be negative ({c.weight})")
+            )
+        if c.id in competency_ids:
+            problems.append((f"competencies.{n}.id", f"duplicate competency id {c.id!r}"))
+        competency_ids.add(c.id)
+    item_ids: set[str] = set()
+    for n, item in enumerate(rubric.items):
+        if item.id in item_ids:
+            problems.append((f"items.{n}.id", f"duplicate item id {item.id!r}"))
+        item_ids.add(item.id)
+        if item.competency not in competency_ids:
+            problems.append((f"items.{n}.competency", f"unknown competency {item.competency!r}"))
+        if item.critical and isinstance(item.check, ActionPresentAll | CountAtLeast):
+            problems.append(
+                (
+                    f"items.{n}.check",
+                    "a critical item cannot use a partial-credit check "
+                    f"({item.check.type}): the Critical Safety gate only trips on fail",
+                )
+            )
+    return problems
