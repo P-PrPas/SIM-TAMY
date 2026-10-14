@@ -4,11 +4,13 @@ import random
 from collections.abc import Callable
 from typing import Any
 
+import pytest
+
 from app.content.loader import LoadedCase
 from app.domain.case import VariantId
 from app.domain.scoring import ItemResult
-from app.engine.findings import build_findings
-from app.engine.scoring import score
+from app.engine.findings import DuplicateResult, build_findings
+from app.engine.scoring import InvalidRubric, score
 from tests.unit.engine.play import Play
 
 NewPlay = Callable[[VariantId], Play]
@@ -111,3 +113,43 @@ def test_findings_never_invent_references(play: NewPlay, dev001: LoadedCase) -> 
 
     improve = [f for f in build_findings(results, stripped) if f.polarity == "improve"]
     assert improve and all(f.reference_ids == () for f in improve)  # content gap stays visible
+
+
+def test_findings_duplicate_rubric_item_ids_are_rejected_not_silently_overwritten(
+    play: NewPlay, dev001: LoadedCase
+) -> None:
+    first, second = dev001.rubric.items[0], dev001.rubric.items[0].model_copy()
+    rubric = dev001.rubric.model_copy(update={"items": (first, second)})
+    fail = ItemResult(
+        id=first.id,
+        competency=first.competency,
+        result="fail",
+        points=10,
+        earned=0.0,
+        critical=False,
+    )
+    ok = ItemResult(
+        id=first.id,
+        competency=first.competency,
+        result="pass",
+        points=10,
+        earned=10.0,
+        critical=False,
+    )
+
+    # the reviewed repro: [fail, pass] used to come back as [strength, strength]
+    with pytest.raises(InvalidRubric, match="duplicate item id"):
+        build_findings([fail, ok], rubric)
+
+
+def test_findings_duplicate_results_for_one_item_are_rejected(
+    play: NewPlay, dev001: LoadedCase
+) -> None:
+    item = dev001.rubric.items[0]
+    base = {"competency": item.competency, "points": 10, "critical": False}
+    fail = ItemResult(id=item.id, result="fail", earned=0.0, **base)
+    ok = ItemResult(id=item.id, result="pass", earned=10.0, **base)
+
+    with pytest.raises(DuplicateResult, match=item.id):
+        build_findings([fail, ok], dev001.rubric)
+    assert len(build_findings([fail], dev001.rubric)) == 1  # a single result is fine

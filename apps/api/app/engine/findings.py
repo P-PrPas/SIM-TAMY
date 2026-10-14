@@ -6,11 +6,22 @@ Text and references come from the case; nothing is invented here, and the LLM ne
 
 from collections.abc import Sequence
 
-from app.domain.rubric import Rubric
+from app.domain.rubric import Rubric, rubric_problems
 from app.domain.scoring import Finding, ItemResult
+from app.engine.scoring import InvalidRubric
+
+
+class DuplicateResult(ValueError):
+    """Two results for one rubric item: one would silently hide the other."""
 
 
 def build_findings(results: Sequence[ItemResult], rubric: Rubric) -> tuple[Finding, ...]:
+    problems = rubric_problems(rubric)
+    if problems:  # duplicate item ids would let a later result overwrite an earlier one
+        raise InvalidRubric("; ".join(f"{path}: {msg}" for path, msg in problems))
+    ids = [r.id for r in results]
+    if duplicated := sorted({i for i in ids if ids.count(i) > 1}):
+        raise DuplicateResult(f"more than one result for rubric item(s): {', '.join(duplicated)}")
     by_id = {r.id: r for r in results}
     findings: list[Finding] = []
     for item in rubric.items:
