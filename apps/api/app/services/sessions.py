@@ -1,9 +1,12 @@
 """Session lifecycle: create, view, liveness (PRD 8, API_DESIGN 5)."""
 
 import logging
+import uuid
 from datetime import UTC, datetime
 
+import psycopg.errors
 from sqlalchemy import select
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from app.api.deps import safe_case_id
@@ -49,6 +52,17 @@ def pinned_case(store: ContentStore, row: LearnerSession) -> LoadedCase:
         log.error("session %s: case %s version %s is gone", row.id, row.case_id, row.case_hash)
         raise ApiError("INTERNAL_ERROR", "the case changed while this session was open")
     return loaded
+
+
+def lock_session(db: Session, session_id: uuid.UUID) -> LearnerSession:
+    try:
+        row = SessionRepo(db).get(session_id, for_update=True, nowait=True)
+    except OperationalError as exc:
+        if isinstance(exc.orig, psycopg.errors.LockNotAvailable):
+            raise ApiError("TURN_IN_PROGRESS", "another turn is still being processed") from exc
+        raise
+    assert row is not None  # the caller authenticated this session a moment ago
+    return row
 
 
 def ensure_alive(db: Session, row: LearnerSession) -> None:

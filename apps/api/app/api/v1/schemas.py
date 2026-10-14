@@ -194,3 +194,243 @@ class TurnResponse(BaseModel):
     turns_remaining: int
     degraded: bool
     glassbox: LiveGlassBox | None = None
+
+
+class DecisionRequest(BaseModel):
+    option_id: str
+    rationale_th: Annotated[str, StringConstraints(max_length=300)] | None = None
+
+
+_DECISION_SCHEMA = {
+    "type": "object",
+    "required": ["option_id", "committed_at_idx"],
+    "properties": {"option_id": {"type": "string"}, "committed_at_idx": {"type": "integer"}},
+}
+
+
+class DecisionRecord(BaseModel):
+    option_id: str
+    committed_at_idx: int
+
+
+class DecisionResponse(BaseModel):
+    phase: Phase
+    decision: Annotated[DecisionRecord, WithJsonSchema(_DECISION_SCHEMA)]
+    replies: list[Reply]
+    pressure_turns_allowed: int | None = None
+
+
+class CompleteRequest(BaseModel):
+    note_th: Annotated[str, StringConstraints(max_length=500)] | None = None
+
+
+class CompleteResponse(BaseModel):
+    status: Annotated[
+        Literal["completed"], WithJsonSchema({"type": "string", "enum": ["completed"]})
+    ]
+    report_ready: bool
+    report_url: str
+
+
+# ---------- Report ----------
+
+
+class EventType(StrEnum):
+    SESSION_STARTED = "SESSION_STARTED"
+    LEARNER_MESSAGE = "LEARNER_MESSAGE"
+    ACTIONS_DETECTED = "ACTIONS_DETECTED"
+    ACTION_REPEATED = "ACTION_REPEATED"
+    CLARIFICATION_ASKED = "CLARIFICATION_ASKED"
+    FACT_REVEALED = "FACT_REVEALED"
+    RISK_STATE_CHANGED = "RISK_STATE_CHANGED"
+    PHASE_CHANGED = "PHASE_CHANGED"
+    DECISION_COMMITTED = "DECISION_COMMITTED"
+    UNSAFE_ACTION = "UNSAFE_ACTION"
+    PRESSURE_STARTED = "PRESSURE_STARTED"
+    PRESSURE_RESOLVED = "PRESSURE_RESOLVED"
+    NOTE_SUBMITTED = "NOTE_SUBMITTED"
+    VALIDATOR_REJECTED = "VALIDATOR_REJECTED"
+    LLM_FALLBACK_USED = "LLM_FALLBACK_USED"
+    SESSION_COMPLETED = "SESSION_COMPLETED"
+
+
+class SafetyStatus(StrEnum):
+    SAFETY_MET = "SAFETY_MET"
+    SAFETY_NOT_MET = "SAFETY_NOT_MET"
+
+
+class ItemResultValue(StrEnum):
+    PASS = "pass"
+    FAIL = "fail"
+    PARTIAL = "partial"
+    NA = "na"
+
+
+class Evidence(BaseModel):
+    event_id: int
+    turn_idx: int
+    type: EventType
+
+
+class CompetencyScore(BaseModel):
+    id: Literal["HX", "RISK", "DEC", "ESC", "COMM", "DOC"]
+    name_th: str
+    weight: float
+    score_pct: Annotated[float, Field(ge=0, le=100)]
+    earned: float
+    possible: float
+
+
+class ItemResult(BaseModel):
+    id: str
+    competency: str
+    label_th: str | None = None
+    result: ItemResultValue
+    points: float
+    earned: float
+    critical: bool
+    evidence: list[Evidence]
+    finding_id: str | None = None
+
+
+class Finding(BaseModel):
+    id: str
+    polarity: Literal["strength", "improve"]
+    rubric_item_id: str
+    text_th: str
+    evidence_refs: list[int]
+    reference_ids: list[str] = []
+
+
+class DebriefParagraph(BaseModel):
+    finding_ids: list[str]
+    text_th: str
+
+
+class Debrief(BaseModel):
+    source: Literal["llm", "template"]
+    paragraphs: list[DebriefParagraph]
+
+
+class TimelineEntry(BaseModel):
+    event_id: int
+    turn_idx: int
+    type: EventType
+    summary_th: str
+
+
+_RISK_POINT_SCHEMA = {
+    "type": "object",
+    "required": ["turn_idx", "risk_state"],
+    "properties": {
+        "turn_idx": {"type": "integer"},
+        "risk_state": {"$ref": "#/components/schemas/RiskState"},
+    },
+}
+_LEARNER_ACTION_SCHEMA = {
+    "type": "object",
+    "required": ["turn_idx", "action_id", "label_th", "repeated"],
+    "properties": {
+        "turn_idx": {"type": "integer"},
+        "action_id": {"type": "string"},
+        "label_th": {"type": "string"},
+        "repeated": {"type": "boolean"},
+    },
+}
+
+
+class RiskPoint(BaseModel):
+    turn_idx: int
+    risk_state: RiskState
+
+
+class LearnerAction(BaseModel):
+    turn_idx: int
+    action_id: str
+    label_th: str
+    repeated: bool
+
+
+class GlassBoxReport(BaseModel):
+    facts: list[Fact]
+    risk_state_timeline: list[Annotated[RiskPoint, WithJsonSchema(_RISK_POINT_SCHEMA)]]
+    learner_actions: list[Annotated[LearnerAction, WithJsonSchema(_LEARNER_ACTION_SCHEMA)]]
+
+
+class MissedOpportunity(BaseModel):
+    turn_idx: int
+    fact_id: str
+    note_th: str
+
+
+class ReplayReport(BaseModel):
+    terminal_state: str
+    timeline_th: list[str]
+    missed_opportunities: list[MissedOpportunity]
+    disclaimer_th: str
+
+
+class Reference(BaseModel):
+    id: str
+    title_th: str
+    locator: str | None = None
+
+
+class Override(BaseModel):
+    id: int
+    rubric_item_id: str
+    original_result: ItemResultValue
+    new_result: Literal["pass", "fail", "partial"]
+    new_earned: float | None = None
+    reason: str
+    created_at: datetime
+
+
+class EffectiveScore(BaseModel):
+    safety_status: SafetyStatus
+    total_score: float
+
+
+class ReportCase(BaseModel):
+    case_id: str
+    version: str
+    hash: str
+    status: CaseStatus
+    status_label_th: str
+    title_th: str
+
+
+_REPORT_CASE_SCHEMA = {
+    "type": "object",
+    "required": ["case_id", "version", "hash", "status", "status_label_th", "title_th"],
+    "properties": {
+        "case_id": {"type": "string"},
+        "version": {"type": "string"},
+        "hash": {"type": "string"},
+        "status": {"$ref": "#/components/schemas/CaseStatus"},
+        "status_label_th": {"type": "string"},
+        "title_th": {"type": "string"},
+    },
+}
+
+
+class ReportResponse(BaseModel):
+    session_id: uuid.UUID
+    generated_at: datetime
+    engine_version: str
+    rubric_version: str
+    case: Annotated[ReportCase, WithJsonSchema(_REPORT_CASE_SCHEMA)]
+    variant: Variant
+    safety_status: SafetyStatus
+    total_score: Annotated[float, Field(ge=0, le=100)]
+    competencies: list[CompetencyScore]
+    items: list[ItemResult]
+    findings: list[Finding]
+    debrief: Debrief
+    timeline: list[TimelineEntry]
+    glassbox: GlassBoxReport
+    replay: ReplayReport
+    references: list[Reference]
+    overrides: list[Override]
+    effective: EffectiveScore
+    disclaimers: list[str]

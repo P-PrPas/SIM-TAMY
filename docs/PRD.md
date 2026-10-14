@@ -581,6 +581,9 @@ CREATE TABLE score_overrides (          -- Could (FR-INS-04)
 | `CLARIFICATION_ASKED` | `{candidates: [action id ในช่วง 0.5–0.75]}` |
 | `VALIDATOR_REJECTED` | `{attempt, rules: [...]}` ไม่เก็บข้อความที่ถูกปฏิเสธ |
 | `LLM_FALLBACK_USED` | `{component: "interpreter" \| "generator" \| "validator"}` |
+| `DECISION_COMMITTED` | `{option_id, actions, rationale_th?}` (`rationale_th` เป็น key เพิ่ม scoring ไม่อ่าน) |
+| `NOTE_SUBMITTED` | `{chars, note_th}` (เฉพาะเมื่อผู้เรียนส่งสรุป; `chars` คือที่ scoring อ่าน) |
+| `PHASE_CHANGED` (จบเคส) | `{from: "CLOSING", to: "COMPLETED", trigger: "complete"}` ตามด้วย `SESSION_COMPLETED` `{}` |
 
 ---
 

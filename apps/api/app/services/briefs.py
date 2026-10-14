@@ -41,6 +41,10 @@ def _ui() -> dict[str, Any]:
     return loaded
 
 
+def timeline_labels() -> dict[str, str]:
+    return dict(_ui()["timeline"])
+
+
 def status_label(status: str) -> str:
     return str(_ui()["status_labels"][status])
 
