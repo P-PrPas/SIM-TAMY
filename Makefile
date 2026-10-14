@@ -40,7 +40,7 @@ lint:
 	cd $(WEB) && npm run lint && npm run typecheck
 
 test:
-	cd $(API) && ../../$(PY) -m pytest
+	cd $(API) && ../../$(PY) -m pytest --cov=app && ../../$(PY) -m coverage report --include='app/engine/*' --fail-under=85
 	cd $(WEB) && npm test
 
 # STRICT=1 will also require `source` on clinical items (T-010).
