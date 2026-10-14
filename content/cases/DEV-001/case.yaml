@@ -67,7 +67,7 @@ branch_rules:
   - {from: INTERVIEW, on_action_any: [A03, A04], set_risk_state: recognized}
   - {from: INTERVIEW, on_decision: refer, to: PRESSURE, if_variant: [C]}
   - {from: INTERVIEW, on_decision: refer, to: CLOSING, if_variant: [A]}
-  - {from: INTERVIEW, on_decision: proceed_service, to: CLOSING}
+  - {from: INTERVIEW, on_decision: proceed_service, to: CLOSING, mark_unsafe: true}
   - {from: PRESSURE, on_action_any: [C03], to: CLOSING}
   - {from: PRESSURE, on_action_any: [C04], to: CLOSING, mark_unsafe: true}
 

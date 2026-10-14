@@ -4,6 +4,8 @@
 fire/repeat actions, reveal hidden facts, set risk state, one phase step. Rules come from the
 case's `branch_rules`; the first matching rule in file order wins.
 `CLOSING -> COMPLETED` is session completion (FR-SES-04), not an engine step.
+`commit_decision` is the Decision Panel path (FR-ENG-03). Unsafe (FR-ENG-04): the rule that moves
+the phase has `mark_unsafe` and a critical hidden fact was already revealed.
 """
 
 from collections.abc import Sequence
@@ -12,6 +14,28 @@ from typing import NamedTuple, cast
 from app.domain.case import BranchRule, Case, HiddenFact, Phase, VariantId
 from app.domain.events import Event
 from app.domain.state import AllowedFact, AllowedFacts, RiskState, SessionState
+
+
+class EngineError(Exception):
+    code = "ENGINE_ERROR"  # API error code (API_DESIGN section 9); T-040 maps it
+
+
+class InvalidPhase(EngineError):
+    code = "INVALID_PHASE"
+
+
+class DecisionAlreadyCommitted(EngineError):
+    code = "DECISION_ALREADY_COMMITTED"
+
+
+class DecisionOptionInvalid(EngineError):
+    code = "DECISION_OPTION_INVALID"
+
+
+class DecisionResult(NamedTuple):
+    state: SessionState
+    events: tuple[Event, ...]
+    replayed: bool  # same option committed again: nothing changed
 
 
 class ApplyResult(NamedTuple):
@@ -34,6 +58,16 @@ def _hit(rule: BranchRule, actions: set[str], decision: str | None) -> bool:
     return by_action or (rule.on_decision is not None and rule.on_decision == decision)
 
 
+def _step(
+    case: Case, variant: VariantId, phase: Phase, actions: set[str], decision: str | None
+) -> BranchRule | None:
+    """First matching rule that moves the phase."""
+    for rule in _rules(case, variant, phase):
+        if rule.to is not None and _hit(rule, actions, decision):
+            return rule
+    return None
+
+
 def next_phase(
     case: Case,
     variant: VariantId,
@@ -42,12 +76,31 @@ def next_phase(
     actions: Sequence[str] = (),
     decision: str | None = None,
 ) -> Phase | None:
-    """Target phase of the first matching rule, or None. Shared with the decision path (T-022)."""
-    fired = set(actions)
-    for rule in _rules(case, variant, phase):
-        if rule.to is not None and _hit(rule, fired, decision):
-            return rule.to
-    return None
+    """Target phase of the first matching rule, or None."""
+    rule = _step(case, variant, phase, set(actions), decision)
+    return rule.to if rule else None
+
+
+def _unsafe(
+    state: SessionState, case: Case, rule: BranchRule | None, trigger: str, ids: list[str], idx: int
+) -> tuple[SessionState, list[Event]]:
+    """UNSAFE_ACTION when `rule` is marked unsafe and a critical hidden fact is already revealed."""
+    critical = [
+        f.id
+        for f in case.facts
+        if isinstance(f, HiddenFact)
+        and f.risk_relevance == "critical"
+        and f.id in state.revealed_fact_ids
+    ]
+    if rule is None or not rule.mark_unsafe or not critical:
+        return state, []
+    flags = state.flags.model_copy(update={"unsafe_actions": (*state.flags.unsafe_actions, *ids)})
+    event = Event(
+        type="UNSAFE_ACTION",
+        turn_idx=idx,
+        payload={"trigger": trigger, "ids": ids, "fact_ids": critical},
+    )
+    return state.model_copy(update={"flags": flags}), [event]
 
 
 def apply(
@@ -99,7 +152,8 @@ def apply(
                 risk = new_risk
             break
 
-    target = next_phase(case, variant, phase, actions=detected)
+    step = _step(case, variant, phase, asked, None)
+    target = step.to if step else None
     if target is not None and target != phase:
         events.append(_phase_changed(idx, phase, target, "action"))
         phase = target
@@ -113,8 +167,45 @@ def apply(
             "risk_state": risk,
         }
     )
+    hit = [a for a in detected if step and step.on_action_any and a in step.on_action_any]
+    new_state, unsafe_events = _unsafe(new_state, case, step, "action", hit, idx)
     allowed = _allowed_facts(case, revealed, asked, new_facts)
-    return ApplyResult(new_state, tuple(events), allowed)
+    return ApplyResult(new_state, (*events, *unsafe_events), allowed)
+
+
+def commit_decision(
+    state: SessionState, option_id: str, case: Case, variant: VariantId
+) -> DecisionResult:
+    """Decision Panel commit (never inferred from chat text). Final; the same option is a no-op."""
+    if state.decision is not None:
+        if state.decision == option_id:
+            return DecisionResult(state, (), True)
+        raise DecisionAlreadyCommitted(state.decision)
+    if state.phase != "INTERVIEW":
+        raise InvalidPhase(state.phase)
+    option = next((o for o in case.decision_options if o.id == option_id), None)
+    if option is None:
+        raise DecisionOptionInvalid(option_id)
+
+    idx = state.turn_idx  # a decision does not consume a learner turn
+    fired = tuple(dict.fromkeys((*state.fired_action_ids, *option.maps_to_actions)))
+    events = [
+        Event(
+            type="DECISION_COMMITTED",
+            turn_idx=idx,
+            payload={"option_id": option_id, "actions": list(option.maps_to_actions)},
+        )
+    ]
+    rule = _step(case, variant, state.phase, set(), option_id)
+    phase: Phase = state.phase
+    if rule is not None and rule.to is not None and rule.to != phase:
+        events.append(_phase_changed(idx, phase, rule.to, "decision"))
+        phase = rule.to
+    new_state = state.model_copy(
+        update={"decision": option_id, "fired_action_ids": fired, "phase": phase}
+    )
+    new_state, unsafe_events = _unsafe(new_state, case, rule, "decision", [option_id], idx)
+    return DecisionResult(new_state, (*events, *unsafe_events), False)
 
 
 def _allowed_facts(
