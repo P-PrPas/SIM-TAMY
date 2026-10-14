@@ -9,7 +9,7 @@ the evidence is the end of the observed log (the last event), so it is never emp
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from app.domain.action import Action
 from app.domain.case import VariantId
@@ -28,6 +28,17 @@ from app.domain.rubric import (
     WithinTurnsAfterFact,
 )
 from app.domain.scoring import Evidence, ItemResult, Result
+
+
+class MalformedEvent(ValueError):
+    """A logged event lacks a payload field the contract promises (PRD 7.5)."""
+
+
+def _need(e: LoggedEvent, key: str, kind: type) -> Any:
+    value = e.payload.get(key)
+    if not isinstance(value, kind) or isinstance(value, bool) and kind is int:
+        raise MalformedEvent(f"event {e.id} ({e.type}): payload.{key} must be {kind.__name__}")
+    return value
 
 
 class Occurrence(NamedTuple):
@@ -61,13 +72,24 @@ class View:
         decision: LoggedEvent | None = None
         for e in events:
             if e.type == "PHASE_CHANGED":
-                phase = "INTERVIEW" if e.payload["to"] == "INTRO" else e.payload["to"]
+                to = _need(e, "to", str)
+                phase = "INTERVIEW" if to == "INTRO" else to
             elif e.type == "ACTIONS_DETECTED":
-                occurrences += [Occurrence(a["id"], e, phase) for a in e.payload["actions"]]
+                for a in _need(e, "actions", list):
+                    if not isinstance(a, dict) or not isinstance(a.get("id"), str):
+                        raise MalformedEvent(f"event {e.id} (ACTIONS_DETECTED): action without id")
+                    occurrences.append(Occurrence(a["id"], e, phase))
             elif e.type == "FACT_REVEALED":
-                reveals.setdefault(e.payload["id"], e)
-            elif e.type == "DECISION_COMMITTED" and decision is None:
-                decision = e
+                reveals.setdefault(_need(e, "id", str), e)
+            elif e.type == "DECISION_COMMITTED":
+                _need(e, "option_id", str)
+                if decision is None:
+                    decision = e
+                    # the option's linked actions (B01, B02...) count like any fired action
+                    linked = e.payload.get("actions", [])
+                    occurrences += [Occurrence(a, e, phase) for a in linked if isinstance(a, str)]
+            elif e.type == "NOTE_SUBMITTED":
+                _need(e, "chars", int)
         return cls(
             events, {a.id: a.category for a in actions}, tuple(occurrences), reveals, decision
         )
@@ -119,7 +141,7 @@ def _absent(v: View, c: ActionAbsent) -> Outcome:
 def _before(v: View, c: ActionBefore) -> Outcome:
     a, b = v.first(c.first), v.first(c.then)
     seen = _unique([o.event for o in (a, b) if o]) or v.end()
-    if a and b and a.event.turn_idx < b.event.turn_idx:
+    if a and b and a.event.id < b.event.id:  # two actions in one message are not "before"
         return Outcome("pass", 1.0, seen)
     return Outcome("fail", 0.0, seen)
 
@@ -151,9 +173,9 @@ def _within_turns(v: View, c: WithinTurnsAfterFact) -> Outcome:
     if d is None or d.payload["option_id"] != c.decision or len(shown) < len(set(c.fact_ids)):
         return Outcome("fail", 0.0, _unique([*shown, *([d] if d else [])]) or v.end())
     gap = d.turn_idx - max(r.turn_idx for r in shown)
-    return Outcome(
-        "pass" if gap <= c.max_turns else "fail", float(gap <= c.max_turns), _unique([*shown, d])
-    )
+    # every reveal must come before the decision (event order), never after it
+    timely = all(r.id < d.id for r in shown) and 0 <= gap <= c.max_turns
+    return Outcome("pass" if timely else "fail", float(timely), _unique([*shown, d]))
 
 
 def _count(v: View, c: CountAtLeast) -> Outcome:
