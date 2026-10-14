@@ -10,9 +10,10 @@ from hypothesis import strategies as st
 
 from app.content.loader import LoadedCase, load_case
 from app.domain.case import VariantId
+from app.domain.events import LoggedEvent
 from app.domain.rubric import RubricItem
 from app.domain.scoring import ItemResult
-from app.engine.scoring import View, evaluate_item
+from app.engine.scoring import MalformedEvent, View, evaluate_item
 from tests.unit.engine.play import Play
 
 NewPlay = Callable[[VariantId], Play]
@@ -222,6 +223,88 @@ def test_rubric_note_submitted(play: NewPlay) -> None:
     none = run(play("A").turn("A03"), check)
     assert none.result == "fail" and none.evidence
     assert run(play("A").note(1), {"type": "note_submitted"}).result == "pass"  # default min 1
+
+
+# ---- actions linked to the Decision Panel option count like any other action ----
+
+
+def test_rubric_decision_option_actions_are_evaluated(play: NewPlay) -> None:
+    p = play("A").turn("A01").turn("A03").decide("refer").complete()
+    assert {"B01", "B02"} <= set(p.state.fired_action_ids)  # the engine fired them
+
+    both = run(p, {"type": "action_present_all", "actions": ["B01", "B02"]})
+    assert both.result == "pass" and types(both) == ["DECISION_COMMITTED"]
+    assert run(p, {"type": "action_present_any", "actions": ["B02"]}).result == "pass"
+    assert run(p, {"type": "count_at_least", "category": "DEC", "n": 2}).result == "pass"
+    assert run(p, {"type": "action_absent", "actions": ["B03"]}).result == "pass"
+    assert run(p, {"type": "action_absent", "actions": ["B01"]}).result == "fail"
+    # recorded in the phase the decision was taken in, before the phase moved on
+    in_interview = {"type": "action_present_any", "actions": ["B01"], "phase": "INTERVIEW"}
+    assert run(p, in_interview).result == "pass"
+
+
+def test_rubric_action_before_a_decision_action_in_the_same_turn(play: NewPlay) -> None:
+    p = play("A").turn("A03").decide("refer")  # A03 and B01 share turn 1, in different events
+    assert run(p, {"type": "action_before", "first": "A03", "then": "B01"}).result == "pass"
+    assert run(p, {"type": "action_before", "first": "B01", "then": "A03"}).result == "fail"
+
+
+def test_rubric_proceed_option_action_is_seen_too(play: NewPlay) -> None:
+    p = play("A").turn("A03").decide("proceed_service")
+    assert run(p, {"type": "action_present_any", "actions": ["B03"]}).result == "pass"
+
+
+# ---- within_turns_after_fact: reveals after the decision never count ----
+
+
+def test_rubric_within_turns_rejects_a_fact_revealed_after_the_decision(play: NewPlay) -> None:
+    late = play("A").turn("A03").decide("refer").turn("A04")  # H2 appears after the decision
+    out = run(late, _timing())
+    assert out.result == "fail"
+    assert types(out) == ["FACT_REVEALED", "DECISION_COMMITTED", "FACT_REVEALED"]  # event order
+
+
+def _log(*rows: tuple[int, str, int, dict[str, Any]]) -> list[LoggedEvent]:
+    return [LoggedEvent(id=i, type=t, turn_idx=n, payload=pl) for i, t, n, pl in rows]  # type: ignore[arg-type]
+
+
+def test_rubric_within_turns_hand_made_orderings(dev001: LoadedCase) -> None:
+    item_ = item(_timing())
+    decide = (5, "DECISION_COMMITTED", 2, {"option_id": "refer", "actions": []})
+
+    def result(*rows: tuple[int, str, int, dict[str, Any]]) -> str:
+        view = View.build(_log(*rows), dev001.actions)
+        return evaluate_item(item_, view, "A").result
+
+    h1 = (1, "FACT_REVEALED", 1, {"id": "H1"})
+    h2_before = (4, "FACT_REVEALED", 2, {"id": "H2"})
+    assert result(h1, h2_before, decide) == "pass"  # both before, gap 0
+    h2_after_same_turn = (6, "FACT_REVEALED", 2, {"id": "H2"})  # same turn index, later event
+    assert result(h1, decide, h2_after_same_turn) == "fail"
+    h2_future_turn = (4, "FACT_REVEALED", 3, {"id": "H2"})  # inconsistent log: negative gap
+    assert result(h1, h2_future_turn, decide) == "fail"
+
+
+# ---- malformed events are rejected loudly, never mis-scored ----
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        (1, "DECISION_COMMITTED", 1, {}),
+        (1, "ACTIONS_DETECTED", 1, {"actions": "A03"}),
+        (1, "ACTIONS_DETECTED", 1, {"actions": [{"confidence": 0.9}]}),
+        (1, "PHASE_CHANGED", 1, {"from": "INTERVIEW"}),
+        (1, "FACT_REVEALED", 1, {}),
+        (1, "NOTE_SUBMITTED", 1, {"chars": "many"}),
+        (1, "NOTE_SUBMITTED", 1, {"chars": True}),
+    ],
+)
+def test_rubric_malformed_event_payloads_raise(
+    dev001: LoadedCase, bad: tuple[int, str, int, dict[str, Any]]
+) -> None:
+    with pytest.raises(MalformedEvent):
+        View.build(_log(bad), dev001.actions)
 
 
 # ---- applicability ----
