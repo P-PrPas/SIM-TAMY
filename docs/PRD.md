@@ -571,6 +571,17 @@ CREATE TABLE score_overrides (          -- Could (FR-INS-04)
    - payload ที่ขาด/ผิดชนิด (เช่น `DECISION_COMMITTED {}`) ทำให้ scoring raise `MalformedEvent` ไม่ให้คะแนนจาก log ที่เสีย
 5. ผล pass/fail ที่อิงสิ่งที่ "ไม่เกิดขึ้น" (เช่น `no_unsafe_action` ผ่าน) ใช้ event สุดท้ายของ log เป็น evidence
 
+**Payload ที่ API (T-040) บันทึกในแต่ละ turn** (ลำดับต่อ turn: `LEARNER_MESSAGE`, `ACTIONS_DETECTED`, `CLARIFICATION_ASKED`?, event ของ engine, `LLM_FALLBACK_USED`?, `VALIDATOR_REJECTED`*, `LLM_FALLBACK_USED`?)
+
+| Event | payload |
+|---|---|
+| `SESSION_STARTED` (turn 0) | `{case_id, case_hash, variant}` |
+| `LEARNER_MESSAGE` | `{chars}` (ข้อความจริงอยู่ในตาราง `turns` ไม่ซ้ำใน event) |
+| `ACTIONS_DETECTED` | `{actions: [{id, confidence, span}], source: "llm" \| "lexical"}` เฉพาะที่ผ่าน confidence policy |
+| `CLARIFICATION_ASKED` | `{candidates: [action id ในช่วง 0.5–0.75]}` |
+| `VALIDATOR_REJECTED` | `{attempt, rules: [...]}` ไม่เก็บข้อความที่ถูกปฏิเสธ |
+| `LLM_FALLBACK_USED` | `{component: "interpreter" \| "generator" \| "validator"}` |
+
 ---
 
 # 8. API Specification (v1)

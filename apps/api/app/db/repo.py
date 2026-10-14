@@ -121,6 +121,12 @@ class TurnRepo:
         ).scalar_one()
         return existing, False
 
+    def find_by_client_id(self, session_id: uuid.UUID, client_turn_id: str) -> Turn | None:
+        stmt = select(Turn).where(
+            Turn.session_id == session_id, Turn.client_turn_id == client_turn_id
+        )
+        return self.db.execute(stmt).scalar_one_or_none()
+
     def list_for_session(self, session_id: uuid.UUID) -> list[Turn]:
         stmt = select(Turn).where(Turn.session_id == session_id).order_by(Turn.id)
         return list(self.db.execute(stmt).scalars())

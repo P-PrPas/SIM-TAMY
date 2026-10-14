@@ -108,6 +108,12 @@ class CreateSessionResponse(BaseModel):
     notices: list[Notice]
 
 
+class RiskState(StrEnum):
+    UNRECOGNIZED = "unrecognized"
+    RECOGNIZED = "recognized"
+    ESCALATED = "escalated"
+
+
 class Message(BaseModel):
     idx: Annotated[int, Field(ge=0)]
     speaker: Speaker
@@ -153,3 +159,38 @@ class SessionView(BaseModel):
     limits: Limits
     created_at: datetime
     last_activity_at: datetime
+
+
+class TurnRequest(BaseModel):
+    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)]
+    client_turn_id: Annotated[str, StringConstraints(min_length=8, max_length=64)] | None = None
+
+
+class Reply(BaseModel):
+    speaker: Literal["patient", "relative", "system"]
+    text: str
+
+
+class Fact(BaseModel):
+    id: str
+    kind: Literal["known", "hidden"]
+    text_th: str
+    risk_relevance: Literal["critical", "contextual", "none"] | None = None
+    revealed: bool
+    revealed_at_idx: int | None = None
+
+
+class LiveGlassBox(BaseModel):
+    risk_state: RiskState
+    facts: list[Fact]
+    fired_action_ids: list[str]
+
+
+class TurnResponse(BaseModel):
+    turn_idx: int
+    replies: list[Reply]
+    phase: Phase
+    clarification: bool
+    turns_remaining: int
+    degraded: bool
+    glassbox: LiveGlassBox | None = None
