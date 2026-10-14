@@ -285,6 +285,16 @@ def test_rubric_within_turns_hand_made_orderings(dev001: LoadedCase) -> None:
     assert result(h1, h2_future_turn, decide) == "fail"
 
 
+def test_rubric_within_turns_duplicate_fact_ids_do_not_double_count(dev001: LoadedCase) -> None:
+    dup = item({**_timing(), "fact_ids": ["H1", "H1", "H2"]})
+    h1 = (1, "FACT_REVEALED", 1, {"id": "H1"})
+    decide = (5, "DECISION_COMMITTED", 2, {"option_id": "refer", "actions": []})
+    only_h1 = View.build(_log(h1, decide), dev001.actions)
+    assert evaluate_item(dup, only_h1, "A").result == "fail"  # H2 never revealed
+    both = View.build(_log(h1, (4, "FACT_REVEALED", 2, {"id": "H2"}), decide), dev001.actions)
+    assert evaluate_item(dup, both, "A").result == "pass"
+
+
 # ---- malformed events are rejected loudly, never mis-scored ----
 
 
@@ -292,6 +302,9 @@ def test_rubric_within_turns_hand_made_orderings(dev001: LoadedCase) -> None:
     "bad",
     [
         (1, "DECISION_COMMITTED", 1, {}),
+        (1, "DECISION_COMMITTED", 1, {"option_id": "refer", "actions": None}),
+        (1, "DECISION_COMMITTED", 1, {"option_id": "refer", "actions": "B01"}),
+        (1, "DECISION_COMMITTED", 1, {"option_id": "refer", "actions": ["B01", 2]}),
         (1, "ACTIONS_DETECTED", 1, {"actions": "A03"}),
         (1, "ACTIONS_DETECTED", 1, {"actions": [{"confidence": 0.9}]}),
         (1, "PHASE_CHANGED", 1, {"from": "INTERVIEW"}),
