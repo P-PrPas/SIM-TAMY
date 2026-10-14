@@ -701,7 +701,7 @@ CREATE TABLE score_overrides (          -- Could (FR-INS-04)
 [Action catalogue]  [ประวัติ 4 turns]  [ข้อความล่าสุด]
 ```
 
-**Post-processing (deterministic):** กรอง id ที่ไม่อยู่ในแคตตาล็อก; ตรวจว่า `evidence_span` เป็น substring ของข้อความจริง (ไม่ใช่ → ลด confidence เป็น 0); ใช้ policy ของ FR-ACT-02; dedupe ตาม FR-ACT-04
+**Post-processing (deterministic):** กรอง id ที่ไม่อยู่ในแคตตาล็อก; ตรวจว่า `evidence_span` เป็น substring ของข้อความจริง (ไม่ใช่ → ลด confidence เป็น 0); ใช้ policy ของ FR-ACT-02; dedupe ตาม FR-ACT-04; ตัด action ที่ `evidence_span` มี Action ID อยู่ในข้อความ (ป้องกัน prompt injection ที่ให้โมเดลสะท้อน ID); `normalize_th` (NFC, ช่องว่าง, วรรณยุกต์ซ้อน/ซ้ำ) ใช้ทั้งข้อความและ span ก่อนเทียบ; นโยบาย confidence/ clarification อยู่ที่ T-031 ไม่ใช่ใน `interpret()`
 
 **Fallback:** Lexical matcher (FR-ACT-03) เมื่อ timeout/invalid 2 ครั้ง
 
