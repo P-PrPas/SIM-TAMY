@@ -10,7 +10,8 @@ from hypothesis import strategies as st
 
 from app.content.loader import LoadedCase
 from app.domain.case import VariantId
-from app.domain.rubric import Rubric
+from app.domain.rubric import Rubric, rubric_problems
+from app.engine.scoring import InvalidRubric
 from app.engine.scoring import score as pure_score
 from tests.unit.engine.play import Play
 
@@ -248,3 +249,98 @@ def test_scoring_partial_credit_flows_through_renormalised_weights_and_rounds_to
     assert {c.id: c.score_pct for c in s.competencies} == {"HX": 50.0, "RISK": 100.0}
     # 50 * 20/45 + 100 * 25/45 = 77.777...
     assert s.total_score == 77.8
+
+
+# ---- the rubric is checked at the scoring boundary, not only by validate-content ----
+
+
+def test_scoring_negative_weights_are_refused_instead_of_scoring_above_100(
+    dev001: LoadedCase,
+) -> None:
+    rubric = tiny(
+        {"HX": 200, "RISK": -100},  # sums to 100, so the schema alone lets it through
+        [
+            ("R1", "HX", 10, False, "A", {"type": "action_present_any", "actions": ["A01"]}),
+            ("R2", "RISK", 10, False, "A", {"type": "action_present_any", "actions": ["A03"]}),
+        ],
+    )
+    loaded = with_rubric(dev001, rubric)
+    log = Play(loaded, "A").turn("A01").events  # HX passes, RISK fails: the old code gave 200.0
+
+    with pytest.raises(InvalidRubric, match=r"competencies\.1\.weight"):
+        score(log, loaded, "A")
+
+
+def test_scoring_duplicate_item_ids_are_refused(dev001: LoadedCase) -> None:
+    rubric = tiny({"HX": 100}, [("R1", "HX", 10, False, "A"), ("R1", "HX", 10, True, "A")])
+    loaded = with_rubric(dev001, rubric)
+    with pytest.raises(InvalidRubric, match="duplicate item id 'R1'"):
+        score(Play(loaded, "A").turn("A01").events, loaded, "A")
+
+
+def test_scoring_critical_item_with_partial_credit_is_refused_at_runtime(
+    dev001: LoadedCase,
+) -> None:
+    partial = {"type": "action_present_all", "actions": ["A03", "A04"]}
+    rubric = tiny({"RISK": 100}, [("R1", "RISK", 10, True, "A", partial)])
+    loaded = with_rubric(dev001, rubric)
+    with pytest.raises(InvalidRubric, match="cannot use a partial-credit check"):
+        score(Play(loaded, "A").turn("A03").events, loaded, "A")  # would have been partial/MET
+
+
+def test_scoring_unknown_competency_and_duplicate_competency_are_refused(
+    dev001: LoadedCase,
+) -> None:
+    orphan = with_rubric(dev001, tiny({"HX": 100}, [("R1", "RISK", 10, False, "A")]))
+    with pytest.raises(InvalidRubric, match="unknown competency 'RISK'"):
+        score([], orphan, "A")
+
+    dup = dev001.rubric.model_copy(
+        update={"competencies": (*dev001.rubric.competencies[:1], dev001.rubric.competencies[0])}
+    )
+    with pytest.raises(InvalidRubric, match="duplicate competency id"):
+        score([], with_rubric(dev001, dup), "A")
+
+
+def test_scoring_dev001_rubric_has_no_problems_and_zero_weights_are_allowed(
+    dev001: LoadedCase,
+) -> None:
+    assert rubric_problems(dev001.rubric) == []
+    zero = tiny({"HX": 100, "RISK": 0}, [("R1", "RISK", 10, False, "A")])
+    assert rubric_problems(zero) == []  # zero weight is legitimate (see the earlier test)
+
+
+@settings(max_examples=100, deadline=None)
+@given(
+    st.lists(st.sampled_from(["A", "C"]), min_size=6, max_size=6),
+    st.lists(st.integers(0, 100), min_size=6, max_size=6),
+    st.lists(st.booleans(), min_size=6, max_size=6),
+)
+def test_scoring_total_stays_within_0_and_100_for_any_valid_rubric(
+    scopes: list[str], raw_weights: list[int], passes: list[bool]
+) -> None:
+    from app.content.loader import load_case
+    from tests.unit.engine.play import DEV_001
+
+    total = sum(raw_weights)
+    weights = dict(zip(COMPS, raw_weights, strict=True))
+    if total == 0:
+        weights["HX"] = 100
+    else:  # scale to sum 100 (non-negative integers, remainder on the first competency)
+        weights = {c: w * 100 // total for c, w in weights.items()}
+        weights["HX"] += 100 - sum(weights.values())
+    items = [
+        (
+            f"R-{c}",
+            c,
+            10,
+            False,
+            scope,
+            {"type": "action_present_any", "actions": ["A01"] if ok else ["A07"]},
+        )
+        for c, scope, ok in zip(COMPS, scopes, passes, strict=True)
+    ]
+    loaded = with_rubric(load_case(DEV_001), tiny(weights, items))
+    s = score(Play(loaded, "A").turn("A01").events, loaded, "A")
+
+    assert 0.0 <= s.total_score <= 100.0

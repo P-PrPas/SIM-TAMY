@@ -87,6 +87,24 @@ BROKEN: list[tuple[str, Callable[[Docs], object], str, str]] = [
         "items.0.check",
     ),
     (
+        "negative_competency_weight",
+        lambda d: d["rubric.yaml"]["competencies"].__setitem__(
+            slice(None),
+            [
+                {"id": "RISK", "name_th": "n", "weight": 160},
+                {"id": "DEC", "name_th": "n", "weight": -60},
+            ],
+        ),
+        "rubric.yaml",
+        "weight must not be negative",
+    ),
+    (
+        "duplicate_rubric_item_id",
+        lambda d: d["rubric.yaml"]["items"][1].update(id="R-RISK-01"),
+        "rubric.yaml",
+        "duplicate item id",
+    ),
+    (
         "invalid_risk_state",
         lambda d: d["case.yaml"]["branch_rules"][0].update(set_risk_state="panicking"),
         "case.yaml",
