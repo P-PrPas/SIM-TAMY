@@ -5,6 +5,7 @@ from typing import get_args
 
 from app.content.loader import Issue, LoadedCase
 from app.domain.case import Case, HiddenFact
+from app.domain.rubric import rubric_problems
 from app.domain.state import RiskState
 
 # Phase moves the engine owns; branch_rules never spell them out (PRD 7.1 example has neither).
@@ -30,7 +31,6 @@ def check(loaded: LoadedCase, *, strict: bool = False) -> list[Issue]:
     option_ids = {o.id for o in case.decision_options}
     variant_ids: set[str] = set(case.variants)
     ref_ids = {r.id for r in case.references}
-    competency_ids = {c.id for c in rubric.competencies}
 
     for file, ids in (
         ("actions.yaml", [a.id for a in actions]),
@@ -84,7 +84,6 @@ def check(loaded: LoadedCase, *, strict: bool = False) -> list[Issue]:
 
     for n, item in enumerate(rubric.items):
         p, c = f"items.{n}", item.check
-        in_rubric(f"{p}.competency", [item.competency], competency_ids, "competency")
         in_rubric(
             f"{p}.applies_to_variants", item.applies_to_variants or [], variant_ids, "variant"
         )
@@ -113,6 +112,7 @@ def check(loaded: LoadedCase, *, strict: bool = False) -> list[Issue]:
             in_rubric(f"{p}.{finding.id}.references", finding.references, ref_ids, "reference id")
 
     issues += _unreachable(case)
+    issues += [Issue("rubric.yaml", path, msg) for path, msg in rubric_problems(rubric)]
 
     if strict:
         issues += [
