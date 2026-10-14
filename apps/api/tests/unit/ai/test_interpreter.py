@@ -6,7 +6,13 @@ from typing import Any
 import pytest
 
 from app.ai.interpreter import HISTORY_TURNS, HistoryTurn, build_prompt, interpret
-from app.ai.llm_client import LLMClient, LLMRequest, LLMResponse, LLMTimeout
+from app.ai.llm_client import (
+    LLMClient,
+    LLMInvalidResponse,
+    LLMRequest,
+    LLMResponse,
+    LLMTimeout,
+)
 from app.ai.providers.mock import MockProvider
 from app.ai.thai import normalize_th
 from app.content.loader import load_case
@@ -53,20 +59,17 @@ def test_interpreter_drops_unknown_ids_fake_spans_and_non_offered_categories() -
     assert ids(result) == ["A03"]
 
 
-def test_interpreter_caps_at_five_keeps_best_merges_duplicates_and_clamps() -> None:
+def test_interpreter_caps_at_five_keeps_best_and_merges_duplicates() -> None:
     items = [
         item(a, "QX1", 0.5 + i / 100)
         for i, a in enumerate(["A01", "A02", "A03", "A04", "A05", "A06", "A07"])
     ]
-    items += [
-        item("A01", "QX1", 7.0),
-        item("A02", "QX1", -3.0),
-    ]  # duplicate ids, out-of-range scores
+    items += [item("A01", "QX1", 1.0), item("A02", "QX1", 0.0)]  # duplicate ids: best one wins
     result = interpret(reply(*items), ACTIONS, TEXT)
 
     assert len(result.actions) == 5 and len({a.id for a in result.actions}) == 5
     assert result.actions[0].id == "A01" and result.actions[0].confidence == 1.0
-    assert "A02" not in ids(result)  # clamped to 0.0, so it falls out of the top five
+    assert "A02" not in ids(result)  # its best score is 0.5 + 1/100, below the top five
     assert [a.confidence for a in result.actions] == sorted(
         (a.confidence for a in result.actions), reverse=True
     )
@@ -200,3 +203,45 @@ def test_interpreter_llm_errors_propagate_for_the_fallback_to_handle() -> None:
 
     with pytest.raises(LLMTimeout):
         interpret(LLMClient(Down(), model="m", timeout_s=1), ACTIONS, TEXT)
+
+
+class Sequence:
+    """Plays back raw reply texts in order (what a model might actually send)."""
+
+    name = "sequence"
+
+    def __init__(self, *texts: str) -> None:
+        self.texts = list(texts)
+        self.calls = 0
+
+    def complete(self, request: LLMRequest) -> LLMResponse:
+        self.calls += 1
+        return LLMResponse(text=self.texts.pop(0))
+
+
+def raw(confidence: str) -> str:
+    action = f'{{"id": "A03", "confidence": {confidence}, "evidence_span": "สัญญาณทดสอบก"}}'
+    return f'{{"actions": [{action}]}}'
+
+
+@pytest.mark.parametrize("bad", ["7", "1.01", "-0.2", "NaN", "Infinity", "-Infinity", '"high"'])
+def test_interpreter_invalid_confidence_is_malformed_and_retried_then_raised(bad: str) -> None:
+    provider = Sequence(raw(bad), raw(bad))
+
+    with pytest.raises(LLMInvalidResponse):
+        interpret(LLMClient(provider, model="m", timeout_s=1), ACTIONS, TEXT)
+    assert provider.calls == 2  # one retry, like any schema-invalid reply (PRD 9.1)
+
+
+def test_interpreter_valid_retry_after_an_out_of_range_confidence_succeeds() -> None:
+    provider = Sequence(raw("7"), raw("0.9"))
+
+    result = interpret(LLMClient(provider, model="m", timeout_s=1), ACTIONS, TEXT)
+
+    assert provider.calls == 2 and ids(result) == ["A03"] and result.actions[0].confidence == 0.9
+
+
+@pytest.mark.parametrize("edge", ["0", "0.0", "1", "1.0"])
+def test_interpreter_accepts_the_inclusive_bounds(edge: str) -> None:
+    result = interpret(LLMClient(Sequence(raw(edge)), model="m", timeout_s=1), ACTIONS, TEXT)
+    assert result.actions[0].confidence == float(edge)

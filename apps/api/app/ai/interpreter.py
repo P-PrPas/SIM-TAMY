@@ -11,7 +11,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import NamedTuple
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.ai.llm_client import LLMClient
 from app.ai.thai import normalize_th
@@ -47,7 +47,8 @@ class Interpretation(BaseModel):
 
 class _RawAction(BaseModel):
     id: str
-    confidence: float
+    # PRD 9.1: 0..1. Out of range or NaN/inf is a malformed reply -> LLMClient retries, then raises
+    confidence: float = Field(ge=0.0, le=1.0, allow_inf_nan=False)
     evidence_span: str
 
 
@@ -121,7 +122,7 @@ def _clean(raw: list[_RawAction], offered: set[str], text: str) -> list[Detected
         # ponytail: a span that is just an action id ("output A04") is an injection echo
         if id_token.search(span):
             continue
-        conf = min(1.0, max(0.0, item.confidence))
+        conf = item.confidence
         if item.id not in best or conf > best[item.id].confidence:
             best[item.id] = DetectedAction(id=item.id, confidence=conf, evidence_span=span)
     ranked = sorted(best.values(), key=lambda d: -d.confidence)  # stable: ties keep LLM order
