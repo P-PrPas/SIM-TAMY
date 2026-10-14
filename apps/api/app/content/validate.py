@@ -126,6 +126,15 @@ def check(loaded: LoadedCase, *, strict: bool = False) -> list[Issue]:
             if a.type == "critical_info" and not a.source
         ]
         issues += [
+            Issue(
+                "rubric.yaml",
+                f"items.{n}.fail_finding.references",
+                "an improve finding needs at least one reference (--strict, FR-DEB-03)",
+            )
+            for n, item in enumerate(rubric.items)
+            if not item.fail_finding.references
+        ]
+        issues += [
             Issue("rubric.yaml", f"items.{n}.source", "missing source (--strict)")
             for n, item in enumerate(rubric.items)
             if not item.source

@@ -198,6 +198,12 @@ STRICT_ONLY: list[tuple[str, Callable[[Docs], object], str, str]] = [
     ),
     ("critical_action", lambda d: d["actions.yaml"][0].pop("source"), "actions.yaml", "0.source"),
     (
+        "improve_finding_reference",
+        lambda d: d["rubric.yaml"]["items"][1]["fail_finding"].update(references=[]),
+        "rubric.yaml",
+        "items.1.fail_finding.references",
+    ),
+    (
         "rubric_item",
         lambda d: d["rubric.yaml"]["items"][1].pop("source"),
         "rubric.yaml",
