@@ -46,3 +46,14 @@ class Scoring(_Frozen):
     total_score: float
     competencies: tuple[CompetencyScore, ...]
     items: tuple[ItemResult, ...]
+
+
+class Finding(_Frozen):
+    """One thing done well or to improve, from the rubric's own template (never LLM text)."""
+
+    id: str
+    polarity: Literal["strength", "improve"]
+    rubric_item_id: str
+    text_th: str
+    evidence_refs: tuple[int, ...]  # event ids
+    reference_ids: tuple[str, ...]  # "areas to review" (FR-DEB-03)
