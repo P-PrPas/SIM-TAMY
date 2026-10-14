@@ -79,7 +79,7 @@ class View:
         return [e for e in self.events if e.type == event_type]
 
     def end(self) -> tuple[LoggedEvent, ...]:
-        """End of the observed log: evidence when a result rests on something that did not happen."""
+        """End of the observed log: evidence when a result rests on something absent."""
         return self.events[-1:]
 
 
