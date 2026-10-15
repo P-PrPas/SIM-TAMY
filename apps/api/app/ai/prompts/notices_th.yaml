@@ -8,3 +8,13 @@ status_labels:
   In Review: "อยู่ระหว่างการตรวจโดยผู้เชี่ยวชาญ"
   Approved: "ผ่านการตรวจโดยผู้เชี่ยวชาญแล้ว"
 disclaimer_th: "เพื่อการศึกษาเท่านั้น ไม่ใช่คำแนะนำทางการแพทย์"
+# Headings for the report timeline (event type -> Thai heading).
+timeline:
+  ACTIONS_DETECTED: "ผู้เรียนถาม/ทำ"
+  CLARIFICATION_ASKED: "ผู้ป่วยขอให้อธิบายเพิ่ม"
+  FACT_REVEALED: "ข้อมูลที่ได้รับ"
+  RISK_STATE_CHANGED: "สถานะความเสี่ยงเปลี่ยน"
+  UNSAFE_ACTION: "การกระทำที่ไม่ปลอดภัย"
+  DECISION_COMMITTED: "ตัดสินใจ"
+  NOTE_SUBMITTED: "ส่งสรุปเคส"
+  SESSION_COMPLETED: "จบเคส"

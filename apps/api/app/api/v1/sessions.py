@@ -2,13 +2,18 @@ from fastapi import APIRouter, Response
 
 from app.api.deps import Db, Learner, Llm, Store, VoiceDep
 from app.api.v1.schemas import (
+    CompleteRequest,
+    CompleteResponse,
     CreateSessionRequest,
     CreateSessionResponse,
+    DecisionRequest,
+    DecisionResponse,
+    ReportResponse,
     SessionView,
     TurnRequest,
     TurnResponse,
 )
-from app.services import sessions, turns
+from app.services import closing, sessions, turns
 
 router = APIRouter(prefix="/v1", tags=["Sessions"])
 
@@ -45,3 +50,30 @@ def send_turn(
     if outcome.replayed:
         response.headers["Idempotent-Replay"] = "true"
     return outcome.response
+
+
+@router.post(
+    "/sessions/{session_id}/decision",
+    response_model=DecisionResponse,
+    operation_id="commitDecision",
+)
+def commit_decision(body: DecisionRequest, row: Learner, db: Db, store: Store) -> DecisionResponse:
+    return closing.commit(db, store, row, body)
+
+
+@router.post(
+    "/sessions/{session_id}/complete",
+    response_model=CompleteResponse,
+    operation_id="completeSession",
+)
+def complete_session(
+    row: Learner, db: Db, store: Store, body: CompleteRequest | None = None
+) -> CompleteResponse:
+    return closing.complete(db, store, row, body or CompleteRequest())
+
+
+@router.get(
+    "/sessions/{session_id}/report", response_model=ReportResponse, operation_id="getReport"
+)
+def get_report(row: Learner, db: Db, store: Store) -> ReportResponse:
+    return closing.report(db, store, row)

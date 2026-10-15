@@ -9,9 +9,7 @@ import uuid
 from collections.abc import Sequence
 from typing import Any, NamedTuple
 
-import psycopg.errors
 from sqlalchemy import select
-from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from app.ai.interpreter import DetectedAction, HistoryTurn, Interpretation, interpret
@@ -29,7 +27,7 @@ from app.domain.case import VariantId
 from app.domain.events import EventType
 from app.engine.scenario import apply
 from app.services.patient_voice import Directive, Voice, VoiceRequest, speak
-from app.services.sessions import ensure_alive, pinned_case, public_phase, state_of
+from app.services.sessions import ensure_alive, lock_session, pinned_case, public_phase, state_of
 
 OPEN_PHASES = {"INTRO", "INTERVIEW", "PRESSURE"}
 
@@ -57,11 +55,11 @@ def _replay(db: Session, row: LearnerSession, learner_turn_idx: int) -> TurnResp
         )
     )
     here = [e for e in events if e.turn_idx == learner_turn_idx]
-    # a decision commits at the last turn's index: it must not change that turn's phase
+    # a decision and the completion log at the last turn's index: they must not change its phase
     phases = [
         e.payload["to"]
         for e in events
-        if e.type == "PHASE_CHANGED" and e.payload.get("trigger") != "decision"
+        if e.type == "PHASE_CHANGED" and e.payload.get("trigger") not in ("decision", "complete")
     ]
     return TurnResponse(
         turn_idx=learner_turn_idx,
@@ -84,17 +82,6 @@ def _stored(db: Session, row: LearnerSession, req: TurnRequest) -> TurnResponse 
     return _replay(db, row, earlier.idx)
 
 
-def _lock(db: Session, session_id: uuid.UUID) -> LearnerSession:
-    try:
-        row = SessionRepo(db).get(session_id, for_update=True, nowait=True)
-    except OperationalError as exc:
-        if isinstance(exc.orig, psycopg.errors.LockNotAvailable):
-            raise ApiError("TURN_IN_PROGRESS", "another turn is still being processed") from exc
-        raise
-    assert row is not None  # the caller authenticated this session a moment ago
-    return row
-
-
 def _history(db: Session, session_id: uuid.UUID) -> tuple[HistoryTurn, ...]:
     return tuple(HistoryTurn(t.speaker, t.text) for t in TurnRepo(db).list_for_session(session_id))
 
@@ -109,7 +96,7 @@ def send_turn(
 ) -> Outcome:
     if (stored := _stored(db, authed, req)) is not None:
         return Outcome(stored, True)
-    row = _lock(db, authed.id)
+    row = lock_session(db, authed.id)
     if (stored := _stored(db, row, req)) is not None:  # finished while we waited for the lock
         return Outcome(stored, True)
 
