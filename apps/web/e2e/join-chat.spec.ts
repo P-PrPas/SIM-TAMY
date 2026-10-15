@@ -75,3 +75,32 @@ test("Chat keeps a failed optimistic turn and retries it with the same ID", asyn
   expect(turnIds[0]).toBe(turnIds[1]);
   await noHorizontalOverflow(page);
 });
+
+test("Quick prompts fill but do not submit the chat at 360px", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("textbox", { name: t("join.nickname") }).fill("Learner");
+  await page.getByRole("button", { name: t("join.start") }).click();
+  await page.getByRole("link", { name: t("briefing.begin") }).click();
+  await expect(page.getByRole("heading", { name: t("chat.title") })).toBeVisible();
+
+  const sent: string[] = [];
+  await page.route("**/v1/sessions/*/turns", async (route) => {
+    const body = route.request().postDataJSON() as { text: string };
+    sent.push(body.text);
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      headers: { "Access-Control-Allow-Origin": "*" },
+      json: { turn_idx: 1, replies: [{ speaker: "patient", text: "reply" }], phase: "INTERVIEW", clarification: false, turns_remaining: 39, degraded: false },
+    });
+  });
+
+  await page.getByText(t("chat.quickPromptsTitle")).click();
+  await page.getByRole("button", { name: t("chat.quickPromptReason") }).click();
+  await expect(page.getByRole("textbox", { name: t("chat.messageLabel") })).toHaveValue(t("chat.quickPromptReason"));
+  expect(sent).toHaveLength(0);
+  await noHorizontalOverflow(page);
+  await page.getByRole("button", { name: t("chat.send") }).click();
+  await expect(page.getByText("reply", { exact: true })).toBeVisible();
+  expect(sent).toEqual([t("chat.quickPromptReason")]);
+});

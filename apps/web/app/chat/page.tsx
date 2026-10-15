@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { StatusBadge } from "@/components/status-badge";
@@ -12,6 +12,7 @@ import { t } from "@/lib/i18n";
 
 type CaseBrief = components["schemas"]["CaseBrief"];
 type SessionView = components["schemas"]["SessionView"];
+const quickPromptKeys = ["chat.quickPromptReason", "chat.quickPromptWhen", "chat.quickPromptMore"] as const;
 
 export default function ChatPage() {
   const { replace } = useRouter();
@@ -21,6 +22,7 @@ export default function ChatPage() {
   const [draft, setDraft] = useState("");
   const [inFlight, setInFlight] = useState(false);
   const [error, setError] = useState("");
+  const messageRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const active = readSession();
@@ -86,6 +88,8 @@ export default function ChatPage() {
   </main>;
 
   const canSend = session.phase === "INTERVIEW" && session.turns_remaining > 0;
+  const canCompose = canSend && !inFlight && !messages.some((item) => item.delivery === "failed");
+  const canChoosePrompt = canCompose && draft.trim().length === 0;
   return <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
     <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div>
@@ -110,10 +114,23 @@ export default function ChatPage() {
         {inFlight && <p role="status" className="px-5 pb-3 text-slate-700">{t("chat.typing")}</p>}
         {error && <p role="alert" className="mx-4 mb-3 rounded-lg bg-rose-50 p-3 text-rose-950">{error}</p>}
         <form onSubmit={submit} className="border-t border-slate-200 p-4 sm:p-5">
+          <details className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <summary className="cursor-pointer text-base font-semibold text-teal-900">{t("chat.quickPromptsTitle")}</summary>
+            <p className="mt-2 text-base text-slate-700">{t("chat.quickPromptsHelp")}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {quickPromptKeys.map((key) => <button
+                key={key}
+                type="button"
+                disabled={!canChoosePrompt}
+                onClick={() => { setDraft(t(key)); setError(""); messageRef.current?.focus(); }}
+                className="rounded-lg border border-teal-700 bg-white px-3 py-2 text-left text-base text-teal-950 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:opacity-50"
+              >{t(key)}</button>)}
+            </div>
+          </details>
           <label htmlFor="message" className="mb-2 block font-semibold">{t("chat.messageLabel")}</label>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <textarea id="message" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={500} rows={2} placeholder={t("chat.messagePlaceholder")} disabled={!canSend || inFlight || messages.some((item) => item.delivery === "failed")} className="min-w-0 flex-1 resize-y rounded-xl border border-slate-400 px-4 py-3 focus:outline-teal-700 disabled:bg-slate-100" />
-            <button type="submit" disabled={!canSend || inFlight || messages.some((item) => item.delivery === "failed")} className="rounded-xl bg-teal-900 px-5 py-3 font-bold text-white hover:bg-teal-800 disabled:opacity-50">{t("chat.send")}</button>
+            <textarea ref={messageRef} id="message" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={500} rows={2} placeholder={t("chat.messagePlaceholder")} disabled={!canCompose} className="min-w-0 flex-1 resize-y rounded-xl border border-slate-400 px-4 py-3 focus:outline-teal-700 disabled:bg-slate-100" />
+            <button type="submit" disabled={!canCompose} className="rounded-xl bg-teal-900 px-5 py-3 font-bold text-white hover:bg-teal-800 disabled:opacity-50">{t("chat.send")}</button>
           </div>
           <p className="mt-2 text-sm font-semibold text-amber-900">{t("chat.privacy")}</p>
         </form>
