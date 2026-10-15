@@ -96,17 +96,26 @@ class Spoken(NamedTuple):
     generator_failed: bool  # the Generator raised LLMError
 
 
-def fallback_line(request: VoiceRequest, case: Case) -> str:
-    """Content-authored lines first (the facts being conveyed), else a generic one."""
+def fallback_line(request: VoiceRequest, case: Case, revealed: Sequence[str], voice: Voice) -> str:
+    """Content-authored lines first (the facts being conveyed), else a generic one.
+
+    The canned line goes through the same Validator: a fallback that would leak is skipped.
+    """
+
+    def clean(text: str) -> bool:
+        return not voice.validator.check(text, case, revealed)
+
     if request.directive == "answer":
         by_id = {f.id: f for f in case.facts if isinstance(f, HiddenFact)}
         lines = [
-            by_id[i].fallback_utterances_th[0]
+            line
             for i in request.allowed.must_convey_fact_ids
             if i in by_id
+            if (line := next((u for u in by_id[i].fallback_utterances_th if clean(u)), None))
         ]
-        if lines:
-            return " ".join(lines)
+        for candidate in (" ".join(lines), *lines):  # all of them, else the first that fits
+            if candidate and clean(candidate):
+                return candidate
     return canned("clarify" if request.directive == "clarify" else "smalltalk")
 
 
@@ -116,9 +125,10 @@ def speak(request: VoiceRequest, case: Case, revealed: Sequence[str], voice: Voi
         try:
             text = voice.generator.generate(request, attempt)
         except LLMError:
-            return Spoken(fallback_line(request, case), tuple(rejected), True, True)
+            line = fallback_line(request, case, revealed, voice)
+            return Spoken(line, tuple(rejected), True, True)
         failed = voice.validator.check(text, case, revealed)
         if not failed:
             return Spoken(text, tuple(rejected), False, False)
         rejected.append(tuple(failed))
-    return Spoken(fallback_line(request, case), tuple(rejected), True, False)
+    return Spoken(fallback_line(request, case, revealed, voice), tuple(rejected), True, False)
