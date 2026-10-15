@@ -22,7 +22,6 @@ from app.api.v1.schemas import (
     DecisionRequest,
     DecisionResponse,
     EffectiveScore,
-    Phase,
     ReportCase,
     ReportResponse,
     Variant,
@@ -54,16 +53,21 @@ def logged_events(db: Session, session_id: Any) -> list[LoggedEvent]:
 
 
 def _decision_response(db: Session, row: LearnerSession, option_id: str) -> DecisionResponse:
-    at = db.scalar(
-        select(Event.turn_idx)
-        .where(Event.session_id == row.id, Event.type == "DECISION_COMMITTED")
+    """The answer the first commit gave, rebuilt from its events (later phases do not leak in)."""
+    events = db.scalars(
+        select(Event)
+        .where(Event.session_id == row.id, Event.type.in_(("DECISION_COMMITTED", "PHASE_CHANGED")))
         .order_by(Event.id)
-        .limit(1)
-    )
-    state = state_of(row)
+    ).all()
+    at = next(e.turn_idx for e in events if e.type == "DECISION_COMMITTED")
+    moved = [
+        e.payload["to"]
+        for e in events
+        if e.type == "PHASE_CHANGED" and e.payload.get("trigger") == "decision"
+    ]
     return DecisionResponse(
-        phase=Phase.COMPLETED if row.status == "completed" else public_phase(state.phase),
-        decision=DecisionRecord(option_id=option_id, committed_at_idx=at or 0),
+        phase=public_phase(moved[0] if moved else "INTERVIEW"),  # a decision starts in INTERVIEW
+        decision=DecisionRecord(option_id=option_id, committed_at_idx=at),
         replies=[],
     )
 

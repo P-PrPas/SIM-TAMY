@@ -187,7 +187,10 @@ def test_complete_needs_a_decision_first(api: Api) -> None:
 
 
 def test_complete_locks_the_session_and_is_idempotent(api: Api) -> None:
-    created = play(api)
+    created = setup_a03(api)
+    turn(api, created, ASK_A03)
+    first_decision = decide(api, created, "refer")
+    assert first_decision.status_code == 200
 
     first = complete(api, created, {"note_th": "สรุปเคสทดสอบ"})
 
@@ -209,7 +212,9 @@ def test_complete_locks_the_session_and_is_idempotent(api: Api) -> None:
     assert (view.json()["status"], view.json()["phase"]) == ("completed", "COMPLETED")
     locked = turn(api, created, ASK_A03)
     assert (locked.status_code, locked.json()["error"]["code"]) == (409, "SESSION_COMPLETED")
-    assert decide(api, created, "refer").status_code == 200  # the same choice still answers
+    again = decide(api, created, "refer")  # the same choice still gets its first answer
+    assert (again.status_code, again.json()) == (200, first_decision.json())
+    assert again.json()["phase"] == "CLOSING"
     other = decide(api, created, "proceed_service")
     assert (other.status_code, other.json()["error"]["code"]) == (409, "DECISION_ALREADY_COMMITTED")
 
