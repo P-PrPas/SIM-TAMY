@@ -50,6 +50,10 @@ def status_label(status: str) -> str:
     return str(_ui()["status_labels"][status])
 
 
+def replay_notes() -> dict[str, str]:
+    return dict(_ui()["replay_notes"])
+
+
 def disclaimer_th() -> str:
     return str(_ui()["disclaimer_th"])
 
