@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate mock-api gen-api lint test validate-content eval bench rescore stats cost-report purge-old demo
+.PHONY: help install up down migrate mock-api gen-api lint test validate-content leakcheck eval bench rescore stats cost-report purge-old demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -46,6 +46,10 @@ test:
 # STRICT=1 will also require `source` on clinical items (T-010).
 validate-content:
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.content.validator_cli $(if $(STRICT),--strict)
+
+# Fails if a play-time schema in docs/openapi.yaml can carry hidden facts, risk state, actions or scores.
+leakcheck:
+	$(PY) scripts/leakcheck.py
 
 eval:
 	@echo "not implemented: Golden Test Suite (T-070)"; exit 1
