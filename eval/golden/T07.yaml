@@ -1,0 +1,14 @@
+# T07 Paraphrase: five phrasings of A03. In mock mode this proves the plumbing only; the 90% claim
+# for real language understanding needs `--provider env` and is not asserted here.
+id: T07
+case: DEV-001
+variant: A
+steps:
+  - {say: "ช่วยเล่าเรื่องสัญญาณทดสอบกหน่อยได้ไหมคะ", expect_actions_any: [A03]}
+  - {say: "สัญญาณทดสอบกเป็นยังไงบ้างคะ", expect_actions_any: [A03]}
+  - {say: "มีสัญญาณทดสอบกไหมคะ", expect_actions_any: [A03]}
+  - {say: "ขอถามเรื่องสัญญาณทดสอบกหน่อยค่ะ", expect_actions_any: [A03]}
+  - {say: "เรื่องสัญญาณทดสอบกตอนนี้เป็นอย่างไรคะ", expect_actions_any: [A03]}
+expect:
+  min_step_pass_rate: 0.9
+  revealed: [H1]
