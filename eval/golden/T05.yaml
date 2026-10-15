@@ -2,7 +2,6 @@
 id: T05
 case: DEV-001
 variant: C
-blocked_by: T-023
 steps:
   - {say: "ขอถามเรื่องสัญญาณทดสอบกหน่อยค่ะ", expect_actions_any: [A03]}
   - {say: "ขอถามเรื่องสัญญาณทดสอบขหน่อยค่ะ", expect_actions_any: [A04]}

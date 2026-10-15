@@ -50,7 +50,9 @@ def test_decision_refer_moves_to_closing_or_pressure(variant: VariantId, phase: 
     r = commit_decision(interviewing("A03", variant=variant), "refer", CASE, variant)
 
     assert r.state.phase == phase and r.state.decision == "refer"
-    assert types(r.events) == ["DECISION_COMMITTED", "PHASE_CHANGED"]  # referring is not unsafe
+    expected = ["DECISION_COMMITTED", "PHASE_CHANGED"]  # referring is not unsafe
+    expected += ["PRESSURE_STARTED"] if phase == "PRESSURE" else []
+    assert types(r.events) == expected
     assert r.events[0].payload == {"option_id": "refer", "actions": ["B01", "B02"]}
 
 

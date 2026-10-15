@@ -71,8 +71,9 @@ def test_pressure_action_moves_to_closing() -> None:
     result = apply(at("PRESSURE", turn_idx=5), ["C03"], CASE, "C")
 
     assert result.state.phase == "CLOSING" and result.state.turn_idx == 6
-    (event,) = result.events
-    assert event.payload == {"from": "PRESSURE", "to": "CLOSING", "trigger": "action"}
+    moved, resolved = result.events
+    assert moved.payload == {"from": "PRESSURE", "to": "CLOSING", "trigger": "action"}
+    assert resolved.type == "PRESSURE_RESOLVED" and resolved.payload["resolved"] is True
 
 
 def test_repeated_action_is_logged_but_not_fired_twice() -> None:

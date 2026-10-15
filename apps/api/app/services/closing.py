@@ -22,14 +22,16 @@ from app.api.v1.schemas import (
     DecisionRequest,
     DecisionResponse,
     EffectiveScore,
+    Reply,
     ReportCase,
     ReportResponse,
     Variant,
 )
 from app.content.loader import ContentStore, LoadedCase
+from app.core import limits
 from app.core.errors import ApiError
-from app.db.models import Event, LearnerSession, Report
-from app.db.repo import EventRepo, SessionRepo
+from app.db.models import Event, LearnerSession, Report, Turn
+from app.db.repo import EventRepo, SessionRepo, TurnRepo
 from app.domain.case import VariantId
 from app.domain.events import LoggedEvent
 from app.domain.scoring import Finding, Scoring
@@ -65,10 +67,14 @@ def _decision_response(db: Session, row: LearnerSession, option_id: str) -> Deci
         for e in events
         if e.type == "PHASE_CHANGED" and e.payload.get("trigger") == "decision"
     ]
+    opening = db.scalars(
+        select(Turn).where(Turn.session_id == row.id, Turn.idx == at, Turn.speaker == "relative")
+    ).first()  # the scripted line a Variant C referral started the pressure with
     return DecisionResponse(
         phase=public_phase(moved[0] if moved else "INTERVIEW"),  # a decision starts in INTERVIEW
         decision=DecisionRecord(option_id=option_id, committed_at_idx=at),
-        replies=[],
+        replies=[Reply(speaker="relative", text=opening.text)] if opening else [],
+        pressure_turns_allowed=limits.PRESSURE_MAX_TURNS if opening else None,
     )
 
 
@@ -92,10 +98,16 @@ def commit(
     SessionRepo(db).save_state(
         row.id, result.state.model_dump(mode="json"), expected_version=row.state_version
     )
+    line = result.pressure_line
+    if line:
+        TurnRepo(db).add(
+            session_id=row.id, idx=result.state.turn_idx, speaker=line.speaker, text=line.text_th
+        )
     return DecisionResponse(
         phase=public_phase(result.state.phase),
         decision=DecisionRecord(option_id=req.option_id, committed_at_idx=result.state.turn_idx),
-        replies=[],
+        replies=[Reply(speaker="relative", text=line.text_th)] if line else [],
+        pressure_turns_allowed=limits.PRESSURE_MAX_TURNS if line else None,
     )
 
 
