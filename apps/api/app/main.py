@@ -26,11 +26,12 @@ def _openapi_without_default_422(app: FastAPI) -> dict[str, Any]:
 def create_app() -> FastAPI:
     # one schema per model, like docs/openapi.yaml (no -Input/-Output twins)
     app = FastAPI(title="SIM-TAMY API", version=__version__, separate_input_output_schemas=False)
-    origins = get_settings().cors_origin_list
-    if origins:
+    settings = get_settings()
+    if settings.cors_origin_list or settings.cors_origin_regex:
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=origins,
+            allow_origins=settings.cors_origin_list,
+            allow_origin_regex=settings.cors_origin_regex,
             allow_methods=["*"],
             allow_headers=["*"],
             expose_headers=["X-Request-ID", "Idempotent-Replay", "Retry-After"],
