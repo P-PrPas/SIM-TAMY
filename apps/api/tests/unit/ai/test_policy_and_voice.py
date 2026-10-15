@@ -129,6 +129,18 @@ def test_speak_without_a_fact_to_convey_falls_back_to_generic_lines() -> None:
     )
 
 
+def test_the_fallback_goes_through_the_validator_too() -> None:
+    gen = Script(H2)
+    # H1 is asked about but not revealed: its own canned line would leak it
+    locked = speak(request(facts=(H1_FACT,)), CASE, [], Voice(gen, FloorValidator()))
+
+    assert locked.fallback and locked.text == canned("smalltalk")
+    assert not FloorValidator().check(locked.text, CASE, [])
+    # revealed: the content-authored line is fine
+    shown = speak(request(facts=(H1_FACT,)), CASE, ["H1"], Voice(gen, FloorValidator()))
+    assert shown.text == "ค่ะ มีสัญญาณทดสอบกค่ะ"
+
+
 def test_speak_survives_a_generator_failure() -> None:
     gen = Script(LLMProviderError("boom"))
 
