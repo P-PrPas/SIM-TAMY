@@ -36,7 +36,8 @@ LIMITS = Limits(
 
 @lru_cache
 def _ui() -> dict[str, Any]:
-    loaded = yaml.safe_load(Path(__file__).with_name("notices_th.yaml").read_text("utf-8"))
+    path = Path(__file__).resolve().parents[1] / "ai" / "prompts" / "notices_th.yaml"
+    loaded = yaml.safe_load(path.read_text("utf-8"))
     assert isinstance(loaded, dict)
     return loaded
 
