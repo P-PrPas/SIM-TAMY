@@ -1,0 +1,10 @@
+# T10 Consistency: asking the same thing three times unlocks once and is logged as repeated.
+id: T10
+case: DEV-001
+variant: A
+steps:
+  - {say: "ขอถามเรื่องสัญญาณทดสอบกหน่อยค่ะ", expect_actions_any: [A03]}
+  - {say: "ขอถามเรื่องสัญญาณทดสอบกอีกครั้งค่ะ", expect_actions_any: [A03], expect_events: [ACTION_REPEATED]}
+  - {say: "มีสัญญาณทดสอบกไหมคะ", expect_actions_any: [A03], expect_events: [ACTION_REPEATED]}
+expect:
+  revealed: [H1]

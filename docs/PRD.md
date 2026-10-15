@@ -956,6 +956,7 @@ def score(events, case, rubric, variant) -> Scoring:
 
 ```yaml
 id: T03
+case: DEV-001        # ผูกกับเคสหนึ่งเคส (PP-001 มาพร้อม T-095)
 variant: A
 steps:
   - {say: "...", expect_actions_any: [A03]}
@@ -969,6 +970,15 @@ expect:
 ```
 
 > Golden ที่ผูกกับ LLM จริงต้องรายงาน "ผ่านกี่ข้อ" ตามผลจริง ไม่ปรับ test ให้ผ่านโดยไม่แก้ระบบ
+
+**รันด้วย `make eval` (T-070)** — ตัวรันอยู่ที่ `apps/api/app/golden.py`; เล่นแต่ละไฟล์ผ่าน API จริงบน Postgres ชั่วคราว
+
+- `steps`: `say` (+ `expect_actions_any` / `expect_actions` / `expect_events`), `decision`, `complete` (+ `note`)
+- `expect`: `safety_status`, `events_include|exclude`, `items: {R-DEC-02: fail}`, `revealed`, `replay_terminal_state`, `min_step_pass_rate`
+- `pending: [{blocked_by: T-064, expect: {...}}]` = ความคาดหวังที่ระบบยังทำไม่ได้ รายงานเป็น pending ไม่นับเป็นผ่าน; ถ้าเริ่มผ่านจะมี WARN ให้ลบออก
+- `blocked_by` ระดับไฟล์ (เช่น Variant C รอ T-023) = SKIP เฉพาะเมื่อระบบปฏิเสธด้วย `VARIANT_NOT_AVAILABLE`; ถ้ารันได้ก็นับตามจริง
+- ตรวจทุกไฟล์เสมอ: คำตอบไม่มี `leak_terms_th` ของ fact ที่ยังไม่เปิดหรือคำต้องห้าม, response ระหว่างเล่นไม่มี field ต้องห้าม, report ที่เก็บไว้ตรงกับการ re-score จาก Event Log
+- ผลลัพธ์: PASS / FAIL / SKIP + จำนวน pending; exit code 1 เมื่อมี FAIL. โหมด `mock` (ค่าเริ่มต้น) ตอบ Interpreter ด้วย lexical matcher จากวลีในเคส จึงพิสูจน์ "ท่อทำงาน" ไม่ใช่ความเข้าใจภาษา; `make eval PROVIDER=env` ใช้ LLM ตาม environment และรายงานตามที่วัดได้
 
 ## 12.3 Definition of Done (ระดับ Ticket)
 

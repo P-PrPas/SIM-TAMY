@@ -57,8 +57,10 @@ validate-content:
 leakcheck:
 	$(PY) scripts/leakcheck.py
 
+# Plays eval/golden/T*.yaml through the real API on a throwaway Postgres (DATABASE_URL). Mock LLM by default;
+# `make eval PROVIDER=env` uses the configured LLM and reports what it measures.
 eval:
-	@echo "not implemented: Golden Test Suite (T-070)"; exit 1
+	cd $(API) && CONTENT_DIR=../../content ../../$(PY) ../../eval/run_eval.py $(if $(PROVIDER),--provider $(PROVIDER))
 bench:
 	@echo "not implemented: model bench (T-005)"; exit 1
 # Rebuilds the score from the Event Log and diffs it with the stored report (needs DATABASE_URL).
