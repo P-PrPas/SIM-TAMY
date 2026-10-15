@@ -363,6 +363,7 @@ sim-tamy/
 | `LLM_API_KEY` | — | **ห้ามมีฝั่ง frontend** |
 | `LLM_MODEL_INTERPRETER` / `LLM_MODEL_GENERATOR` / `LLM_MODEL_DEBRIEF` | — | แยกได้เพื่อใช้โมเดลถูก/เร็วกับ Interpreter |
 | `LLM_TIMEOUT_S` | 15 | ต่อ call |
+| `ACTION_ACCEPT_THRESHOLD` / `ACTION_CLARIFY_THRESHOLD` | `0.75` / `0.5` | เกณฑ์ deterministic ของ FR-ACT-02; ต้องอยู่ในช่วง 0–1 และ clarify < accept |
 | `LLM_BASE_URL` | `https://api.z.ai/api/paas/v4` | provider `openai_like` เท่านั้น (OpenAI-compatible `/chat/completions`) |
 | `LLM_REASONING_EFFORT` | `low` \| `high` \| `max` | ไม่ตั้ง = ไม่ส่ง; GLM-5.3 ใช้ค่านี้คุมความลึกของ thinking |
 | `MOCK_LLM_SCRIPT` | path ของ YAML | T-003 รองรับ `match_contains`/`return` และ `default` เท่านั้น; `when_directive`/`return_from_fact` ในภาคผนวก กเป็นงาน T-033 ที่ยังไม่รองรับ; ไม่ตั้ง = ค่าเริ่มต้นในโค้ด |

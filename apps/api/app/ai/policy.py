@@ -18,9 +18,16 @@ class Decision(NamedTuple):
     candidates: tuple[str, ...]  # ids in the clarification band, for the event log only
 
 
-def apply_policy(interp: Interpretation) -> Decision:
-    accepted = tuple(a for a in interp.actions if a.confidence >= ACCEPT)
-    band = tuple(a.id for a in interp.actions if CLARIFY <= a.confidence < ACCEPT)
+def apply_policy(
+    interp: Interpretation,
+    *,
+    accept_threshold: float = ACCEPT,
+    clarify_threshold: float = CLARIFY,
+) -> Decision:
+    accepted = tuple(a for a in interp.actions if a.confidence >= accept_threshold)
+    band = tuple(
+        a.id for a in interp.actions if clarify_threshold <= a.confidence < accept_threshold
+    )
     # a mixed message keeps what was understood; the patient only asks back when nothing was
     clarify = not accepted and (bool(band) or interp.needs_clarification)
     return Decision(accepted, clarify, band)

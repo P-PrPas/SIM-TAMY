@@ -169,6 +169,29 @@ def test_confidence_policy_bands(api: Api, confidence: float, clarifies: bool) -
     assert bool(detected.payload["actions"]) is unlocked
 
 
+def test_configured_confidence_band_asks_without_unlocking_or_scoring(
+    api: Api, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.core.config import get_settings
+
+    monkeypatch.setenv("ACTION_ACCEPT_THRESHOLD", "0.9")
+    monkeypatch.setenv("ACTION_CLARIFY_THRESHOLD", "0.65")
+    get_settings.cache_clear()
+    api.llm.by_text[ASK_A03] = ask("A03", ASK_A03, 0.8)
+    created = api.create()
+
+    body = turn(api, created, ASK_A03).json()
+
+    assert body["clarification"] is True
+    assert body["replies"][0]["text"] == canned("clarify")
+    assert state_of(api, created)["revealed_fact_ids"] == []
+    events = events_of(api, created)
+    assert next(e for e in events if e.type == "ACTIONS_DETECTED").payload["actions"] == []
+    assert next(e for e in events if e.type == "CLARIFICATION_ASKED").payload == {
+        "candidates": ["A03"]
+    }
+
+
 def test_small_talk_gets_a_neutral_line_and_changes_nothing(api: Api) -> None:
     created = api.create()
 

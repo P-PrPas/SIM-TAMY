@@ -19,6 +19,7 @@ from app.api.deps import LLMFactory
 from app.api.v1.schemas import Reply, TurnRequest, TurnResponse
 from app.content.loader import ContentStore
 from app.core import limits
+from app.core.config import get_settings
 from app.core.errors import ApiError
 from app.db.models import Event, LearnerSession
 from app.db.repo import EventRepo, LlmCallRepo, SessionRepo, TurnRepo
@@ -127,7 +128,12 @@ def send_turn(
     except LLMError:
         interp = Interpretation(actions=fallback_detect(req.text, loaded.actions))
         source, degraded = "lexical", True
-    decision = apply_policy(interp)
+    settings = get_settings()
+    decision = apply_policy(
+        interp,
+        accept_threshold=settings.action_accept_threshold,
+        clarify_threshold=settings.action_clarify_threshold,
+    )
 
     # 2. Engine (pure)
     variant: VariantId = row.variant  # type: ignore[assignment]
