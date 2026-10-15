@@ -371,11 +371,12 @@ sim-tamy/
 | `ALLOW_DRAFT_CASES` | `true` (dev/แข่ง) | production ตั้ง `false` เมื่อมี Approved |
 | `GLASS_BOX_LIVE` | `false` | |
 | `LOG_RETENTION_DAYS` | 30 | |
-| `CORS_ORIGINS` | — | |
+| `CORS_ORIGINS` | — | origin ของเว็บ คั่นด้วย `,` |
+| `CORS_ORIGIN_REGEX` | — | origin ที่ตรงทั้งสตริง เช่น preview ของ Vercel; ใช้ร่วมกับ `CORS_ORIGINS` ได้ |
 
 ## 6.6 Deployment **[Proposed]**
 
-Docker Compose (api, web, db) สำหรับ dev/Demo; deploy บน VM หรือ container PaaS ตัวเดียวพอสำหรับ Hackathon; HTTPS บังคับ; ตั้ง health check `/health`; เตรียม **Demo Machine สำรอง** (รันด้วย `LLM_PROVIDER=mock` + Replay Mode)
+Docker Compose (api, web, db) สำหรับ dev/Demo; Hosting ตัดสินแล้วใน [ADR-14](adr/ADR-14-hosting-vercel-render.md) (เว็บบน Vercel, API + Postgres บน Render; ขั้นตอนใน `docs/RUNBOOK-deploy.md`); HTTPS บังคับ; ตั้ง health check `/health`; เตรียม **Demo Machine สำรอง** (รันด้วย `LLM_PROVIDER=mock` + Replay Mode)
 
 ---
 
@@ -1096,7 +1097,7 @@ expect:
 | # | ประเด็น | ตัวเลือก/ข้อเสนอ | ต้องตัดสินใจภายใน |
 |---|---|---|---|
 | OD-1 | LLM Provider และโมเดลสำหรับ Interpreter/Generator/Debrief | ตัดสินจากผล `model_bench` (9.5) | จบ Day 0 |
-| OD-2 | Hosting สำหรับ Demo | VM เดียว/Container PaaS | Day 1 |
+| OD-2 | Hosting สำหรับ Demo | **ตัดสินแล้ว:** Vercel (web) + Render (API, Postgres) — ADR-14 | Day 1 |
 | OD-3 | Glass Box ระหว่างเล่น (live) หรือหลังจบเท่านั้น | ค่าเริ่มต้น: หลังจบ; live เป็น flag สำหรับ Demo/อาจารย์ | Day 2 |
 | OD-4 | จำนวนสมาชิก/บทบาทจริงของทีม | ปรับ Owner ในหัวข้อ 13 | ก่อนเริ่ม |
 | OD-5 | เกณฑ์ `max_turns` ของ referral timeliness | ทีม Content กำหนด | Day 1 |
