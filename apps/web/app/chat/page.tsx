@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { StatusBadge } from "@/components/status-badge";
@@ -14,7 +15,7 @@ type CaseBrief = components["schemas"]["CaseBrief"];
 type SessionView = components["schemas"]["SessionView"];
 
 export default function ChatPage() {
-  const { replace } = useRouter();
+  const { push, replace } = useRouter();
   const [brief, setBrief] = useState<CaseBrief | null>(null);
   const [session, setSession] = useState<SessionView | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -85,13 +86,14 @@ export default function ChatPage() {
     {error ? <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p> : <p role="status">{t("chat.loading")}</p>}
   </main>;
 
-  const canSend = session.phase === "INTERVIEW" && session.turns_remaining > 0;
+  const canSend = (session.phase === "INTERVIEW" || session.phase === "PRESSURE") && session.turns_remaining > 0;
   return <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
     <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div>
         <p className="text-sm font-bold tracking-wide text-teal-800">{t("chat.eyebrow")}</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">{t("chat.title")}</h1>
         <p className="mt-1 text-slate-700">{brief.title_th}</p>
+        {session.phase === "PRESSURE" && <p role="status" className="mt-2 font-semibold text-amber-900">{t("chat.pressure")}</p>}
       </div>
       <StatusBadge status={session.case.status} />
     </header>
@@ -123,10 +125,8 @@ export default function ChatPage() {
           <h2 className="font-bold">{t("chat.initialInfo")}</h2>
           <p className="mt-3 whitespace-pre-wrap leading-7 text-slate-700">{brief.patient_display_th}</p>
         </section>
-        <div>
-          <button type="button" disabled aria-describedby="decision-pending" className="w-full rounded-xl bg-slate-300 px-5 py-3 font-bold text-slate-700">{t("chat.decide")}</button>
-          <p id="decision-pending" className="mt-2 text-sm text-slate-600">{t("chat.decisionPending")}</p>
-        </div>
+        {session.phase === "INTERVIEW" && <button type="button" onClick={() => push("/decision")} disabled={inFlight || messages.some((item) => item.delivery === "failed")} className="w-full rounded-xl bg-teal-900 px-5 py-3 font-bold text-white disabled:opacity-50">{t("chat.decide")}</button>}
+        {session.phase === "CLOSING" && <Link href="/closing" className="block rounded-xl bg-teal-900 px-5 py-3 text-center font-bold text-white">{t("chat.toClosing")}</Link>}
       </aside>
     </div>
   </main>;
