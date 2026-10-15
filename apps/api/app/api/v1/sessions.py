@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Response
 
-from app.api.deps import Db, Learner, Llm, Store, VoiceDep
+from app.api.deps import Db, GlassboxCaller, Learner, Llm, Store, VoiceDep
 from app.api.v1.schemas import (
     CompleteRequest,
     CompleteResponse,
@@ -8,12 +8,16 @@ from app.api.v1.schemas import (
     CreateSessionResponse,
     DecisionRequest,
     DecisionResponse,
+    LiveGlassBox,
     ReportResponse,
     SessionView,
     TurnRequest,
     TurnResponse,
 )
+from app.core.config import get_settings
+from app.core.errors import ApiError
 from app.services import closing, sessions, turns
+from app.services.live import live_glassbox
 
 router = APIRouter(prefix="/v1", tags=["Sessions"])
 
@@ -77,3 +81,15 @@ def complete_session(
 )
 def get_report(row: Learner, db: Db, store: Store) -> ReportResponse:
     return closing.report(db, store, row)
+
+
+@router.get(
+    "/sessions/{session_id}/glassbox", response_model=LiveGlassBox, operation_id="getLiveGlassBox"
+)
+def get_live_glassbox(caller: GlassboxCaller, db: Db, store: Store) -> LiveGlassBox:
+    row, instructor = caller
+    if not (instructor or get_settings().glass_box_live):
+        raise ApiError("GLASSBOX_DISABLED", "the live Glass Box is not enabled")
+    if not instructor:
+        sessions.ensure_alive(db, row)
+    return live_glassbox(db, sessions.pinned_case(store, row), row.id, sessions.state_of(row))

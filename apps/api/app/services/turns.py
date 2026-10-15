@@ -26,6 +26,7 @@ from app.db.repo import EventRepo, LlmCallRepo, SessionRepo, TurnRepo
 from app.domain.case import VariantId
 from app.domain.events import EventType
 from app.engine.scenario import apply
+from app.services.live import live_glassbox
 from app.services.patient_voice import Directive, Voice, VoiceRequest, speak
 from app.services.sessions import ensure_alive, lock_session, pinned_case, public_phase, state_of
 
@@ -213,6 +214,9 @@ def send_turn(
             clarification=decision.clarify,
             turns_remaining=_remaining(idx),
             degraded=degraded or spoken.fallback,
+            glassbox=live_glassbox(db, loaded, row.id, new_state)
+            if settings.glass_box_live
+            else None,
         ),
         False,
     )
