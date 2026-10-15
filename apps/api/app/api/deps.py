@@ -3,13 +3,14 @@
 import hmac
 import re
 import uuid
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends, Header
 from sqlalchemy.orm import Session
 
+from app.ai.llm_client import LLMClient, OnCall, Purpose, get_llm_client
 from app.content.loader import ContentStore
 from app.core.config import get_settings
 from app.core.errors import ApiError
@@ -17,6 +18,7 @@ from app.core.security import hash_token
 from app.db.models import LearnerSession
 from app.db.repo import SessionRepo
 from app.db.session import get_sessionmaker
+from app.services.patient_voice import CannedGenerator, FloorValidator, Voice
 
 _CASE_ID = re.compile(r"^[A-Za-z0-9_-]+$")
 
@@ -44,8 +46,23 @@ def safe_case_id(case_id: str) -> str:
     return case_id
 
 
+LLMFactory = Callable[[Purpose, OnCall], LLMClient]
+
+
+def get_llm_factory() -> LLMFactory:
+    """Tests override this to script the mock provider."""
+    return lambda purpose, on_call: get_llm_client(purpose, on_call=on_call)
+
+
+def get_voice() -> Voice:
+    """T-033/T-034 swap in the LLM generator and the full validator here."""
+    return Voice(CannedGenerator(), FloorValidator())
+
+
 Db = Annotated[Session, Depends(get_db)]
 Store = Annotated[ContentStore, Depends(get_store)]
+Llm = Annotated[LLMFactory, Depends(get_llm_factory)]
+VoiceDep = Annotated[Voice, Depends(get_voice)]
 
 
 def learner_session(

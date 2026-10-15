@@ -11,28 +11,6 @@ from app.db.models import ClassRoom, Event, LearnerSession
 from app.db.repo import EventRepo, TurnRepo
 from tests.integration.api.conftest import Api
 
-FORBIDDEN_KEYS = {"revealed_fact_ids", "risk_state", "actions", "fired_action_ids", "items"}
-FORBIDDEN_KEYS |= {"total_score", "safety_status", "findings", "unlock_on", "leak_terms_th"}
-
-
-def assert_no_leak(api: Api, body: Any) -> None:
-    """No hidden facts, risk state, actions or scores in a play-time response (AGENTS.md rule 5)."""
-    text = str(body)
-
-    def keys(node: Any) -> set[str]:
-        if isinstance(node, dict):
-            return set(node) | {k for v in node.values() for k in keys(v)}
-        if isinstance(node, list):
-            return {k for v in node for k in keys(v)}
-        return set()
-
-    assert not keys(body) & FORBIDDEN_KEYS
-    hidden = [f for f in api.loaded.case.facts if f.kind == "hidden"]
-    assert hidden
-    for fact in hidden:
-        assert fact.text_th not in text
-        assert not any(term in text for term in fact.leak_terms_th)  # type: ignore[union-attr]
-
 
 def test_create_session(api: Api) -> None:
     r = api.client.post(
@@ -55,7 +33,7 @@ def test_create_session(api: Api) -> None:
         "NO_REAL_PII",
     }
     assert body["limits"]["max_turns"] == 40
-    assert_no_leak(api, body)
+    api.assert_no_leak(body)
     with api.db() as db:
         row = db.get(LearnerSession, uuid.UUID(body["session_id"]))
         assert row is not None
@@ -151,7 +129,7 @@ def test_get_session_resumes_with_history(api: Api) -> None:
         40,
     )
     assert body["decision"] == {"committed": False, "option_id": None, "committed_at_idx": None}
-    assert_no_leak(api, body)
+    api.assert_no_leak(body)
 
 
 def test_get_session_reports_the_decision_and_completion(api: Api) -> None:
