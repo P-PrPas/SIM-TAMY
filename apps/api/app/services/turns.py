@@ -55,11 +55,11 @@ def _replay(db: Session, row: LearnerSession, learner_turn_idx: int) -> TurnResp
         )
     )
     here = [e for e in events if e.turn_idx == learner_turn_idx]
-    # a decision commits at the last turn's index: it must not change that turn's phase
+    # a decision and the completion log at the last turn's index: they must not change its phase
     phases = [
         e.payload["to"]
         for e in events
-        if e.type == "PHASE_CHANGED" and e.payload.get("trigger") != "decision"
+        if e.type == "PHASE_CHANGED" and e.payload.get("trigger") not in ("decision", "complete")
     ]
     return TurnResponse(
         turn_idx=learner_turn_idx,

@@ -72,12 +72,10 @@ def commit(
     db: Session, store: ContentStore, authed: LearnerSession, req: DecisionRequest
 ) -> DecisionResponse:
     row = lock_session(db, authed.id)
+    ensure_alive(db, row)  # a repeat is answered only while the session is alive or completed
     state = state_of(row)
     if state.decision == req.option_id:  # the same choice again: the original result
         return _decision_response(db, row, req.option_id)
-    if row.status == "completed":
-        raise ApiError("SESSION_COMPLETED", "the session is completed")
-    ensure_alive(db, row)
     loaded = pinned_case(store, row)
     variant: VariantId = row.variant  # type: ignore[assignment]
     result = commit_decision(state, req.option_id, loaded.case, variant)  # EngineError -> envelope

@@ -1,6 +1,7 @@
 """T-041: commitDecision, completeSession, getReport, and the whole session scored from its log."""
 
 import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
@@ -139,6 +140,30 @@ def test_replaying_a_turn_after_the_decision_keeps_its_original_phase(api: Api) 
     assert again.json() == first and again.json()["phase"] == "INTERVIEW"
 
 
+def test_replaying_a_turn_after_complete_keeps_its_original_result(api: Api) -> None:
+    created = setup_a03(api)
+    first = turn(api, created, ASK_A03, client_turn_id="client-turn-0001").json()
+    decide(api, created)
+    assert complete(api, created).status_code == 200
+
+    again = turn(api, created, ASK_A03, client_turn_id="client-turn-0001")
+
+    assert again.status_code == 200 and again.json() == first
+    assert again.json()["phase"] == "INTERVIEW"
+
+
+def test_an_idle_session_does_not_answer_a_repeated_decision(api: Api) -> None:
+    created = play(api)
+    with api.db() as db:
+        row = db.get(LearnerSession, uuid.UUID(created["session_id"]))
+        assert row is not None
+        row.last_activity_at = datetime.now(UTC) - timedelta(seconds=1900)
+
+    r = decide(api, created)
+
+    assert (r.status_code, r.json()["error"]["code"]) == (410, "SESSION_EXPIRED")
+
+
 def test_rationale_is_limited_to_300_characters(api: Api) -> None:
     created = setup_a03(api)
     turn(api, created, ASK_A03)
@@ -186,7 +211,7 @@ def test_complete_locks_the_session_and_is_idempotent(api: Api) -> None:
     assert (locked.status_code, locked.json()["error"]["code"]) == (409, "SESSION_COMPLETED")
     assert decide(api, created, "refer").status_code == 200  # the same choice still answers
     other = decide(api, created, "proceed_service")
-    assert other.json()["error"]["code"] == "SESSION_COMPLETED"
+    assert (other.status_code, other.json()["error"]["code"]) == (409, "DECISION_ALREADY_COMMITTED")
 
 
 def test_complete_without_a_note_logs_no_note(api: Api) -> None:
