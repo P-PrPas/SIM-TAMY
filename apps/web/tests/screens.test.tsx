@@ -5,8 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import JoinPage from "../app/page";
 import BriefingPage from "../app/briefing/page";
 import ChatPage from "../app/chat/page";
+import { StatusBadge } from "../components/status-badge";
 import { ApiError } from "../lib/api/client";
-import { saveSession } from "../lib/flow";
+import { readSession, saveSession } from "../lib/flow";
 import { t } from "../lib/i18n";
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), push: vi.fn(), replace: vi.fn() }));
@@ -66,6 +67,65 @@ describe("S1 Join and S2 Briefing", () => {
     expect(await screen.findByRole("alert")).toHaveProperty("textContent", t("join.classNotFound"));
     expect(mocks.push).not.toHaveBeenCalled();
   });
+
+  it("rejects a malformed class code before calling the API", async () => {
+    mocks.get.mockResolvedValue({ data: { items: [caseSummary] } });
+    render(<JoinPage />);
+    await screen.findByText(caseSummary.status_label_th);
+    fireEvent.change(screen.getByLabelText(t("join.nickname")), { target: { value: "Learner" } });
+    fireEvent.change(screen.getByLabelText(t("join.classCode")), { target: { value: "A" } });
+    fireEvent.click(screen.getByRole("button", { name: t("join.start") }));
+    expect(screen.getByText(t("join.invalidCode"))).toBeTruthy();
+    expect(mocks.post).not.toHaveBeenCalled();
+  });
+
+  it("lets the learner retry a failed case list load", async () => {
+    mocks.get.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce({ data: { items: [caseSummary] } });
+    render(<JoinPage />);
+    fireEvent.click(await screen.findByRole("button", { name: t("join.retry") }));
+    expect(await screen.findByText(caseSummary.status_label_th)).toBeTruthy();
+    expect(mocks.get).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not start when the case list is empty", async () => {
+    mocks.get.mockResolvedValue({ data: { items: [] } });
+    render(<JoinPage />);
+    expect(await screen.findByText(t("join.empty"))).toBeTruthy();
+    expect(screen.getByRole("button", { name: t("join.start") }).hasAttribute("disabled")).toBe(true);
+    expect(mocks.post).not.toHaveBeenCalled();
+  });
+
+  it("keeps the selected variant after a failed start attempt", async () => {
+    mocks.get.mockResolvedValue({ data: { items: [caseSummary] } });
+    mocks.post.mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce({ data: { session_id: "session-1", token: "secret-token" } });
+    render(<JoinPage />);
+    await screen.findByText(caseSummary.status_label_th);
+    fireEvent.change(screen.getByLabelText(t("join.nickname")), { target: { value: "Learner" } });
+    fireEvent.change(screen.getByLabelText(t("join.variant")), { target: { value: "C" } });
+    fireEvent.click(screen.getByRole("button", { name: t("join.start") }));
+    expect(await screen.findByText(t("join.startError"))).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: t("join.start") }));
+    await waitFor(() => expect(mocks.push).toHaveBeenCalledWith("/briefing"));
+    expect(mocks.post.mock.calls[1]?.[1].body.variant).toBe("C");
+  });
+
+  it("redirects Briefing without a session and explains a failed case fetch", async () => {
+    const view = render(<BriefingPage />);
+    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/"));
+    view.unmount();
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001" });
+    mocks.get.mockRejectedValue(new Error("offline"));
+    render(<BriefingPage />);
+    expect(await screen.findByText(t("briefing.loadError"))).toBeTruthy();
+  });
+
+  it("renders localized badges for every review status", () => {
+    const view = render(<StatusBadge status="In Review" />);
+    expect(screen.getByText(t("status.inReview"))).toBeTruthy();
+    view.rerender(<StatusBadge status="Approved" />);
+    expect(screen.getByText(t("status.approved"))).toBeTruthy();
+  });
 });
 
 describe("S3 Chat", () => {
@@ -87,5 +147,35 @@ describe("S3 Chat", () => {
     expect(mocks.post).toHaveBeenCalledTimes(2);
     expect(mocks.post.mock.calls[0]?.[1].body.client_turn_id).toBe(mocks.post.mock.calls[1]?.[1].body.client_turn_id);
     expect(screen.getByText(new RegExp(t("chat.turnsRemaining"))).textContent).toContain("39");
+  });
+
+  it("resumes visible chat history and guards blank input", async () => {
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001" });
+    const resumed = { ...sessionView, history: [{ idx: 1, speaker: "learner", text: "Earlier question", created_at: "2026-10-12T00:00:00Z" }, { idx: 1, speaker: "patient", text: "Earlier answer", created_at: "2026-10-12T00:00:00Z" }] };
+    mocks.get.mockImplementation((path: string) => Promise.resolve({ data: path.includes("/v1/cases/") ? caseBrief : resumed }));
+    render(<ChatPage />);
+    expect(await screen.findByText("Earlier question")).toBeTruthy();
+    expect(screen.getByText("Earlier answer")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(t("chat.messageLabel")), { target: { value: "   " } });
+    fireEvent.click(screen.getByRole("button", { name: t("chat.send") }));
+    expect(screen.getByText(t("chat.invalidMessage"))).toBeTruthy();
+    expect(mocks.post).not.toHaveBeenCalled();
+  });
+
+  it("shows a safe loading error when session history cannot be fetched", async () => {
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001" });
+    mocks.get.mockRejectedValue(new Error("offline"));
+    render(<ChatPage />);
+    expect(await screen.findByText(t("chat.loadError"))).toBeTruthy();
+    expect(mocks.post).not.toHaveBeenCalled();
+  });
+});
+
+describe("session storage", () => {
+  it("rejects malformed saved session data", () => {
+    sessionStorage.setItem("sim-tamy-session", "not-json");
+    expect(readSession()).toBeNull();
+    sessionStorage.setItem("sim-tamy-session", JSON.stringify({ id: "one", token: 4, caseId: "PP-001" }));
+    expect(readSession()).toBeNull();
   });
 });

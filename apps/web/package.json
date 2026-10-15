@@ -9,6 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
     "gen:api": "openapi-typescript ../../docs/openapi.yaml -o lib/api/schema.d.ts"
   },
   "dependencies": {
@@ -18,12 +20,14 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.3.0",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "@vitest/coverage-v8": "^5.0.3",
     "eslint": "^9.39.0",
     "eslint-config-next": "^16.4.0",
     "jsdom": "^30.1.2",

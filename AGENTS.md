@@ -68,6 +68,8 @@ Defined in the root `Makefile` (ticket T-001). If a target is missing, add it ra
 | `make mock-api` | Prism mock of `docs/openapi.yaml` on :4010 (web can build before the backend); `make gen-api` regenerates `apps/web/lib/api/schema.d.ts` |
 | `make validate-content [STRICT=1]` | Validate `content/` against schemas (`STRICT=1` also requires `source` on clinical items) |
 | `make test` | Unit + integration tests (api + web) |
+| `make test-coverage` | Web Vitest coverage report |
+| `make test-e2e` | Browser test of S1–S3 against Prism at 360px (requires Chrome locally or Playwright Chromium in CI) |
 | `make eval` | Golden Test Suite (T01–T10) with pass/fail table |
 | `make bench` | Model comparison on the Action dev set |
 | `make rescore SESSION=<id>` | Re-score from the Event Log |

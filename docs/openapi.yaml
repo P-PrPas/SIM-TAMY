@@ -144,6 +144,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CaseBrief"
+              example:
+                case_id: PP-001
+                version: "0.1"
+                title_th: "[ตัวอย่าง] การประเมินหญิงหลังคลอดก่อนรับบริการ"
+                status: Draft
+                status_label_th: "ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ"
+                variants_available: [A, C]
+                patient_display_th: "[ข้อมูลตั้งต้นของผู้ป่วย]"
+                learning_objectives:
+                  - id: risk_recognition
+                    label_th: "รับรู้สัญญาณอันตราย"
+                decision_options:
+                  - id: refer
+                    label_th: "หยุดบริการตามปกติและประสานส่งต่อ"
+                  - id: proceed_service
+                    label_th: "ให้บริการตามที่ขอ"
+                disclaimer_th: "เพื่อการศึกษาเท่านั้น"
         "404":
           $ref: "#/components/responses/NotFound"
         "500":
@@ -271,6 +288,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SessionView"
+              example:
+                session_id: 6f2b6a52-3a0e-4e3a-9f55-1d1b9f6a0c11
+                case:
+                  case_id: PP-001
+                  version: "0.1"
+                  status: Draft
+                  status_label_th: "ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ"
+                variant: A
+                status: active
+                phase: INTERVIEW
+                turn_idx: 0
+                turns_remaining: 40
+                decision:
+                  committed: false
+                history: []
+                limits:
+                  max_turns: 40
+                  max_text_chars: 500
+                  idle_timeout_s: 1800
+                  max_rationale_chars: 300
+                  max_note_chars: 500
+                created_at: "2026-10-12T02:41:09Z"
+                last_activity_at: "2026-10-12T02:41:09Z"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":

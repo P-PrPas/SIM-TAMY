@@ -29,6 +29,10 @@ NEXT_PUBLIC_API_URL=http://localhost:4010 npm --prefix apps/web run dev
 
 The web app stores the anonymous session token in the current tab's `sessionStorage`. The decision button is present but disabled until the S4 decision-panel ticket is implemented.
 
+Run the S1–S3 browser acceptance checks with `make test-e2e` (or `npm --prefix apps/web run test:e2e` on Windows without Make). The test starts Prism and Next.js, uses Chrome locally, and checks the 360px layout and chat retry flow. CI needs Playwright Chromium installed.
+
+Docker Compose pins the API and Postgres images to the Debian Bookworm variants so the development stack does not change base OS when upstream floating tags move.
+
 ## Layout
 
 | Path | What |

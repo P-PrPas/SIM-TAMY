@@ -20,6 +20,11 @@ node_modules/
 out/
 next-env.d.ts
 *.tsbuildinfo
+test-results/
+playwright-report/
+coverage/
+.tmp/
+.npm-cache/
 
 # misc
 .DS_Store
