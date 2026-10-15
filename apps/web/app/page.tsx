@@ -53,7 +53,7 @@ export default function JoinPage() {
         body: { case_id: caseId, variant, learner_name: name, ...(code ? { class_code: code } : {}) },
       });
       if (!data) throw new Error("Missing session response");
-      saveSession({ id: data.session_id, token: data.token, caseId });
+      saveSession({ id: data.session_id, token: data.token, caseId, brief: data.case });
       router.push("/briefing");
     } catch (cause) {
       setError(cause instanceof ApiError && cause.code === "CLASS_NOT_FOUND"

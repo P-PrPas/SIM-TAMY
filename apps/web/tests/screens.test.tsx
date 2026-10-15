@@ -15,8 +15,8 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push, replac
 vi.mock("@/lib/api/runtime", () => ({ api: () => ({ GET: mocks.get, POST: mocks.post }) }));
 
 const caseSummary = {
-  case_id: "PP-001", version: "0.1", title_th: "Case PP-001", status: "Draft",
-  status_label_th: t("status.draftFull"), variants_available: ["A", "C"],
+  case_id: "PP-001", version: "0.1", title_th: "Case PP-001", status: "Draft" as const,
+  status_label_th: t("status.draftFull"), variants_available: ["A", "C"] as Array<"A" | "C">,
 };
 const caseBrief = {
   ...caseSummary, patient_display_th: "Opening patient information",
@@ -36,7 +36,7 @@ afterEach(() => cleanup());
 describe("S1 Join and S2 Briefing", () => {
   it("renders the draft badge and starts a session with a nickname", async () => {
     mocks.get.mockResolvedValue({ data: { items: [caseSummary] } });
-    mocks.post.mockResolvedValue({ data: { session_id: "session-1", token: "secret-token" } });
+    mocks.post.mockResolvedValue({ data: { session_id: "session-1", token: "secret-token", case: caseBrief } });
     render(<JoinPage />);
     await screen.findByText(caseSummary.status_label_th);
     fireEvent.change(screen.getByLabelText(t("join.nickname")), { target: { value: "Learner" } });
@@ -44,11 +44,11 @@ describe("S1 Join and S2 Briefing", () => {
     await waitFor(() => expect(mocks.push).toHaveBeenCalledWith("/briefing"));
     expect(mocks.post.mock.calls[0]?.[1].body).toMatchObject({ case_id: "PP-001", variant: "A", learner_name: "Learner" });
     expect(sessionStorage.getItem("sim-tamy-session")).toContain("secret-token");
+    expect(readSession()?.brief).toEqual(caseBrief);
   });
 
   it("shows case briefing and its draft status", async () => {
-    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001" });
-    mocks.get.mockResolvedValue({ data: caseBrief });
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
     render(<BriefingPage />);
     expect(await screen.findByText("Opening patient information")).toBeTruthy();
     expect(screen.getByText(caseSummary.status_label_th)).toBeTruthy();
@@ -98,7 +98,7 @@ describe("S1 Join and S2 Briefing", () => {
   it("keeps the selected variant after a failed start attempt", async () => {
     mocks.get.mockResolvedValue({ data: { items: [caseSummary] } });
     mocks.post.mockRejectedValueOnce(new Error("offline"))
-      .mockResolvedValueOnce({ data: { session_id: "session-1", token: "secret-token" } });
+      .mockResolvedValueOnce({ data: { session_id: "session-1", token: "secret-token", case: caseBrief } });
     render(<JoinPage />);
     await screen.findByText(caseSummary.status_label_th);
     fireEvent.change(screen.getByLabelText(t("join.nickname")), { target: { value: "Learner" } });
@@ -110,14 +110,24 @@ describe("S1 Join and S2 Briefing", () => {
     expect(mocks.post.mock.calls[1]?.[1].body.variant).toBe("C");
   });
 
-  it("redirects Briefing without a session and explains a failed case fetch", async () => {
-    const view = render(<BriefingPage />);
-    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/"));
-    view.unmount();
-    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001" });
-    mocks.get.mockRejectedValue(new Error("offline"));
+  it("redirects Briefing without a session", async () => {
     render(<BriefingPage />);
-    expect(await screen.findByText(t("briefing.loadError"))).toBeTruthy();
+    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/"));
+  });
+
+  it("keeps showing the case version the session was created with after a newer one is published", async () => {
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
+    const newer = { ...caseBrief, version: "0.2", patient_display_th: "Newer patient information" };
+    mocks.get.mockImplementation((path: string) => Promise.resolve({ data: path.includes("/v1/cases/") ? newer : sessionView }));
+    const briefing = render(<BriefingPage />);
+    expect(await screen.findByText("Opening patient information")).toBeTruthy();
+    expect(screen.queryByText("Newer patient information")).toBeNull();
+    expect(mocks.get).not.toHaveBeenCalled();
+    briefing.unmount();
+    render(<ChatPage />);
+    expect(await screen.findByText("Opening patient information")).toBeTruthy();
+    expect(screen.queryByText("Newer patient information")).toBeNull();
+    expect(mocks.get.mock.calls.every(([path]) => !String(path).includes("/v1/cases/"))).toBe(true);
   });
 
   it("renders localized badges for every review status", () => {
@@ -130,8 +140,8 @@ describe("S1 Join and S2 Briefing", () => {
 
 describe("S3 Chat", () => {
   it("shows optimistic text, typing, and retries a failed turn with the same ID", async () => {
-    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001" });
-    mocks.get.mockImplementation((path: string) => Promise.resolve({ data: path.includes("/v1/cases/") ? caseBrief : sessionView }));
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
+    mocks.get.mockResolvedValue({ data: sessionView });
     let rejectFirst: (error: Error) => void = () => {};
     mocks.post.mockImplementationOnce(() => new Promise((_, reject) => { rejectFirst = reject; }));
     mocks.post.mockResolvedValueOnce({ data: { turn_idx: 1, replies: [{ speaker: "patient", text: "Patient reply" }], phase: "INTERVIEW", clarification: false, turns_remaining: 39, degraded: false } });
@@ -150,9 +160,9 @@ describe("S3 Chat", () => {
   });
 
   it("resumes visible chat history and guards blank input", async () => {
-    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001" });
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
     const resumed = { ...sessionView, history: [{ idx: 1, speaker: "learner", text: "Earlier question", created_at: "2026-10-12T00:00:00Z" }, { idx: 1, speaker: "patient", text: "Earlier answer", created_at: "2026-10-12T00:00:00Z" }] };
-    mocks.get.mockImplementation((path: string) => Promise.resolve({ data: path.includes("/v1/cases/") ? caseBrief : resumed }));
+    mocks.get.mockResolvedValue({ data: resumed });
     render(<ChatPage />);
     expect(await screen.findByText("Earlier question")).toBeTruthy();
     expect(screen.getByText("Earlier answer")).toBeTruthy();
@@ -163,7 +173,7 @@ describe("S3 Chat", () => {
   });
 
   it("shows a safe loading error when session history cannot be fetched", async () => {
-    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001" });
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
     mocks.get.mockRejectedValue(new Error("offline"));
     render(<ChatPage />);
     expect(await screen.findByText(t("chat.loadError"))).toBeTruthy();
@@ -177,5 +187,7 @@ describe("session storage", () => {
     expect(readSession()).toBeNull();
     sessionStorage.setItem("sim-tamy-session", JSON.stringify({ id: "one", token: 4, caseId: "PP-001" }));
     expect(readSession()).toBeNull();
+    sessionStorage.setItem("sim-tamy-session", JSON.stringify({ id: "one", token: "t", caseId: "PP-001" }));
+    expect(readSession()).toBeNull(); // no brief kept: start a new session instead of guessing the version
   });
 });

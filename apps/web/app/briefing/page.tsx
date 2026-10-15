@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { StatusBadge } from "@/components/status-badge";
-import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
 import { readSession } from "@/lib/flow";
 import { t } from "@/lib/i18n";
@@ -15,21 +14,19 @@ type CaseBrief = components["schemas"]["CaseBrief"];
 export default function BriefingPage() {
   const { replace } = useRouter();
   const [brief, setBrief] = useState<CaseBrief | null>(null);
-  const [error, setError] = useState(false);
 
   useEffect(() => {
-    const session = readSession();
-    if (!session) { replace("/"); return; }
     let cancelled = false;
-    void api().GET("/v1/cases/{case_id}", { params: { path: { case_id: session.caseId } } })
-      .then(({ data }) => { if (!cancelled) { if (data) setBrief(data); else setError(true); } })
-      .catch(() => { if (!cancelled) setError(true); });
+    void Promise.resolve(readSession()).then((session) => { // same async shape as the chat page
+      if (cancelled) return;
+      if (!session) { replace("/"); return; }
+      setBrief(session.brief); // the version this session was created with, not the latest case
+    });
     return () => { cancelled = true; };
   }, [replace]);
 
   return <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
-    {error ? <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-rose-950">{t("briefing.loadError")}</div>
-      : !brief ? <p role="status">{t("briefing.loading")}</p>
+    {!brief ? <p role="status">{t("briefing.loading")}</p>
       : <>
         <p className="text-sm font-bold tracking-wide text-teal-800">{t("briefing.eyebrow")}</p>
         <div className="mt-3 flex flex-wrap items-start justify-between gap-4">

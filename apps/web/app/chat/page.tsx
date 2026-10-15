@@ -26,14 +26,12 @@ export default function ChatPage() {
     const active = readSession();
     if (!active) { replace("/"); return; }
     let cancelled = false;
-    void Promise.all([
-      api().GET("/v1/sessions/{session_id}", { params: { path: { session_id: active.id } } }),
-      api().GET("/v1/cases/{case_id}", { params: { path: { case_id: active.caseId } } }),
-    ]).then(([sessionResult, caseResult]) => {
+    void api().GET("/v1/sessions/{session_id}", { params: { path: { session_id: active.id } } })
+      .then((sessionResult) => {
       if (cancelled) return;
-      if (!sessionResult.data || !caseResult.data) { setError(t("chat.loadError")); return; }
+      if (!sessionResult.data) { setError(t("chat.loadError")); return; }
       setSession(sessionResult.data);
-      setBrief(caseResult.data);
+      setBrief(active.brief); // the version this session was created with, not the latest case
       setMessages(sessionResult.data.history.map((message, position) => ({
         id: `history-${position}`,
         idx: message.idx,

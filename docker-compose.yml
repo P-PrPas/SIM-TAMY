@@ -16,7 +16,9 @@ services:
       retries: 10
 
   api:
-    build: ./apps/api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     environment:
       DATABASE_URL: postgresql+psycopg://sim:sim@db:5432/simtamy
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
