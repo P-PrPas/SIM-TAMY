@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16
+    image: postgres:16-bookworm
     environment:
       POSTGRES_USER: sim
       POSTGRES_PASSWORD: sim

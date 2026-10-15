@@ -1,6 +1,6 @@
 # Build from the repo root: docker build -f apps/api/Dockerfile .
 # content/ is baked in so a PaaS needs no bind mount (compose still mounts it for dev).
-FROM python:3.12-slim
+FROM python:3.12-slim-bookworm
 
 ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 CONTENT_DIR=/srv/content
 WORKDIR /srv/api
