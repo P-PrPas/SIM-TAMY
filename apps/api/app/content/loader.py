@@ -83,6 +83,20 @@ class ContentStore:
         self._by_hash[(case_id, loaded.case_hash)] = copy.deepcopy(loaded)
         return loaded
 
+    def resolve(self, case_id: str, case_hash: str) -> LoadedCase | None:
+        """The version a session was pinned to: in memory, else re-read if the files are unchanged.
+
+        None when that version is gone (content edited while the session was open).
+        """
+        found = self.get(case_id, case_hash)
+        if found is None:
+            try:
+                self.load(case_id)  # after a restart the same files give the same hash
+            except ContentError:
+                return None
+            found = self.get(case_id, case_hash)
+        return found
+
     def get(self, case_id: str, case_hash: str) -> LoadedCase | None:
         # ponytail: deepcopy per get (frozen models don't freeze inner lists); cheap at this size
         stored = self._by_hash.get((case_id, case_hash))

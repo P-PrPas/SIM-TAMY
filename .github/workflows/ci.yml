@@ -46,10 +46,14 @@ jobs:
       - run: ruff format --check .
       - run: mypy app
       - run: pytest --cov=app
+      - name: engine coverage gate (>= 85%)
+        run: coverage report --include='app/engine/*' --fail-under=85
       - name: validate-content
         run: python -m app.content.validator_cli
         env:
           CONTENT_DIR: ../../content
+      - name: no hidden fields in play-time schemas
+        run: python ../../scripts/leakcheck.py
 
   web:
     runs-on: ubuntu-latest

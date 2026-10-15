@@ -71,6 +71,40 @@ BROKEN: list[tuple[str, Callable[[Docs], object], str, str]] = [
         "items.2.check",
     ),
     (
+        "critical_item_with_partial_credit_check",
+        lambda d: d["rubric.yaml"]["items"][0].update(
+            check={"type": "count_at_least", "category": "HX", "n": 2}
+        ),
+        "rubric.yaml",
+        "a critical item cannot use a partial-credit check",
+    ),
+    (
+        "critical_item_with_present_all",
+        lambda d: d["rubric.yaml"]["items"][0].update(
+            check={"type": "action_present_all", "actions": ["A03"]}
+        ),
+        "rubric.yaml",
+        "items.0.check",
+    ),
+    (
+        "negative_competency_weight",
+        lambda d: d["rubric.yaml"]["competencies"].__setitem__(
+            slice(None),
+            [
+                {"id": "RISK", "name_th": "n", "weight": 160},
+                {"id": "DEC", "name_th": "n", "weight": -60},
+            ],
+        ),
+        "rubric.yaml",
+        "weight must not be negative",
+    ),
+    (
+        "duplicate_rubric_item_id",
+        lambda d: d["rubric.yaml"]["items"][1].update(id="R-RISK-01"),
+        "rubric.yaml",
+        "duplicate item id",
+    ),
+    (
         "invalid_risk_state",
         lambda d: d["case.yaml"]["branch_rules"][0].update(set_risk_state="panicking"),
         "case.yaml",
@@ -163,6 +197,12 @@ STRICT_ONLY: list[tuple[str, Callable[[Docs], object], str, str]] = [
         "facts.1.source",
     ),
     ("critical_action", lambda d: d["actions.yaml"][0].pop("source"), "actions.yaml", "0.source"),
+    (
+        "improve_finding_reference",
+        lambda d: d["rubric.yaml"]["items"][1]["fail_finding"].update(references=[]),
+        "rubric.yaml",
+        "items.1.fail_finding.references",
+    ),
     (
         "rubric_item",
         lambda d: d["rubric.yaml"]["items"][1].pop("source"),

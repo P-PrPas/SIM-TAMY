@@ -1,0 +1,3 @@
+# Fixed patient lines for when no LLM line is usable (generic; no clinical content).
+clarify: "ขอโทษนะคะ ไม่แน่ใจว่าหมายถึงเรื่องอะไร ช่วยอธิบายอีกนิดได้ไหมคะ"
+smalltalk: "ค่ะ ไม่แน่ใจว่าจะตอบเรื่องนี้ยังไงดีคะ"

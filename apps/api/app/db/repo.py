@@ -51,11 +51,19 @@ class SessionRepo:
         self.db.flush()
         return row
 
-    def get(self, session_id: uuid.UUID, *, for_update: bool = False) -> LearnerSession | None:
+    def get(
+        self, session_id: uuid.UUID, *, for_update: bool = False, nowait: bool = False
+    ) -> LearnerSession | None:
+        """`nowait`: raise OperationalError (lock not available) instead of waiting."""
         stmt = select(LearnerSession).where(LearnerSession.id == session_id)
         if for_update:
-            stmt = stmt.with_for_update()
+            stmt = stmt.with_for_update(nowait=nowait).execution_options(populate_existing=True)
         return self.db.execute(stmt).scalar_one_or_none()
+
+    def token_exists(self, token_hash: str) -> bool:
+        # ponytail: unindexed scan of a small table; add an index on token_hash if it ever grows
+        stmt = select(LearnerSession.id).where(LearnerSession.token_hash == token_hash).limit(1)
+        return self.db.execute(stmt).first() is not None
 
     def save_state(
         self, session_id: uuid.UUID, state: dict[str, Any], *, expected_version: int
@@ -112,6 +120,12 @@ class TurnRepo:
             select(Turn).where(Turn.session_id == session_id, Turn.client_turn_id == client_turn_id)
         ).scalar_one()
         return existing, False
+
+    def find_by_client_id(self, session_id: uuid.UUID, client_turn_id: str) -> Turn | None:
+        stmt = select(Turn).where(
+            Turn.session_id == session_id, Turn.client_turn_id == client_turn_id
+        )
+        return self.db.execute(stmt).scalar_one_or_none()
 
     def list_for_session(self, session_id: uuid.UUID) -> list[Turn]:
         stmt = select(Turn).where(Turn.session_id == session_id).order_by(Turn.id)

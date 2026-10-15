@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate mock-api gen-api lint test test-coverage test-e2e validate-content eval bench rescore stats cost-report purge-old demo
+.PHONY: help install up down migrate mock-api gen-api lint test test-coverage test-e2e validate-content leakcheck eval bench rescore stats cost-report purge-old demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -40,7 +40,7 @@ lint:
 	cd $(WEB) && npm run lint && npm run typecheck
 
 test:
-	cd $(API) && ../../$(PY) -m pytest
+	cd $(API) && ../../$(PY) -m pytest --cov=app && ../../$(PY) -m coverage report --include='app/engine/*' --fail-under=85
 	cd $(WEB) && npm test
 
 test-coverage:
@@ -53,12 +53,18 @@ test-e2e:
 validate-content:
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.content.validator_cli $(if $(STRICT),--strict)
 
+# Fails if a play-time schema in docs/openapi.yaml can carry hidden facts, risk state, actions or scores.
+leakcheck:
+	$(PY) scripts/leakcheck.py
+
 eval:
 	@echo "not implemented: Golden Test Suite (T-070)"; exit 1
 bench:
 	@echo "not implemented: model bench (T-005)"; exit 1
+# Rebuilds the score from the Event Log and diffs it with the stored report (needs DATABASE_URL).
 rescore:
-	@echo "not implemented: rescore SESSION=$(SESSION) (T-062)"; exit 1
+	@test -n "$(SESSION)" || { echo "usage: make rescore SESSION=<id>"; exit 2; }
+	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.rescore $(SESSION)
 stats:
 	@echo "not implemented: latency stats (T-044)"; exit 1
 cost-report:

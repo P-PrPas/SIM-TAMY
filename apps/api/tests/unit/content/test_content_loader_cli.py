@@ -39,6 +39,21 @@ def test_pinned_version_survives_a_later_edit(build: Callable[..., Path]) -> Non
     assert pinned is not None and pinned.case.title_th == "t"
 
 
+def test_resolve_finds_a_pinned_version_even_after_a_restart(build: Callable[..., Path]) -> None:
+    case_dir = build()
+    pinned = ContentStore(case_dir.parents[1]).load("TEST-001")
+
+    restarted = ContentStore(case_dir.parents[1])  # empty memory, same files
+    again = restarted.resolve("TEST-001", pinned.case_hash)
+    assert again is not None and again.case_hash == pinned.case_hash
+
+    path = case_dir / "case.yaml"
+    path.write_text(path.read_text(encoding="utf-8").replace("title_th: t", "title_th: edited"))
+    assert ContentStore(case_dir.parents[1]).resolve("TEST-001", pinned.case_hash) is None
+    assert restarted.resolve("TEST-001", pinned.case_hash) is not None  # still held in memory
+    assert restarted.resolve("MISSING", "0" * 64) is None
+
+
 def test_same_files_give_same_hash(build: Callable[..., Path]) -> None:
     case_dir = build()
     assert load_case(case_dir).case_hash == load_case(case_dir).case_hash

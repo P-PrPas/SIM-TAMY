@@ -1,0 +1,296 @@
+"""Rubric evaluator (PRD 10.2, FR-SCR-01/05). PURE: the Event Log is the only input.
+
+Facts come from replaying the log in event-id order:
+ACTIONS_DETECTED (accepted actions only, logged before the turn's engine events), FACT_REVEALED,
+DECISION_COMMITTED, UNSAFE_ACTION, PHASE_CHANGED (running phase), NOTE_SUBMITTED {chars}.
+Every pass/fail result carries evidence; when a result rests on something that did *not* happen
+the evidence is the end of the observed log (the last event), so it is never empty.
+"""
+
+from collections.abc import Sequence
+from dataclasses import dataclass
+from typing import Any, NamedTuple
+
+from app.domain.action import Action
+from app.domain.case import VariantId
+from app.domain.events import LoggedEvent
+from app.domain.rubric import (
+    ActionAbsent,
+    ActionBefore,
+    ActionPresentAll,
+    ActionPresentAny,
+    CountAtLeast,
+    DecisionEquals,
+    DecisionNot,
+    NoteSubmitted,
+    NoUnsafeAction,
+    Rubric,
+    RubricItem,
+    WithinTurnsAfterFact,
+    rubric_problems,
+)
+from app.domain.scoring import CompetencyScore, Evidence, ItemResult, Result, Scoring
+
+
+class InvalidRubric(ValueError):
+    """The rubric breaks a rule `validate-content` enforces (negative weight, duplicate ids...)."""
+
+
+class MalformedEvent(ValueError):
+    """A logged event lacks a payload field the contract promises (PRD 7.5)."""
+
+
+def _need(e: LoggedEvent, key: str, kind: type) -> Any:
+    value = e.payload.get(key)
+    if not isinstance(value, kind) or isinstance(value, bool) and kind is int:
+        raise MalformedEvent(f"event {e.id} ({e.type}): payload.{key} must be {kind.__name__}")
+    return value
+
+
+class Occurrence(NamedTuple):
+    action_id: str
+    event: LoggedEvent
+    phase: str  # INTRO is reported as INTERVIEW (the public phase)
+
+
+class Outcome(NamedTuple):
+    result: Result
+    ratio: float
+    events: tuple[LoggedEvent, ...]
+
+
+@dataclass(frozen=True)
+class View:
+    """The log, replayed once into the facts the checkers need."""
+
+    events: tuple[LoggedEvent, ...]
+    categories: dict[str, str]
+    occurrences: tuple[Occurrence, ...]
+    reveals: dict[str, LoggedEvent]  # first FACT_REVEALED per fact id
+    decision: LoggedEvent | None
+
+    @classmethod
+    def build(cls, log: Sequence[LoggedEvent], actions: Sequence[Action]) -> "View":
+        events = tuple(sorted(log, key=lambda e: e.id))
+        phase = "INTERVIEW"
+        occurrences: list[Occurrence] = []
+        reveals: dict[str, LoggedEvent] = {}
+        decision: LoggedEvent | None = None
+        for e in events:
+            if e.type == "PHASE_CHANGED":
+                to = _need(e, "to", str)
+                phase = "INTERVIEW" if to == "INTRO" else to
+            elif e.type == "ACTIONS_DETECTED":
+                for a in _need(e, "actions", list):
+                    if not isinstance(a, dict) or not isinstance(a.get("id"), str):
+                        raise MalformedEvent(f"event {e.id} (ACTIONS_DETECTED): action without id")
+                    occurrences.append(Occurrence(a["id"], e, phase))
+            elif e.type == "FACT_REVEALED":
+                reveals.setdefault(_need(e, "id", str), e)
+            elif e.type == "DECISION_COMMITTED":
+                _need(e, "option_id", str)
+                linked = _need(e, "actions", list) if "actions" in e.payload else []
+                if not all(isinstance(a, str) for a in linked):
+                    raise MalformedEvent(f"event {e.id} (DECISION_COMMITTED): actions not ids")
+                if decision is None:
+                    decision = e
+                    # the option's linked actions (B01, B02...) count like any fired action
+                    occurrences += [Occurrence(a, e, phase) for a in linked]
+            elif e.type == "NOTE_SUBMITTED":
+                _need(e, "chars", int)
+        return cls(
+            events, {a.id: a.category for a in actions}, tuple(occurrences), reveals, decision
+        )
+
+    def first(self, action_id: str) -> Occurrence | None:
+        return next((o for o in self.occurrences if o.action_id == action_id), None)
+
+    def of(self, event_type: str) -> list[LoggedEvent]:
+        return [e for e in self.events if e.type == event_type]
+
+    def end(self) -> tuple[LoggedEvent, ...]:
+        """End of the observed log: evidence when a result rests on something absent."""
+        return self.events[-1:]
+
+
+def _unique(events: Sequence[LoggedEvent]) -> tuple[LoggedEvent, ...]:
+    return tuple({e.id: e for e in sorted(events, key=lambda e: e.id)}.values())
+
+
+def _present_any(v: View, c: ActionPresentAny) -> Outcome:
+    phase = None if c.phase is None else ("INTERVIEW" if c.phase == "INTRO" else c.phase)
+    hits = [
+        o.event
+        for o in v.occurrences
+        if o.action_id in c.actions and (phase is None or o.phase == phase)
+    ]
+    return Outcome("pass", 1.0, _unique(hits)) if hits else Outcome("fail", 0.0, v.end())
+
+
+def _present_all(v: View, c: ActionPresentAll) -> Outcome:
+    wanted = set(c.actions)
+    found = [o for a in sorted(wanted) if (o := v.first(a))]
+    ratio = len(found) / len(wanted) if wanted else 1.0
+    result: Result = "pass" if ratio == 1 else "fail" if ratio == 0 else "partial"
+    return Outcome(result, ratio, _unique([o.event for o in found]) or v.end())
+
+
+def _absent(v: View, c: ActionAbsent) -> Outcome:
+    marker = next(iter(v.of(c.after_event)), None) if c.after_event else None
+    if c.after_event and marker is None:
+        return Outcome("pass", 1.0, v.end())  # the event never happened, so nothing came after it
+    floor = marker.id if marker else -1
+    bad = [o.event for o in v.occurrences if o.action_id in c.actions and o.event.id > floor]
+    if bad:
+        return Outcome("fail", 0.0, _unique(bad))
+    return Outcome("pass", 1.0, (marker,) if marker else v.end())
+
+
+def _before(v: View, c: ActionBefore) -> Outcome:
+    a, b = v.first(c.first), v.first(c.then)
+    seen = _unique([o.event for o in (a, b) if o]) or v.end()
+    if a and b and a.event.id < b.event.id:  # two actions in one message are not "before"
+        return Outcome("pass", 1.0, seen)
+    return Outcome("fail", 0.0, seen)
+
+
+def _decision_equals(v: View, c: DecisionEquals) -> Outcome:
+    d = v.decision
+    if d is not None and d.payload["option_id"] == c.option:
+        return Outcome("pass", 1.0, (d,))
+    return Outcome("fail", 0.0, (d,) if d else v.end())
+
+
+def _decision_not(v: View, c: DecisionNot) -> Outcome:
+    d = v.decision
+    if d is None:
+        return Outcome("pass", 1.0, v.end())  # nothing was committed, so it was not committed
+    if d.payload["option_id"] != c.option:
+        return Outcome("pass", 1.0, (d,))
+    if c.when_fact_revealed is None:
+        return Outcome("fail", 0.0, (d,))
+    seen = v.reveals.get(c.when_fact_revealed)
+    if seen is not None and seen.id < d.id:
+        return Outcome("fail", 0.0, _unique([seen, d]))
+    return Outcome("pass", 1.0, (d,))
+
+
+def _within_turns(v: View, c: WithinTurnsAfterFact) -> Outcome:
+    d = v.decision
+    wanted = set(c.fact_ids)  # duplicate ids in the rubric must not count twice
+    shown = [r for f in sorted(wanted) if (r := v.reveals.get(f))]
+    if d is None or d.payload["option_id"] != c.decision or len(shown) < len(wanted):
+        return Outcome("fail", 0.0, _unique([*shown, *([d] if d else [])]) or v.end())
+    gap = d.turn_idx - max(r.turn_idx for r in shown)
+    # every reveal must come before the decision (event order), never after it
+    timely = all(r.id < d.id for r in shown) and 0 <= gap <= c.max_turns
+    return Outcome("pass" if timely else "fail", float(timely), _unique([*shown, d]))
+
+
+def _count(v: View, c: CountAtLeast) -> Outcome:
+    ids = sorted(
+        {o.action_id for o in v.occurrences if v.categories.get(o.action_id) == c.category}
+    )
+    ratio = min(len(ids), c.n) / c.n
+    result: Result = "pass" if ratio == 1 else "fail" if ratio == 0 else "partial"
+    events = _unique([o.event for i in ids if (o := v.first(i))])
+    return Outcome(result, ratio, events or v.end())
+
+
+def _no_unsafe(v: View, c: NoUnsafeAction) -> Outcome:
+    bad = v.of("UNSAFE_ACTION")
+    return Outcome("fail", 0.0, _unique(bad)) if bad else Outcome("pass", 1.0, v.end())
+
+
+def _note(v: View, c: NoteSubmitted) -> Outcome:
+    notes = v.of("NOTE_SUBMITTED")
+    good = [n for n in notes if n.payload.get("chars", 0) >= (c.min_chars or 1)]
+    if good:
+        return Outcome("pass", 1.0, (good[0],))
+    return Outcome("fail", 0.0, tuple(notes[:1]) or v.end())
+
+
+def _check(v: View, item: RubricItem) -> Outcome:
+    c = item.check
+    if isinstance(c, ActionPresentAny):
+        return _present_any(v, c)
+    if isinstance(c, ActionPresentAll):
+        return _present_all(v, c)
+    if isinstance(c, ActionAbsent):
+        return _absent(v, c)
+    if isinstance(c, ActionBefore):
+        return _before(v, c)
+    if isinstance(c, DecisionEquals):
+        return _decision_equals(v, c)
+    if isinstance(c, DecisionNot):
+        return _decision_not(v, c)
+    if isinstance(c, WithinTurnsAfterFact):
+        return _within_turns(v, c)
+    if isinstance(c, CountAtLeast):
+        return _count(v, c)
+    if isinstance(c, NoUnsafeAction):
+        return _no_unsafe(v, c)
+    return _note(v, c)
+
+
+def evaluate_item(item: RubricItem, view: View, variant: VariantId) -> ItemResult:
+    """Pure: same log, same item, same result."""
+    if item.applies_to_variants is not None and variant not in item.applies_to_variants:
+        return ItemResult(
+            id=item.id,
+            competency=item.competency,
+            result="na",
+            points=item.points,
+            earned=0.0,
+            critical=item.critical,
+        )
+    outcome = _check(view, item)
+    return ItemResult(
+        id=item.id,
+        competency=item.competency,
+        result=outcome.result,
+        points=item.points,
+        earned=item.points * outcome.ratio,
+        critical=item.critical,
+        evidence=tuple(
+            Evidence(event_id=e.id, turn_idx=e.turn_idx, type=e.type) for e in outcome.events
+        ),
+    )
+
+
+def score(
+    log: Sequence[LoggedEvent], rubric: Rubric, actions: Sequence[Action], variant: VariantId
+) -> Scoring:
+    """PRD 10.3. Safety is a gate: a failed critical item means SAFETY_NOT_MET at any total."""
+    problems = rubric_problems(rubric)
+    if problems:  # validate-content may not have run: refuse to score, never mis-score
+        raise InvalidRubric("; ".join(f"{path}: {msg}" for path, msg in problems))
+    view = View.build(log, actions)
+    items = tuple(evaluate_item(it, view, variant) for it in rubric.items)
+    applicable = [r for r in items if r.result != "na"]
+
+    active = [c for c in rubric.competencies if any(r.competency == c.id for r in applicable)]
+    total_weight = sum(c.weight for c in active)  # renormalised when a competency does not apply
+    competencies: list[CompetencyScore] = []
+    for c in active:
+        mine = [r for r in applicable if r.competency == c.id]
+        possible = float(sum(r.points for r in mine))
+        earned = sum(r.earned for r in mine)
+        competencies.append(
+            CompetencyScore(
+                id=c.id,
+                name_th=c.name_th,
+                weight=c.weight * 100 / total_weight if total_weight else 0.0,
+                score_pct=100 * earned / possible if possible else 0.0,
+                earned=earned,
+                possible=possible,
+            )
+        )
+    total = sum(c.score_pct * c.weight / 100 for c in competencies)
+    failed_critical = any(r.critical and r.result == "fail" for r in items)
+    return Scoring(
+        safety_status="SAFETY_NOT_MET" if failed_critical else "SAFETY_MET",
+        total_score=round(total, 1),
+        competencies=tuple(competencies),
+        items=items,
+    )

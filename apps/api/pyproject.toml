@@ -23,6 +23,7 @@ dependencies = [
 dev = [
   "pytest>=8",
   "pytest-cov>=5",
+  "hypothesis>=6",  # property tests for the pure engine (T-024)
   "types-pyyaml>=6",
   "openapi-spec-validator>=0.7",  # docs/openapi.yaml must stay a valid spec
   "ruff>=0.6",
@@ -33,10 +34,11 @@ dev = [
 include = ["app*"]
 
 [tool.setuptools.package-data]
-app = ["ai/prompts/*.md"]
+app = ["ai/prompts/*.md", "ai/prompts/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]  # lets tests import shared helpers as tests.unit...
 addopts = "-ra"
 
 [tool.ruff]

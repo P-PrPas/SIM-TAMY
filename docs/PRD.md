@@ -561,6 +561,30 @@ CREATE TABLE score_overrides (          -- Could (FR-INS-04)
  "payload": {"actions": [{"id": "A03", "confidence": 0.93, "span": "เลือดที่ออกเป็นยังไงบ้าง"}], "source": "llm"}}
 ```
 
+**สัญญา Event Log ที่ Scoring (`engine/scoring.py`) พึ่งพา — API ต้องบันทึกตามนี้**
+
+1. เรียงตาม `id` ของ event เท่านั้น (ไม่ใช้เวลา)
+2. `ACTIONS_DETECTED.payload.actions` = เฉพาะ action ที่ **ผ่าน confidence policy แล้ว** (`[{"id": ..., ...}]`) และบันทึก **ก่อน** event ของ engine ในเทิร์นเดียวกัน (เพื่อให้ phase ขณะนั้นอ่านได้จาก `PHASE_CHANGED` ก่อนหน้า)
+3. `NOTE_SUBMITTED.payload = {"chars": <จำนวนตัวอักษร>}`
+4. `check.phase` ที่เป็น `INTRO` ถือเป็น `INTERVIEW`
+   - `DECISION_COMMITTED.payload = {"option_id": ..., "actions": [<id ที่ผูกกับ option>]}`; actions เหล่านั้นนับเป็น action ที่ยิงแล้ว (phase = phase ก่อนย้าย) เช่น `action_present_all [B01, B02]`
+   - payload ที่ขาด/ผิดชนิด (เช่น `DECISION_COMMITTED {}`) ทำให้ scoring raise `MalformedEvent` ไม่ให้คะแนนจาก log ที่เสีย
+5. ผล pass/fail ที่อิงสิ่งที่ "ไม่เกิดขึ้น" (เช่น `no_unsafe_action` ผ่าน) ใช้ event สุดท้ายของ log เป็น evidence
+
+**Payload ที่ API (T-040) บันทึกในแต่ละ turn** (ลำดับต่อ turn: `LEARNER_MESSAGE`, `ACTIONS_DETECTED`, `CLARIFICATION_ASKED`?, event ของ engine, `LLM_FALLBACK_USED`?, `VALIDATOR_REJECTED`*, `LLM_FALLBACK_USED`?)
+
+| Event | payload |
+|---|---|
+| `SESSION_STARTED` (turn 0) | `{case_id, case_hash, variant}` |
+| `LEARNER_MESSAGE` | `{chars}` (ข้อความจริงอยู่ในตาราง `turns` ไม่ซ้ำใน event) |
+| `ACTIONS_DETECTED` | `{actions: [{id, confidence, span}], source: "llm" \| "lexical"}` เฉพาะที่ผ่าน confidence policy |
+| `CLARIFICATION_ASKED` | `{candidates: [action id ในช่วง 0.5–0.75]}` |
+| `VALIDATOR_REJECTED` | `{attempt, rules: [...]}` ไม่เก็บข้อความที่ถูกปฏิเสธ |
+| `LLM_FALLBACK_USED` | `{component: "interpreter" \| "generator" \| "validator"}` |
+| `DECISION_COMMITTED` | `{option_id, actions, rationale_th?}` (`rationale_th` เป็น key เพิ่ม scoring ไม่อ่าน) |
+| `NOTE_SUBMITTED` | `{chars, note_th}` (เฉพาะเมื่อผู้เรียนส่งสรุป; `chars` คือที่ scoring อ่าน) |
+| `PHASE_CHANGED` (จบเคส) | `{from: "CLOSING", to: "COMPLETED", trigger: "complete"}` ตามด้วย `SESSION_COMPLETED` `{}` |
+
 ---
 
 # 8. API Specification (v1)
@@ -836,6 +860,8 @@ items:
 | `note_submitted` | `min_chars?` | ส่งสรุปเคสและยาว ≥ ที่กำหนด |
 
 > ผลต่อ item: `pass` (ได้เต็ม points), `fail` (0), `partial` (เฉพาะ `action_present_all`/`count_at_least` — ได้ตามสัดส่วน), `na` (ไม่ใช้กับ Variant → ไม่นับ)
+>
+> Critical Safety gate ทำงานเฉพาะผล `fail` — จึง `validate-content` ห้าม item ที่ `critical: true` ใช้ check ที่ให้ `partial` ได้ (`action_present_all`, `count_at_least`). `score(log, rubric, actions, variant)` อยู่ใน `engine/scoring.py` (pure; ไม่พึ่ง content loader)
 
 ## 10.3 อัลกอริทึม
 
