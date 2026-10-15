@@ -197,6 +197,23 @@ def test_llm_outage_degrades_to_the_fallback_and_keeps_playing(api: Api) -> None
     assert turn(api, created, "สวัสดีค่ะ").json()["degraded"] is False
 
 
+@pytest.mark.parametrize("failure", ["down", "invalid structured output"])
+def test_llm_failure_uses_content_keyword_to_unlock_a_fact(api: Api, failure: str) -> None:
+    api.llm.by_text[ASK_A03] = failure
+    created = api.create()
+
+    response = turn(api, created, ASK_A03)
+
+    assert response.status_code == 200
+    assert response.json()["degraded"] is True
+    assert state_of(api, created)["revealed_fact_ids"] == ["H1"]
+    events = events_of(api, created)
+    detected = next(event for event in events if event.type == "ACTIONS_DETECTED")
+    assert detected.payload["source"] == "lexical"
+    assert [item["id"] for item in detected.payload["actions"]] == ["A03"]
+    assert any(event.type == "LLM_FALLBACK_USED" for event in events)
+
+
 class LeakyThenClean:
     """Says the hidden fact H2 (not unlocked) for the first `bad` attempts, then a clean line."""
 
