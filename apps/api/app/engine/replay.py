@@ -2,9 +2,12 @@
 
 `terminal_state` is `UnsafeProceed` when the log has an UNSAFE_ACTION or the committed option's
 branch rule is `mark_unsafe` (the case says proceeding there is unsafe), else `Referral`.
-Missed opportunities: when the learner proceeded by decision, each of the case's
-`critical_facts_for_replay` is a moment they could have stopped: the turn the fact reached them,
-or the decision turn when they never asked. Thai wording comes from `notes`, never from here.
+Missed opportunities (every UnsafeProceed has at least one):
+- proceeded by decision: each of the case's `critical_facts_for_replay` is a moment they could have
+  stopped: the turn the fact reached them, or the decision turn when they never asked;
+- gave in after referring (UNSAFE_ACTION from an action, e.g. C04 under pressure): the critical
+  facts they already had, at the turn they gave in.
+Thai wording comes from `notes`, never from here.
 """
 
 from collections.abc import Mapping, Sequence
@@ -34,16 +37,26 @@ def terminal_state(log: Sequence[LoggedEvent], case: Case) -> str:
 def missed_opportunities(
     log: Sequence[LoggedEvent], case: Case, notes: Mapping[str, str]
 ) -> tuple[MissedOpportunity, ...]:
-    """`notes` has `revealed` and `never_asked` templates with a `{fact}` placeholder."""
+    """`notes`: `revealed`, `never_asked` and `gave_in` templates with a `{fact}` placeholder."""
+    text = {f.id: f.text_th for f in case.facts}
+    gave_in = tuple(
+        MissedOpportunity(
+            turn_idx=e.turn_idx,
+            fact_id=str(fact_id),
+            note_th=notes["gave_in"].format(fact=text[str(fact_id)]),
+        )
+        for e in sorted(log, key=lambda e: e.id)
+        if e.type == "UNSAFE_ACTION" and e.payload.get("trigger") == "action"
+        for fact_id in e.payload["fact_ids"]
+    )
     if not _proceeded_by_decision(log, case):
-        return ()
+        return gave_in
     decision_turn = _decisions(log)[0].turn_idx
     revealed_at: dict[str, int] = {}
     for e in sorted(log, key=lambda e: e.id):
         if e.type == "FACT_REVEALED":
             revealed_at.setdefault(str(e.payload["id"]), e.turn_idx)
-    text = {f.id: f.text_th for f in case.facts}
-    return tuple(
+    return gave_in + tuple(
         MissedOpportunity(
             turn_idx=revealed_at.get(fact_id, decision_turn),
             fact_id=fact_id,

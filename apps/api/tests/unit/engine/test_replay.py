@@ -10,7 +10,7 @@ from tests.unit.engine.play import Play
 
 LOADED = load_case(Path(__file__).resolve().parents[5] / "content" / "cases" / "DEV-001")
 CASE = LOADED.case
-NOTES = {"revealed": "R:{fact}", "never_asked": "N:{fact}"}
+NOTES = {"revealed": "R:{fact}", "never_asked": "N:{fact}", "gave_in": "G:{fact}"}
 TEXT = {f.id: f.text_th for f in CASE.facts}
 
 
@@ -59,3 +59,25 @@ def test_only_the_cases_listed_facts_are_marked(facts: list[str]) -> None:
     play = Play(LOADED, "A").turn("A03").decide("proceed_service")
 
     assert [m.fact_id for m in missed_opportunities(play.events, case, NOTES)] == facts
+
+
+def test_giving_in_after_referring_marks_the_turn_it_happened_for_the_facts_the_learner_had() -> (
+    None
+):
+    play = Play(LOADED, "C").turn("A03").turn("A04").decide("refer").turn("C04")
+
+    replay = build_replay(play.events, CASE, "d", NOTES)
+
+    assert replay.terminal_state == "UnsafeProceed"
+    assert [(m.turn_idx, m.fact_id, m.note_th) for m in replay.missed_opportunities] == [
+        (3, "H1", "G:" + TEXT["H1"]),
+        (3, "H2", "G:" + TEXT["H2"]),
+    ]
+
+
+def test_holding_the_referral_under_pressure_has_no_marker() -> None:
+    play = Play(LOADED, "C").turn("A03").turn("A04").decide("refer").turn("C03")
+
+    replay = build_replay(play.events, CASE, "d", NOTES)
+
+    assert (replay.terminal_state, replay.missed_opportunities) == ("Referral", ())
