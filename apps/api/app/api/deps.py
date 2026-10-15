@@ -18,7 +18,7 @@ from app.core.security import hash_token
 from app.db.models import LearnerSession
 from app.db.repo import SessionRepo
 from app.db.session import get_sessionmaker
-from app.services.patient_voice import CannedGenerator, FloorValidator, Voice
+from app.services.patient_voice import Voice
 
 _CASE_ID = re.compile(r"^[A-Za-z0-9_-]+$")
 
@@ -54,15 +54,15 @@ def get_llm_factory() -> LLMFactory:
     return lambda purpose, on_call: get_llm_client(purpose, on_call=on_call)
 
 
-def get_voice() -> Voice:
-    """T-033/T-034 swap in the LLM generator and the full validator here."""
-    return Voice(CannedGenerator(), FloorValidator())
+def get_voice() -> Voice | None:
+    """None selects the production generator once the turn's LLM call sink is available."""
+    return None
 
 
 Db = Annotated[Session, Depends(get_db)]
 Store = Annotated[ContentStore, Depends(get_store)]
 Llm = Annotated[LLMFactory, Depends(get_llm_factory)]
-VoiceDep = Annotated[Voice, Depends(get_voice)]
+VoiceDep = Annotated[Voice | None, Depends(get_voice)]
 
 
 def learner_session(
