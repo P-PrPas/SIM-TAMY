@@ -199,7 +199,8 @@ def send_turn(
         text=req.text,
         client_turn_id=req.client_turn_id,
     )
-    turns.add(session_id=row.id, idx=idx, speaker="patient", text=spoken.text)
+    if spoken.text:
+        turns.add(session_id=row.id, idx=idx, speaker="patient", text=spoken.text)
     for call in calls:
         LlmCallRepo(db).record(
             purpose=call.purpose,
@@ -220,7 +221,7 @@ def send_turn(
     return Outcome(
         TurnResponse(
             turn_idx=idx,
-            replies=[Reply(speaker="patient", text=spoken.text)],
+            replies=[Reply(speaker="patient", text=spoken.text)] if spoken.text else [],
             phase=public_phase(new_state.phase),
             clarification=decision.clarify,
             turns_remaining=_remaining(idx),

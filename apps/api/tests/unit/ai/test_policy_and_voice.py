@@ -1,5 +1,6 @@
 """Confidence policy (FR-ACT-02) and the patient reply loop (FR-VAL-01/02), without a database."""
 
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
@@ -8,6 +9,7 @@ from app.ai.interpreter import DetectedAction, Interpretation
 from app.ai.llm_client import LLMProviderError
 from app.ai.policy import apply_policy
 from app.content.loader import load_case
+from app.domain.case import Case
 from app.domain.state import AllowedFact, AllowedFacts
 from app.services.patient_voice import (
     CannedGenerator,
@@ -139,6 +141,17 @@ def test_the_fallback_goes_through_the_validator_too() -> None:
     # revealed: the content-authored line is fine
     shown = speak(request(facts=(H1_FACT,)), CASE, ["H1"], Voice(gen, FloorValidator()))
     assert shown.text == "ค่ะ มีสัญญาณทดสอบกค่ะ"
+
+
+def test_speak_says_nothing_when_no_fallback_passes_the_validator() -> None:
+    class RejectAll:
+        def check(self, text: str, case: Case, revealed: Sequence[str]) -> list[str]:
+            return ["forbidden_term"]
+
+    for directive in ("answer", "clarify", "deflect_smalltalk"):
+        req = request(directive, facts=(H1_FACT,))
+        spoken = speak(req, CASE, ["H1"], Voice(Script(H1), RejectAll()))
+        assert (spoken.text, spoken.fallback) == ("", True)
 
 
 def test_speak_survives_a_generator_failure() -> None:

@@ -90,21 +90,22 @@ class Voice:
 
 
 class Spoken(NamedTuple):
-    text: str
+    text: str  # empty: nothing safe to say, so no reply is stored or shown
     rejected: tuple[tuple[str, ...], ...]  # rules failed per rejected attempt (never the text)
     fallback: bool  # the canned line was used
     generator_failed: bool  # the Generator raised LLMError
 
 
 def fallback_line(request: VoiceRequest, case: Case, revealed: Sequence[str], voice: Voice) -> str:
-    """Content-authored lines first (the facts being conveyed), else a generic one.
+    """The first canned line the Validator accepts: the facts' own lines, then a generic one.
 
-    The canned line goes through the same Validator: a fallback that would leak is skipped.
+    Empty when none is safe: the patient then says nothing (AGENTS.md rule 6).
     """
 
     def clean(text: str) -> bool:
         return not voice.validator.check(text, case, revealed)
 
+    candidates: list[str] = []
     if request.directive == "answer":
         by_id = {f.id: f for f in case.facts if isinstance(f, HiddenFact)}
         lines = [
@@ -113,10 +114,9 @@ def fallback_line(request: VoiceRequest, case: Case, revealed: Sequence[str], vo
             if i in by_id
             if (line := next((u for u in by_id[i].fallback_utterances_th if clean(u)), None))
         ]
-        for candidate in (" ".join(lines), *lines):  # all of them, else the first that fits
-            if candidate and clean(candidate):
-                return candidate
-    return canned("clarify" if request.directive == "clarify" else "smalltalk")
+        candidates += [" ".join(lines), *lines]  # all of them, else the first that fits
+    candidates.append(canned("clarify" if request.directive == "clarify" else "smalltalk"))
+    return next((c for c in candidates if c and clean(c)), "")
 
 
 def speak(request: VoiceRequest, case: Case, revealed: Sequence[str], voice: Voice) -> Spoken:

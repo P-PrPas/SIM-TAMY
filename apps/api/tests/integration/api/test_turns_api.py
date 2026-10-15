@@ -1,6 +1,7 @@
 """T-040b: sendTurn: pipeline, Event Log contract, idempotency, locking, limits, fallbacks."""
 
 import uuid
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -9,6 +10,7 @@ from sqlalchemy import select
 
 from app.ai.llm_client import LLMTimeout
 from app.db.models import Event, LearnerSession, LlmCall, Turn
+from app.domain.case import Case
 from app.domain.events import LoggedEvent
 from app.engine.scoring import View, score
 from app.services.patient_voice import CannedGenerator, FloorValidator, Voice, VoiceRequest, canned
@@ -240,6 +242,25 @@ def test_after_two_regenerations_the_canned_utterance_is_used(api: Api) -> None:
             [e.payload for e in db.scalars(select(Event))]
         )
         assert LEAK_H2 not in everything
+
+
+def test_when_no_canned_line_is_safe_the_patient_says_nothing(api: Api) -> None:
+    class RejectAll:
+        def check(self, text: str, case: Case, revealed: Sequence[str]) -> list[str]:
+            return ["forbidden_term"]
+
+    api.use_voice(Voice(LeakyThenClean(bad=99), RejectAll()))
+    created = setup_a03(api)
+
+    r = turn(api, created, ASK_A03)
+
+    assert r.status_code == 200
+    assert r.json()["replies"] == [] and r.json()["degraded"] is True
+    with api.db() as db:  # the learner's turn is kept; no patient text exists anywhere
+        assert [t.speaker for t in db.scalars(select(Turn))] == ["learner"]
+        assert LEAK_H2 not in str([e.payload for e in db.scalars(select(Event))])
+    again = turn(api, created, ASK_A03, client_turn_id="client-turn-0002")
+    assert again.json()["replies"] == []
 
 
 def test_a_failing_generator_falls_back_to_the_canned_line(api: Api) -> None:
