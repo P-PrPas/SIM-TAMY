@@ -83,3 +83,36 @@ def learner_session(
 
 
 Learner = Annotated[LearnerSession, Depends(learner_session)]
+
+
+def require_instructor_secret(
+    x_instructor_secret: Annotated[str | None, Header(alias="X-Instructor-Secret")] = None,
+) -> None:
+    """Shared instructor secret is server-side only; never echo it in errors or logs."""
+    configured = get_settings().instructor_secret
+    if configured is None or not x_instructor_secret:
+        raise ApiError("UNAUTHORIZED", "instructor secret required")
+    if not hmac.compare_digest(x_instructor_secret, configured.get_secret_value()):
+        raise ApiError("FORBIDDEN", "invalid instructor secret")
+
+
+Instructor = Annotated[None, Depends(require_instructor_secret)]
+
+
+def reader_session(
+    session_id: uuid.UUID,
+    db: Db,
+    authorization: Annotated[str | None, Header()] = None,
+    x_instructor_secret: Annotated[str | None, Header(alias="X-Instructor-Secret")] = None,
+) -> LearnerSession:
+    """Read-only session routes allow its learner or a valid instructor (API_DESIGN 3)."""
+    if x_instructor_secret is None:
+        return learner_session(session_id, db, authorization)
+    require_instructor_secret(x_instructor_secret)
+    row = SessionRepo(db).get(session_id)
+    if row is None:
+        raise ApiError("NOT_FOUND", "session not found")
+    return row
+
+
+Reader = Annotated[LearnerSession, Depends(reader_session)]

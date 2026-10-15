@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Response
 
-from app.api.deps import Db, Learner, Llm, Store, VoiceDep
+from app.api.deps import Db, Learner, Llm, Reader, Store, VoiceDep
 from app.api.v1.schemas import (
     CompleteRequest,
     CompleteResponse,
@@ -30,7 +30,7 @@ def create_session(
 
 
 @router.get("/sessions/{session_id}", response_model=SessionView, operation_id="getSession")
-def get_session(row: Learner, db: Db, store: Store) -> SessionView:
+def get_session(row: Reader, db: Db, store: Store) -> SessionView:
     sessions.ensure_alive(db, row)
     return sessions.view_session(db, store, row)
 
@@ -75,5 +75,5 @@ def complete_session(
 @router.get(
     "/sessions/{session_id}/report", response_model=ReportResponse, operation_id="getReport"
 )
-def get_report(row: Learner, db: Db, store: Store) -> ReportResponse:
+def get_report(row: Reader, db: Db, store: Store) -> ReportResponse:
     return closing.report(db, store, row)
