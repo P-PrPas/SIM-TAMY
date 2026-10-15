@@ -36,12 +36,13 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.ai.lexical import match_actions
 from app.ai.llm_client import LLMClient, LLMRequest, LLMResponse
+from app.ai.thai import normalize_th
 from app.api.deps import get_llm_factory, get_store
 from app.content.loader import LoadedCase, load_case
 from app.core.config import get_settings
 from app.db.models import Event, LearnerSession
 from app.db.session import get_engine, get_sessionmaker
-from app.domain.case import HiddenFact
+from app.domain.case import Case, HiddenFact
 from app.main import create_app
 from app.rescore import rescore
 
@@ -80,6 +81,7 @@ class Expect(_Strict):
     events_exclude: list[str] = []
     items: dict[str, Literal["pass", "fail", "partial", "na"]] = {}
     revealed: list[str] | None = None  # exactly these facts, read from the session state
+    fact_reveals: dict[str, int] = {}  # FACT_REVEALED events logged per fact id, exactly
     replay_terminal_state: str | None = None
     replay_missed_opportunities_include: list[str] = []
     min_step_pass_rate: float | None = None  # share of `say` steps whose own expectation held
@@ -143,6 +145,7 @@ class Facts:
     event_types: set[str]
     items: dict[str, str]
     revealed: set[str]
+    reveal_counts: dict[str, int]
     terminal_state: str | None
     missed: set[str]
     step_rate: float | None
@@ -160,6 +163,9 @@ def check(expect: Expect, facts: Facts) -> list[str]:
             failed.append(f"item {item} is {facts.items.get(item)}, expected {want}")
     if expect.revealed is not None and facts.revealed != set(expect.revealed):
         failed.append(f"revealed {sorted(facts.revealed)} != {sorted(expect.revealed)}")
+    for fact_id, want_n in expect.fact_reveals.items():
+        if (got := facts.reveal_counts.get(fact_id, 0)) != want_n:
+            failed.append(f"fact {fact_id} revealed {got} time(s), expected {want_n}")
     if expect.replay_terminal_state and facts.terminal_state != expect.replay_terminal_state:
         failed.append(f"terminal_state {facts.terminal_state} != {expect.replay_terminal_state}")
     missing = set(expect.replay_missed_opportunities_include) - facts.missed
@@ -177,6 +183,21 @@ def _keys(node: Any) -> set[str]:
     if isinstance(node, list):
         return {k for v in node for k in _keys(v)}
     return set()
+
+
+def leaks(text: str, case: Case, revealed: set[str]) -> list[str]:
+    """Hidden-fact and forbidden terms in a reply; normalized like the Validator (no zero-width)."""
+    text = normalize_th(text)
+    found = [
+        f"reply leaks {f.id} before it was revealed"
+        for f in case.facts
+        if isinstance(f, HiddenFact)
+        and f.id not in revealed
+        and any(normalize_th(t) in text for t in f.leak_terms_th)
+    ]
+    if any(normalize_th(t) in text for t in case.forbidden_terms_th):
+        found.append("reply contains a forbidden term")
+    return found
 
 
 @dataclass
@@ -218,12 +239,7 @@ def run_golden(g: Golden, env: Env) -> Outcome:
             fail.append(f"{label}: forbidden key in a play-time response")
         revealed = state_revealed()
         text = " ".join(x["text"] for x in body.get("replies", []))
-        for f in loaded.case.facts:
-            leaked = isinstance(f, HiddenFact) and f.id not in revealed
-            if leaked and any(t in text for t in f.leak_terms_th):  # type: ignore[union-attr]
-                fail.append(f"{label}: reply leaks {f.id} before it was revealed")
-        if any(t in text for t in loaded.case.forbidden_terms_th):
-            fail.append(f"{label}: reply contains a forbidden term")
+        fail.extend(f"{label}: {m}" for m in leaks(text, loaded.case, revealed))
 
     said = held = 0
     for n, step in enumerate(g.steps, start=1):
@@ -277,11 +293,17 @@ def run_golden(g: Golden, env: Env) -> Outcome:
         with env.maker() as db:
             diffs = rescore(db, get_store(), sid).diffs
         fail += [f"rescore differs from the stored report: {d}" for d in diffs[:3]]
+    logged_all = events()
+    reveal_counts: dict[str, int] = {}
+    for e in logged_all:
+        if e.type == "FACT_REVEALED":
+            reveal_counts[e.payload["id"]] = reveal_counts.get(e.payload["id"], 0) + 1
     facts = Facts(
         safety_status=body.get("safety_status"),
-        event_types={e.type for e in events()},
+        event_types={e.type for e in logged_all},
         items={i["id"]: i["result"] for i in body.get("items", [])},
         revealed=state_revealed(),
+        reveal_counts=reveal_counts,
         terminal_state=body.get("replay", {}).get("terminal_state"),
         missed={
             m.get("fact_id", "") for m in body.get("replay", {}).get("missed_opportunities", [])
@@ -314,6 +336,14 @@ def _content_dir() -> Path:
 # ---------- database, app, CLI ----------
 
 
+def alembic_config(url: str) -> Config:
+    cfg = Config(str(API_DIR / "alembic.ini"))
+    cfg.set_main_option("script_location", str(API_DIR / "migrations"))
+    # ConfigParser interpolates %: an unescaped one in a password fails and prints the credentials
+    cfg.set_main_option("sqlalchemy.url", url.replace("%", "%%"))
+    return cfg
+
+
 @contextmanager
 def temp_database(server_url: str) -> Iterator[str]:
     """An empty database migrated to head, dropped on exit."""
@@ -324,10 +354,7 @@ def temp_database(server_url: str) -> Iterator[str]:
         conn.exec_driver_sql(f'CREATE DATABASE "{name}"')
     new_url = url.set(database=name).render_as_string(hide_password=False)
     try:
-        cfg = Config(str(API_DIR / "alembic.ini"))
-        cfg.set_main_option("script_location", str(API_DIR / "migrations"))
-        cfg.set_main_option("sqlalchemy.url", new_url)
-        command.upgrade(cfg, "head")
+        command.upgrade(alembic_config(new_url), "head")
         yield new_url
     finally:
         with admin.connect() as conn:

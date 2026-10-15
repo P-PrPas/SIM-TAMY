@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from app.golden import Expect, Facts, Golden, check, load_golden
+from app.content.loader import load_case
+from app.golden import Expect, Facts, Golden, alembic_config, check, leaks, load_golden
 
 GOLDEN_DIR = Path(__file__).resolve().parents[4] / "eval" / "golden"
 
@@ -13,6 +14,7 @@ GOLDEN_DIR = Path(__file__).resolve().parents[4] / "eval" / "golden"
 def facts(**kw: object) -> Facts:
     base = dict(
         safety_status="SAFETY_MET", event_types={"A"}, items={"R1": "pass"}, revealed={"H1"},
+        reveal_counts={"H1": 1},
         terminal_state="Referral", missed=set(), step_rate=1.0,
     )  # fmt: skip
     return Facts(**{**base, **kw})  # type: ignore[arg-type]
@@ -28,6 +30,9 @@ def facts(**kw: object) -> Facts:
         (Expect(items={"R1": "fail"}), {}, 1),
         (Expect(revealed=["H1"]), {}, 0),
         (Expect(revealed=[]), {}, 1),
+        (Expect(fact_reveals={"H1": 1}), {}, 0),
+        (Expect(fact_reveals={"H1": 1}), {"reveal_counts": {"H1": 3}}, 1),
+        (Expect(fact_reveals={"H2": 1}), {}, 1),
         (Expect(replay_terminal_state="UnsafeProceed"), {}, 1),
         (Expect(replay_missed_opportunities_include=["H1"]), {}, 1),
         (Expect(replay_missed_opportunities_include=["H1"]), {"missed": {"H1"}}, 0),
@@ -58,3 +63,18 @@ def test_every_shipped_golden_file_parses_and_ids_match_file_names() -> None:
     files = sorted(GOLDEN_DIR.glob("T*.yaml"))
     assert [f.stem for f in files] == [f"T{n:02d}" for n in range(1, 11)]
     assert all(load_golden(f).id == f.stem for f in files)
+
+
+CASE = load_case(GOLDEN_DIR.parents[1] / "content" / "cases" / "DEV-001").case
+
+
+def test_leaks_sees_a_term_hidden_behind_zero_width_characters() -> None:
+    term = next(t for f in CASE.facts if f.id == "H1" for t in f.leak_terms_th)  # type: ignore[union-attr]
+    assert leaks(term, CASE, set()) and not leaks(term, CASE, {"H1"})
+    assert leaks(term[:1] + "​" + term[1:], CASE, set())
+    assert leaks(CASE.forbidden_terms_th[0][:1] + "​" + CASE.forbidden_terms_th[0][1:], CASE, set())
+
+
+def test_a_database_password_with_a_percent_sign_survives_alembic_config() -> None:
+    url = "postgresql+psycopg://sim:p%41ss%@localhost:5433/db"
+    assert alembic_config(url).get_main_option("sqlalchemy.url") == url

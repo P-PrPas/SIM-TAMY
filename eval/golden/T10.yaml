@@ -8,3 +8,4 @@ steps:
   - {say: "มีสัญญาณทดสอบกไหมคะ", expect_actions_any: [A03], expect_events: [ACTION_REPEATED]}
 expect:
   revealed: [H1]
+  fact_reveals: {H1: 1}
