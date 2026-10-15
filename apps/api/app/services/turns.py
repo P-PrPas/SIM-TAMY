@@ -113,7 +113,9 @@ def send_turn(
     state = state_of(row)
     if state.phase not in OPEN_PHASES:
         raise ApiError("INVALID_PHASE", "messages are not accepted now", {"phase": state.phase})
-    if state.turn_idx >= limits.MAX_TURNS:
+    # the pressure scene has its own budget (PRESSURE_MAX_TURNS): a referral committed at the
+    # limit must still be able to play it out and be completed
+    if state.turn_idx >= limits.MAX_TURNS and state.phase != "PRESSURE":
         raise ApiError("TURN_LIMIT", "turn limit reached", {"max_turns": limits.MAX_TURNS})
 
     loaded = pinned_case(store, row)

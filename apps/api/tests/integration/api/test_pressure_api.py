@@ -2,11 +2,14 @@
 
 from typing import Any
 
+import pytest
+
 from tests.integration.api.conftest import Api, ask
 from tests.integration.api.test_closing_api import complete, decide, report
 from tests.integration.api.test_turns_api import (
     ASK_A03,
     ASK_A04,
+    _set_row,
     events_of,
     state_of,
     turn,
@@ -133,3 +136,29 @@ def test_variant_a_never_enters_the_pressure_scene(api: Api) -> None:
         None,
     )
     assert "PRESSURE_STARTED" not in types_of(api, created)
+
+
+@pytest.mark.parametrize("at", [39, 40])
+def test_a_referral_at_the_turn_limit_can_still_play_the_pressure_out_and_complete(
+    api: Api, at: int
+) -> None:
+    created = api.create(variant="C")
+    _set_row(api, created, state={"phase": "INTERVIEW", "turn_idx": at})
+    assert decide(api, created).json()["phase"] == "PRESSURE"
+
+    first = turn(api, created, CHAT)
+    second = turn(api, created, CHAT_2)
+
+    assert (first.status_code, second.status_code) == (200, 200)
+    assert [first.json()["turn_idx"], second.json()["turn_idx"]] == [at + 1, at + 2]
+    assert (first.json()["turns_remaining"], second.json()["phase"]) == (0, "CLOSING")
+    assert turn(api, created, CHAT).json()["error"]["code"] == "INVALID_PHASE"
+    assert complete(api, created).status_code == 200
+
+
+def test_the_interview_is_still_capped_at_the_turn_limit(api: Api) -> None:
+    created = api.create(variant="C")
+    _set_row(api, created, state={"phase": "INTERVIEW", "turn_idx": 40})
+
+    assert turn(api, created, CHAT).json()["error"]["code"] == "TURN_LIMIT"
+    assert decide(api, created).json()["phase"] == "PRESSURE"  # the decision is still allowed
