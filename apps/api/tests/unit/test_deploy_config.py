@@ -1,6 +1,7 @@
 """T-090/T-093: what a PaaS hands us (DATABASE_URL, web origins) is accepted as is."""
 
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -54,3 +55,22 @@ def test_exact_origin_regex_origin_and_strangers(monkeypatch: pytest.MonkeyPatch
 
 def test_no_cors_headers_when_nothing_is_configured() -> None:
     assert allowed_origin(PROD) is None
+
+
+def test_compose_passes_the_confidence_thresholds_with_the_code_defaults() -> None:
+    """A Settings field that compose does not forward is silently ignored inside the container."""
+    import yaml
+
+    compose = yaml.safe_load(
+        (Path(__file__).resolve().parents[4] / "docker-compose.yml").read_text()
+    )
+    env = compose["services"]["api"]["environment"]
+    defaults = Settings()
+    assert (
+        env["ACTION_ACCEPT_THRESHOLD"]
+        == f"${{ACTION_ACCEPT_THRESHOLD:-{defaults.action_accept_threshold}}}"
+    )
+    assert (
+        env["ACTION_CLARIFY_THRESHOLD"]
+        == f"${{ACTION_CLARIFY_THRESHOLD:-{defaults.action_clarify_threshold}}}"
+    )

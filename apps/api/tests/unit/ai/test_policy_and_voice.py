@@ -59,6 +59,29 @@ def test_the_llm_asking_for_clarification_counts_when_nothing_was_accepted() -> 
     assert apply_policy(ok).clarify is False
 
 
+def test_policy_uses_configured_thresholds_without_accepting_borderline_actions() -> None:
+    decision = apply_policy(
+        found(("A03", 0.6), ("A04", 0.7), ("A05", 0.85)),
+        accept_threshold=0.9,
+        clarify_threshold=0.65,
+    )
+
+    assert decision.accepted == ()
+    assert decision.clarify is True
+    assert decision.candidates == ("A04", "A05")
+
+
+def test_policy_ignores_clarification_band_when_an_action_is_accepted() -> None:
+    decision = apply_policy(
+        found(("A03", 0.9), ("A04", 0.7)),
+        accept_threshold=0.9,
+        clarify_threshold=0.65,
+    )
+
+    assert [action.id for action in decision.accepted] == ["A03"]
+    assert decision.clarify is False
+
+
 def request(directive: str = "answer", *, facts: tuple[AllowedFact, ...] = ()) -> VoiceRequest:
     allowed = AllowedFacts(facts=facts, must_convey_fact_ids=tuple(f.id for f in facts))
     return VoiceRequest("style", allowed, directive, "text")  # type: ignore[arg-type]
