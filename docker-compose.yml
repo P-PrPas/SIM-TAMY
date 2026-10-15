@@ -16,7 +16,9 @@ services:
       retries: 10
 
   api:
-    build: ./apps/api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     environment:
       DATABASE_URL: postgresql+psycopg://sim:sim@db:5432/simtamy
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
@@ -25,6 +27,8 @@ services:
       LLM_MODEL_GENERATOR: ${LLM_MODEL_GENERATOR:-}
       LLM_MODEL_DEBRIEF: ${LLM_MODEL_DEBRIEF:-}
       LLM_TIMEOUT_S: ${LLM_TIMEOUT_S:-15}
+      ACTION_ACCEPT_THRESHOLD: ${ACTION_ACCEPT_THRESHOLD:-0.75}
+      ACTION_CLARIFY_THRESHOLD: ${ACTION_CLARIFY_THRESHOLD:-0.5}
       INSTRUCTOR_SECRET: ${INSTRUCTOR_SECRET:-}
       CONTENT_DIR: /content
       ALLOW_DRAFT_CASES: ${ALLOW_DRAFT_CASES:-true}

@@ -2,7 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Self
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -29,6 +29,16 @@ class Settings(BaseSettings):
     glass_box_live: bool = False
     log_retention_days: int = 30
     cors_origins: str = ""  # comma-separated
+    cors_origin_regex: str | None = None  # e.g. Vercel previews; matched against the whole origin
+
+    @field_validator("database_url")
+    @classmethod
+    def _psycopg_driver(cls, url: str) -> str:
+        """Hosts hand out `postgres://` / `postgresql://`; SQLAlchemy would pick psycopg2."""
+        for plain in ("postgres://", "postgresql://"):
+            if url.startswith(plain):
+                return "postgresql+psycopg://" + url[len(plain) :]
+        return url
 
     @model_validator(mode="after")
     def valid_confidence_band(self) -> Self:
