@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { t } from "../lib/i18n";
+import { syntheticReport } from "./fixtures/report";
 
 const brief = {
   case_id: "PP-001", version: "0.1", title_th: "Synthetic case", status: "Draft",
@@ -19,6 +20,7 @@ async function setup(page: Page, variant: "A" | "C") {
     const request = route.request();
     const headers = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Allow-Methods": "GET, POST, OPTIONS" };
     if (request.method() === "OPTIONS") return route.fulfill({ status: 204, headers });
+    if (request.method() === "GET" && request.url().endsWith("/report")) return route.fulfill({ status: 200, headers, contentType: "application/json", json: syntheticReport });
     if (request.method() === "GET") return route.fulfill({ status: 200, headers, contentType: "application/json", json: {
       session_id: "session-1", case: { case_id: "PP-001", version: "0.1", status: "Draft", status_label_th: "Draft case" },
       variant, status: "active", phase, turn_idx: 1, turns_remaining: 2,
