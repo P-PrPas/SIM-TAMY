@@ -1,11 +1,14 @@
 # PP-001 rubric. DRAFT written by Engineering from docs/SIM-TAMY-curriculum-and-solution.md section 6 (weights of 6.1,
 # gate of 6.2, example feedback of 6.3). The source says weights and levels are a draft awaiting calibration by instructors.
 # NOT reviewed by the Content team or an expert. TODO(content): calibrate weights, add Thai-medicine items for activities
-# beyond the safety gate, set max_turns, reword the feedback. Item points add up to the competency weight.
+# beyond the safety gate, reword the feedback. Item points add up to the competency weight.
 # CONTRACT GAP: the source (6.1) has six competencies incl. 'Thai medicine within role' (15), but the API enum
 # CompetencyId is HX/RISK/DEC/ESC/COMM/DOC. Without a contract change it is folded into DEC (20+15=35).
 # UNSAFE_ACTION is only logged once a critical fact was revealed (engine rule), so a start without screening
 # is judged by the critical items R-RISK-01 and R-DEC-01, not by R-DEC-03.
+# TODO(content): a timing item (how soon after the risk facts the learner must refer) was removed. The engine's
+# within_turns_after_fact needs every listed fact revealed, so it reports 'late' for 'did not ask'. Content decides
+# which facts count, max_turns, and how 'not asked' is told apart from 'late'.
 rubric_version: '0.1'
 competencies:
 - id: HX
@@ -94,7 +97,7 @@ items:
   source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
 - id: R-DEC-01
   competency: DEC
-  points: 10
+  points: 15
   critical: true
   applies_to_variants:
   - A
@@ -112,33 +115,15 @@ items:
     - REF1
     - REF2
   source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
-- id: R-DEC-02
-  competency: DEC
-  points: 10
-  check:
-    type: within_turns_after_fact
-    decision: refer
-    fact_ids: [H1, H2]
-    max_turns: 3  # TODO(content): max_turns is for the experts to set
-  pass_finding:
-    id: R-DEC-02-P
-    template_th: คุณตัดสินใจส่งต่อภายในเวลาที่เหมาะสมหลังได้ข้อมูลเสี่ยง
-  fail_finding:
-    id: R-DEC-02-F
-    template_th: ตัดสินใจส่งต่อช้าหลังได้ข้อมูลเสี่ยง ควรหยุดและประสานทันทีเมื่อพบสัญญาณ
-    references:
-    - REF1
-    - REF2
-  source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
 - id: R-DEC-03
   competency: DEC
-  points: 15
+  points: 20
   critical: true
   check:
     type: no_unsafe_action
   pass_finding:
     id: R-DEC-03-P
-    template_th: คุณไม่เริ่มกิจกรรมนวดหรือทับหม้อเกลือทั้งที่พบสัญญาณอันตราย
+    template_th: คุณไม่ได้เริ่มกิจกรรมฟื้นฟูหลังทราบสัญญาณอันตราย
   fail_finding:
     id: R-DEC-03-F
     template_th: เริ่มกิจกรรมฟื้นฟูทั้งที่ทราบสัญญาณอันตรายแล้ว ซึ่งเป็นเงื่อนไขของ Safety Gate
@@ -155,10 +140,10 @@ items:
     n: 2
   pass_finding:
     id: R-COMM-01-P
-    template_th: คุณสื่อสารกับผู้รับบริการอย่างน้อยสองครั้ง
+    template_th: คุณสื่อสารกับผู้รับบริการอย่างน้อยสองรูปแบบ
   fail_finding:
     id: R-COMM-01-F
-    template_th: สื่อสารกับผู้รับบริการน้อยเกินไป ควรรับฟังและอธิบายขั้นตอนต่อไป
+    template_th: สื่อสารกับผู้รับบริการได้ไม่ถึงสองรูปแบบ ควรรับฟังและอธิบายขั้นตอนต่อไป
     references:
     - REF1
     - REF2

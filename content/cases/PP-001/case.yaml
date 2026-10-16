@@ -6,7 +6,9 @@
 case_id: PP-001
 version: "0.1"
 status: Draft
-title_th: "PN-R01 ขอฟื้นฟูหลังคลอด แต่มีเลือดออกมาก (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+# The title is shown in the CaseBrief before the learner asks anything, so it must not state a hidden fact.
+# The source calls this case "PN-R01 ขอฟื้นฟูหลังคลอด แต่มีเลือดออกมาก"; that internal name stays out of title_th.
+title_th: "PN-R01 ขอฟื้นฟูหลังคลอด (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
 learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
 
 patient_profile:
@@ -23,7 +25,7 @@ facts:
     text_th: "เลือดออกมากขึ้นตั้งแต่เช้า ผ้าอนามัยชุ่มเต็มมากกว่า 1 แผ่นต่อชั่วโมง"
     unlock_on: [A03]
     keywords_th: ["เลือดออกมากขึ้น", "ผ้าอนามัยชุ่ม"]
-    leak_terms_th: ["เลือดออกมากขึ้น", "ผ้าอนามัยชุ่ม", "ชุ่มเต็ม"]
+    leak_terms_th: ["เลือดออกมาก", "ผ้าอนามัยชุ่ม", "ชุ่มเต็ม"]
     fallback_utterances_th: ["เลือดออกมากขึ้นตั้งแต่เช้าค่ะ ผ้าอนามัยชุ่มเต็มมากกว่าหนึ่งแผ่นต่อชั่วโมงเลยค่ะ"]
     risk_relevance: critical
     source: "[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §7.1 แถว 2; CDC Urgent Maternal Warning Signs]"
@@ -39,15 +41,16 @@ facts:
     source: "[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §7.1 แถว 3]"
     status: Draft
   # TODO(content): delivery details, medicines and treatment history are "fixed data in the case file" per 7.1 but the
-  # source gives no values. Only the delivery route (vaginal, 10 days ago) is stated, so H3 says only that.
+  # source gives no values. Only the delivery route (vaginal) is stated, so H3 says only that. No digits in the text or
+  # the fallback: the Validator compares number tokens with their trailing letters ("10 วันก่อนค่ะ" != "10 วันก่อน").
   # Add facts for medicines/history and a vital-signs fact for A07 when the experts define them.
   - id: H3
     kind: hidden
-    text_th: "คลอดทางช่องคลอดเมื่อ 10 วันก่อน"
+    text_th: "คลอดทางช่องคลอด"
     unlock_on: [A05]
-    keywords_th: ["คลอดทางช่องคลอด", "10 วัน"]
+    keywords_th: ["คลอดทางช่องคลอด"]
     leak_terms_th: ["คลอดทางช่องคลอด"]
-    fallback_utterances_th: ["คลอดทางช่องคลอดเมื่อ 10 วันก่อนค่ะ"]
+    fallback_utterances_th: ["คลอดทางช่องคลอดค่ะ"]
     risk_relevance: contextual
     source: "[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §7.1 หัวข้อเรื่องราวของเคส]"
     status: Draft
@@ -84,18 +87,19 @@ branch_rules:
 
 critical_facts_for_replay: [H1, H2]
 
-# The source (7.2) says the case must not invent a deterioration: the outcomes only record what the learner did.
+# The source (7.2) says the case must not invent a deterioration. Each line is either the learner's decision
+# (always true on that path) or is worded as a next step the learner should take, never as something that happened.
 # TODO(content): clinical consequences after referral / after starting the activity are for the experts to write.
 outcome_scripts:
   Referral:
     timeline_th:
-      - "ผู้เรียนระงับการเริ่มฟื้นฟูและประสานส่งต่อ"
-      - "ผู้เรียนอธิบายเหตุผลและส่งมอบข้อมูลให้ทีมปลายทาง"
+      - "ผู้เรียนเลือกระงับการเริ่มฟื้นฟูและประสานส่งต่อ"
+      - "ขั้นตอนที่ควรทำต่อ: อธิบายเหตุผลกับผู้รับบริการและญาติ แล้วส่งมอบข้อมูลให้ทีมปลายทาง"
     disclaimer_th: "ฉบับร่าง ผลลัพธ์หลังการส่งต่อรอผู้เชี่ยวชาญกำหนด เพื่อการศึกษาเท่านั้น"
   UnsafeProceed:
     timeline_th:
-      - "ผู้เรียนเริ่มกิจกรรมฟื้นฟูทั้งที่ผู้รับบริการมีข้อมูลเสี่ยงที่สามารถซักถามได้"
-      - "ระบบบันทึกการกระทำที่ไม่ปลอดภัยและเข้าสู่การทบทวน (debrief)"
+      - "ผู้เรียนเลือกเริ่มกิจกรรมฟื้นฟูตามที่ขอ ทั้งที่ผู้รับบริการมีข้อมูลเสี่ยงที่สามารถซักถามได้"
+      - "เคสเข้าสู่การทบทวน (debrief) เพื่อดูว่าควรหยุดและส่งต่อเมื่อใด"
     disclaimer_th: "ฉบับร่าง ผลลัพธ์ทางคลินิกรอผู้เชี่ยวชาญกำหนด เพื่อการศึกษาเท่านั้น"
 
 references:

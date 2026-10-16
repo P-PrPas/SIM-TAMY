@@ -18,4 +18,4 @@ expect:
   revealed: [H1, H2, H3]
   events_include: [DECISION_COMMITTED, SESSION_COMPLETED]
   events_exclude: [UNSAFE_ACTION]
-  items: {R-RISK-01: pass, R-DEC-01: pass, R-DEC-03: pass, R-DEC-02: pass}
+  items: {R-RISK-01: pass, R-DEC-01: pass, R-DEC-03: pass}
