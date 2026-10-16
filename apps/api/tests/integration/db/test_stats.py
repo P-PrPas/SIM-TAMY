@@ -42,19 +42,23 @@ def test_stats_show_percentiles_error_rate_and_fallbacks(db: Session) -> None:
     events = EventRepo(db)
     for i in (1, 2):
         events.append(session_id=row.id, turn_idx=i, type="LEARNER_MESSAGE", payload={})
-    events.append(
-        session_id=row.id,
-        turn_idx=2,
-        type="LLM_FALLBACK_USED",
-        payload={"component": "interpreter"},
-    )
+    for component in ("interpreter", "generator"):  # two fallbacks in one turn
+        events.append(
+            session_id=row.id,
+            turn_idx=2,
+            type="LLM_FALLBACK_USED",
+            payload={"component": component},
+        )
     db.flush()
 
     lines = stats_report(db).splitlines()
 
     fields = lines[1].split()
     assert fields[1:] == ["openai_like/m", "6", "16.7", "350", "875"]  # p50 of 100..1000, p95
-    assert lines[-1] == "fallbacks: 1 (50.0% of 2 turns); by component: {'interpreter': 1}"
+    assert lines[-1] == (
+        "turns with a fallback: 1 of 2 (50.0%); "
+        "fallback events by component: {'generator': 1, 'interpreter': 1}"
+    )  # two events in one turn count as one turn, never 100%+
 
 
 def test_cost_uses_only_a_price_it_was_given_and_flags_missing_token_counts(db: Session) -> None:
@@ -69,7 +73,33 @@ def test_cost_uses_only_a_price_it_was_given_and_flags_missing_token_counts(db: 
     assert "tokens known for 1/2 calls" in priced
 
 
-@pytest.mark.parametrize("bad", ["m=1,2", "p:m=1", "p:m=a,b", "p:m=-1,2"])
+def test_no_token_counts_is_not_a_zero_cost(db: Session) -> None:
+    db.add_all([call(100, tokens=None), call(120, tokens=None)])
+    db.flush()
+
+    text = cost_report(db, dict([parse_price("openai_like:m=2,8")]))
+
+    assert "N/A (no token counts)" in text
+    assert "0.000000" not in text and "total" not in text
+
+
+def test_a_partial_total_is_labelled_and_a_half_known_call_is_not_priced(db: Session) -> None:
+    half = LlmCall(
+        purpose="debrief", provider="openai_like", model="m", latency_ms=1, ok=True,
+        prompt_tokens=1_000_000, completion_tokens=None,
+    )  # fmt: skip
+    db.add_all([call(100, tokens=(1_000_000, 0)), call(100, tokens=None), half])
+    db.flush()
+
+    text = cost_report(db, dict([parse_price("openai_like:m=2,8")]))
+
+    assert "partial total: 2.000000 USD" in text  # only the one call with both counts
+    assert not any(line.startswith("total:") for line in text.splitlines())
+
+
+@pytest.mark.parametrize(
+    "bad", ["m=1,2", "p:m=1", "p:m=a,b", "p:m=-1,2", "p:m=nan,1", "p:m=1,inf", "p:m=-inf,1"]
+)
 def test_a_malformed_price_is_refused(bad: str) -> None:
     with pytest.raises(ArgumentTypeError):
         parse_price(bad)
