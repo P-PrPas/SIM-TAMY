@@ -16,8 +16,8 @@ services:
     branch: main
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
-    # no preDeployCommand on the free plan, so migrate on start (idempotent)
-    dockerCommand: sh -c "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    autoDeploy: true # staging follows main; production deploys on a v* tag (docs/RUNBOOK-deploy.md)
+    # the image CMD migrates, then serves (no preDeployCommand on the free plan)
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL

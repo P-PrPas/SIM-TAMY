@@ -57,7 +57,19 @@ redirect HTTP to HTTPS. Secrets are only in the Render dashboard.
 Add `LLM_API_KEY` (and `LLM_PROVIDER`, `LLM_MODEL_*`, `LLM_BASE_URL`) in the Render dashboard; never in
 `render.yaml`. Set `LLM_PROVIDER` back to `mock` to fall back to the deterministic provider.
 
+## 7. The API image (T-091)
+
+One image (`apps/api/Dockerfile`, built from the repo root) runs everywhere: `docker compose`, Render
+staging and production. Its contract:
+
+- `CMD` runs `alembic upgrade head`, then `uvicorn` on `$PORT` (8000 locally). Migrations are idempotent,
+  so a restart is safe, and a failed migration stops the container before it serves traffic.
+- It runs as the non-root user `app` (uid 10001); `HEALTHCHECK` calls `/health`.
+- `content/` and `recordings/` are baked in; there are no secrets in the image (all come from env).
+- Checked from an empty database: `docker compose up --wait db api`, then `/health` is `ok` and
+  `POST /v1/sessions` returns 201.
+
 ## Not covered here
 
-CD from `main`/tags (T-092), image hardening (T-091), rate limiting and security headers (T-048),
-production smoke test and rollback (T-094).
+CD from `main`/tags (T-092), rate limiting and security headers (T-048), production smoke test and
+rollback (T-094).
