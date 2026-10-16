@@ -31,6 +31,7 @@ export default function ChatPage() {
       .then((sessionResult) => {
       if (cancelled) return;
       if (!sessionResult.data) { setError(t("chat.loadError")); return; }
+      if (sessionResult.data.phase === "COMPLETED") { replace("/report"); return; } // nothing to send; the report is next
       setSession(sessionResult.data);
       setBrief(active.brief); // the version this session was created with, not the latest case
       setMessages(sessionResult.data.history.map((message, position) => ({
