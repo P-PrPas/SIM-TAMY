@@ -86,4 +86,5 @@ jobs:
         run: |
           docker compose up -d --wait db api
           curl -fsS http://localhost:8000/health
+          python3 scripts/smoke.py http://localhost:8000
           docker compose down
