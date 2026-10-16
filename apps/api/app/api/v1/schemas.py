@@ -99,7 +99,7 @@ class CreateSessionRequest(BaseModel):
     case_id: str
     variant: Variant = Variant.A
     learner_name: Annotated[
-        str, Clean, StringConstraints(strip_whitespace=True, min_length=1, max_length=30)
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=30), Clean
     ]
     class_code: Annotated[str, StringConstraints(pattern=r"^[A-Z0-9]{6}$")] | None = None
 
@@ -174,7 +174,7 @@ class SessionView(BaseModel):
 
 class TurnRequest(BaseModel):
     text: Annotated[
-        str, Clean, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500), Clean
     ]
     client_turn_id: Annotated[str, StringConstraints(min_length=8, max_length=64)] | None = None
 
@@ -211,7 +211,7 @@ class TurnResponse(BaseModel):
 
 class DecisionRequest(BaseModel):
     option_id: str
-    rationale_th: Annotated[str, Clean, StringConstraints(max_length=300)] | None = None
+    rationale_th: Annotated[str, StringConstraints(max_length=300), Clean] | None = None
 
 
 _DECISION_SCHEMA = {
@@ -234,7 +234,7 @@ class DecisionResponse(BaseModel):
 
 
 class CompleteRequest(BaseModel):
-    note_th: Annotated[str, Clean, StringConstraints(max_length=500)] | None = None
+    note_th: Annotated[str, StringConstraints(max_length=500), Clean] | None = None
 
 
 class CompleteResponse(BaseModel):
