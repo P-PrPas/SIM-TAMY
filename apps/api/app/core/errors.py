@@ -4,6 +4,7 @@
 """
 
 import logging
+import traceback
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -120,7 +121,10 @@ def _http(request: Request, exc: Exception) -> JSONResponse:
 
 
 def _unexpected(request: Request, exc: Exception) -> JSONResponse:
-    log.exception("unhandled error request_id=%s", request_id(request))
+    # Exception messages/tracebacks may contain learner free text (including SQL params).
+    log.error(
+        "unhandled error request_id=%s exception_type=%s", request_id(request), type(exc).__name__
+    )
     # this response is built by Starlette's outermost handler, so no middleware sees it
     return envelope(
         request,
@@ -130,7 +134,27 @@ def _unexpected(request: Request, exc: Exception) -> JSONResponse:
     )
 
 
+class _NoExceptionText(logging.Filter):
+    """Starlette re-raises after our 500 handler, so Uvicorn logs the exception again.
+
+    Its message can hold learner free text (SQL parameters, validation input), so keep only the
+    type and the stack frames (code locations) and drop the message and chained exceptions.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if record.exc_info and record.exc_info[0] is not None:
+            kind, _, tb = record.exc_info
+            head = f"{record.getMessage().rstrip()} exception_type={kind.__name__}"
+            record.msg = "\n".join((head, *traceback.format_tb(tb)))
+            record.args = None
+            record.exc_info = record.exc_text = None
+        return True
+
+
 def install(app: FastAPI) -> None:
+    server_log = logging.getLogger("uvicorn.error")
+    if not any(isinstance(f, _NoExceptionText) for f in server_log.filters):
+        server_log.addFilter(_NoExceptionText())
     app.add_exception_handler(ApiError, _api_error)
     app.add_exception_handler(EngineError, _engine_error)
     app.add_exception_handler(RequestValidationError, _validation)

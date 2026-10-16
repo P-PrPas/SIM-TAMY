@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     content_dir: Path = Path("./content")
     allow_draft_cases: bool = True
     glass_box_live: bool = False
-    log_retention_days: int = 30
+    log_retention_days: int = Field(default=30, ge=1)
     # the commit this instance runs; Render sets RENDER_GIT_COMMIT, other hosts can set GIT_COMMIT
     git_commit: str | None = Field(
         default=None, validation_alias=AliasChoices("GIT_COMMIT", "RENDER_GIT_COMMIT")

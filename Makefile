@@ -74,7 +74,7 @@ stats:
 cost-report:
 	cd $(API) && ../../$(PY) -m app.stats cost-report $(COST_ARGS)
 purge-old:
-	@echo "not implemented: retention purge"; exit 1
+	cd $(API) && ../../$(PY) -m app.purge_old
 # A demo class (DEMO01) with five completed, synthetic sessions, played through the real API (needs DATABASE_URL).
 seed-demo:
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.seed_demo

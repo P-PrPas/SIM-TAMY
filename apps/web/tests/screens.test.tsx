@@ -56,6 +56,26 @@ describe("S1 Join and S2 Briefing", () => {
     expect(screen.getByRole("link", { name: t("briefing.begin") }).getAttribute("href")).toBe("/chat");
   });
 
+  it("renders privacy notices supplied by the session API", async () => {
+    const notices = [
+      { code: "PRIVACY_LLM", text_th: "Synthetic LLM privacy notice" },
+      { code: "NO_REAL_PII", text_th: "Synthetic no real data notice" },
+    ];
+    mocks.get.mockResolvedValue({ data: { items: [caseSummary] } });
+    mocks.post.mockResolvedValue({ data: { session_id: "session-1", token: "secret-token", case: caseBrief, notices } });
+    const join = render(<JoinPage />);
+    await screen.findByText(caseSummary.status_label_th);
+    fireEvent.change(screen.getByLabelText(t("join.nickname")), { target: { value: "Learner" } });
+    fireEvent.click(screen.getByRole("button", { name: t("join.start") }));
+    await waitFor(() => expect(mocks.push).toHaveBeenCalledWith("/briefing"));
+    expect(readSession()?.notices).toEqual(notices);
+    join.unmount();
+
+    render(<BriefingPage />);
+    expect(await screen.findByText("Synthetic LLM privacy notice")).toBeTruthy();
+    expect(screen.getByText("Synthetic no real data notice")).toBeTruthy();
+  });
+
   it("shows a clear error for an unknown class code", async () => {
     mocks.get.mockResolvedValue({ data: { items: [caseSummary] } });
     mocks.post.mockRejectedValue(new ApiError("CLASS_NOT_FOUND", 404));
