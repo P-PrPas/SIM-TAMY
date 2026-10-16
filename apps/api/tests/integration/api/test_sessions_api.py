@@ -24,7 +24,7 @@ def test_create_session(api: Api) -> None:
     assert body["token"].startswith("st_") and body["token_type"] == "Bearer"
     assert (body["phase"], body["variant"]) == ("INTERVIEW", "A")
     assert body["case"]["status"] == "Draft" and body["case"]["status_label_th"]
-    assert body["case"]["variants_available"] == ["A"]  # C waits for the pressure scene (T-023)
+    assert body["case"]["variants_available"] == ["A", "C"]  # B is not in DEV-001
     assert [o["id"] for o in body["case"]["decision_options"]] == ["refer", "proceed_service"]
     assert {n["code"] for n in body["notices"]} == {
         "EDUCATION_ONLY",
@@ -54,7 +54,6 @@ def test_create_session(api: Api) -> None:
         ({"case_id": "NOPE"}, "CASE_NOT_AVAILABLE", 404),
         ({"case_id": "../cases/DEV-001"}, "CASE_NOT_AVAILABLE", 404),
         ({"case_id": "a/b"}, "CASE_NOT_AVAILABLE", 404),
-        ({"variant": "C"}, "VARIANT_NOT_AVAILABLE", 422),
         ({"variant": "B"}, "VARIANT_NOT_AVAILABLE", 422),  # DEV-001 defines no B
         ({"class_code": "ZZ99ZZ"}, "CLASS_NOT_FOUND", 404),
         ({"class_code": "ab12cd"}, "VALIDATION_ERROR", 422),
