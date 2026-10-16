@@ -6,7 +6,7 @@ import pytest
 
 from app.core.config import get_settings
 from tests.integration.api.conftest import Api, ask
-from tests.integration.api.test_turns_api import ASK_A03, setup_a03, turn
+from tests.integration.api.test_turns_api import ASK_A03, ASK_A04, setup_a03, turn
 
 SECRET = "instructor-test-secret"
 
@@ -97,3 +97,38 @@ def test_without_a_token_or_with_another_sessions_token_it_is_refused(
     )
 
     assert no_token.status_code == 401 and crossed.status_code == 404
+
+
+def test_a_retried_turn_returns_the_glassbox_it_first_got(api: Api, flag_on: None) -> None:
+    created = setup_a03(api)
+    first = turn(api, created, ASK_A03, client_turn_id="client-turn-0001").json()
+    last = turn(api, created, ASK_A04, client_turn_id="client-turn-0002").json()
+    assert first["glassbox"]["fired_action_ids"] == ["A03"]
+    assert last["glassbox"]["fired_action_ids"] == ["A03", "A04"]
+    decided = api.client.post(
+        f"/v1/sessions/{created['session_id']}/decision",
+        json={"option_id": "proceed_service"},
+        headers=api.headers(created),
+    )
+    assert decided.status_code == 200
+
+    for body, cid in ((first, "client-turn-0001"), (last, "client-turn-0002")):
+        text = ASK_A03 if cid.endswith("1") else ASK_A04
+        retry = turn(api, created, text, client_turn_id=cid)
+        assert retry.headers["Idempotent-Replay"] == "true"
+        assert retry.json()["glassbox"] == body["glassbox"]
+
+
+def test_a_retried_turn_stays_hidden_when_the_flag_is_off(
+    api: Api, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    created = setup_a03(api)
+    monkeypatch.setenv("GLASS_BOX_LIVE", "true")
+    get_settings.cache_clear()
+    assert turn(api, created, ASK_A03, client_turn_id="client-turn-0001").json()["glassbox"]
+    monkeypatch.setenv("GLASS_BOX_LIVE", "false")
+    get_settings.cache_clear()
+
+    retry = turn(api, created, ASK_A03, client_turn_id="client-turn-0001")
+
+    assert retry.json()["glassbox"] is None
