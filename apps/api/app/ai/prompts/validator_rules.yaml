@@ -1,0 +1,10 @@
+# Non-clinical phrases that reveal the model role or its instructions.
+role_break_phrases:
+  - "as an ai"
+  - "i am an ai"
+  - "system prompt"
+  - "prompt"
+  - "ในฐานะ ai"
+  - "ฉันเป็นโมเดล"
+  - "คำสั่งระบบ"
+  - "พรอมต์"

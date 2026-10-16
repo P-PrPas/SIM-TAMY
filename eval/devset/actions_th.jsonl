@@ -1,0 +1,67 @@
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"วันนี้มาหาเราเพราะเรื่องอะไรคะ","action_ids":["A01"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"แวะมาวันนี้มีเรื่องอะไรให้ช่วยคะ","action_ids":["A01"],"kind":"colloquial"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"มาด้วยเรื่องอะไรคะ","action_ids":["A01"],"kind":"short"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"วันนีมาด้วยเรื่องอะไรคะ","action_ids":["A01"],"kind":"typo"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"อะไรทำให้ตัดสินใจมาพบเราวันนี้คะ","action_ids":["A01"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ขอทราบข้อมูลเบื้องต้นของคุณหน่อยค่ะ","action_ids":["A02"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ขอข้อมูลพื้นฐานสักนิดได้ไหมคะ","action_ids":["A02"],"kind":"colloquial"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ข้อมูลทั่วไปหน่อยค่ะ","action_ids":["A02"],"kind":"short"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ขอข้อมูลเบื้องตนของคุณค่ะ","action_ids":["A02"],"kind":"typo"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"ช่วยบอกข้อมูลส่วนตัวคร่าว ๆ ให้ทราบได้ไหมคะ","action_ids":["A02"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"มีสัญญาณทดสอบกเกิดขึ้นหรือเปล่าคะ","action_ids":["A03"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ช่วงนี้เจอสัญญาณทดสอบกบ้างไหม","action_ids":["A03"],"kind":"colloquial"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"สัญญาณทดสอบกมีไหมคะ","action_ids":["A03"],"kind":"short"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"มีสัญญานทดสอบกไหมคะ","action_ids":["A03"],"kind":"typo"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"ขอถามตรง ๆ ว่าพบสัญญาณทดสอบกหรือยังคะ","action_ids":["A03"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"สังเกตพบสัญญาณทดสอบขหรือไม่คะ","action_ids":["A04"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"แล้วสัญญาณทดสอบขล่ะ เจอบ้างไหม","action_ids":["A04"],"kind":"colloquial"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"สัญญาณทดสอบขล่ะคะ","action_ids":["A04"],"kind":"short"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"มีสัญญานทดสอบขรึเปล่าคะ","action_ids":["A04"],"kind":"typo"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"ช่วยยืนยันเรื่องสัญญาณทดสอบขได้ไหมคะ","action_ids":["A04"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"บริบททดสอบคมีรายละเอียดเพิ่มเติมไหมคะ","action_ids":["A05"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"เรื่องบริบททดสอบคเป็นมายังไงบ้าง","action_ids":["A05"],"kind":"colloquial"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"บริบททดสอบคเป็นไงคะ","action_ids":["A05"],"kind":"short"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"บริบททดสอบคเปนอย่างไรคะ","action_ids":["A05"],"kind":"typo"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"เกี่ยวกับบริบททดสอบค มีอะไรที่ควรรู้เพิ่มไหมคะ","action_ids":["A05"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ขอรายละเอียดของเรื่องทดสอบงเพิ่มเติมค่ะ","action_ids":["A06"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"เรื่องทดสอบงนี่เป็นยังไงบ้างคะ","action_ids":["A06"],"kind":"colloquial"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"เรื่องทดสอบงล่ะ","action_ids":["A06"],"kind":"short"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"เรื่องทดสอบงเปนอย่างไรคะ","action_ids":["A06"],"kind":"typo"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"ช่วยอธิบายเรื่องทดสอบงที่เกิดขึ้นให้ฟังได้ไหมคะ","action_ids":["A06"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"มีข้อมูลเกี่ยวกับเรื่องทดสอบจเพิ่มเติมไหมคะ","action_ids":["A07"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"แล้วเรื่องทดสอบจเป็นยังไงบ้าง","action_ids":["A07"],"kind":"colloquial"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"เรื่องทดสอบจล่ะคะ","action_ids":["A07"],"kind":"short"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"เรื่องทดสอบจเปนไงบ้างคะ","action_ids":["A07"],"kind":"typo"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"อยากทราบว่าเรื่องทดสอบจมีรายละเอียดอย่างไรคะ","action_ids":["A07"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ฟังแล้วคงกังวลอยู่ ฉันรับฟังนะคะ","action_ids":["C01"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"อืม เข้าใจเลยว่ารู้สึกไม่สบายใจ","action_ids":["C01"],"kind":"colloquial"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"รับฟังอยู่นะคะ","action_ids":["C01"],"kind":"short"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"เข้าไจว่ากังวลนะคะ","action_ids":["C01"],"kind":"typo"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"เล่าต่อได้เลยค่ะ ฉันกำลังฟังอยู่","action_ids":["C01"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"จากนี้ฉันจะอธิบายลำดับการดำเนินการให้ฟังค่ะ","action_ids":["C02"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"เดี๋ยวบอกก่อนว่าต่อไปเราจะทำอะไรกันนะคะ","action_ids":["C02"],"kind":"colloquial"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ขอเล่าขั้นตอนถัดไปค่ะ","action_ids":["C02"],"kind":"short"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"จะอธิบายขั้นตอนตอไปให้ฟังค่ะ","action_ids":["C02"],"kind":"typo"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"ก่อนเริ่ม ขอชี้แจงว่าจะมีขั้นตอนใดต่อค่ะ","action_ids":["C02"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"C","phase":"PRESSURE","text_th":"คุณญาติคะ ฉันขอชี้แจงเหตุผลที่ยังต้องส่งต่อค่ะ","action_ids":["C03"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"C","phase":"PRESSURE","text_th":"เข้าใจที่คุณญาติห่วงนะ แต่เรื่องส่งต่อต้องทำตามแผนค่ะ","action_ids":["C03"],"kind":"colloquial"}
+{"case_id":"DEV-001","variant":"C","phase":"PRESSURE","text_th":"คุณญาติคะ ยังต้องส่งต่อค่ะ","action_ids":["C03"],"kind":"short"}
+{"case_id":"DEV-001","variant":"C","phase":"PRESSURE","text_th":"คุณญาติคะ ขออธิบายว่าทำไมต้องส่งตอค่ะ","action_ids":["C03"],"kind":"typo"}
+{"case_id":"DEV-001","variant":"C","phase":"PRESSURE","text_th":"แม้คุณญาติจะขอให้ทำต่อ ฉันขอยืนยันการส่งต่อพร้อมอธิบายเหตุผลค่ะ","action_ids":["C03"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"C","phase":"PRESSURE","text_th":"ถ้าคุณญาติยืนยัน ฉันจะไม่ส่งต่อและให้บริการต่อค่ะ","action_ids":["C04"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"C","phase":"PRESSURE","text_th":"ได้เลยค่ะ ตามที่ขอ เราทำต่อที่นี่ก็ได้","action_ids":["C04"],"kind":"colloquial"}
+{"case_id":"DEV-001","variant":"C","phase":"PRESSURE","text_th":"ไม่ส่งต่อแล้วค่ะ ทำต่อเลย","action_ids":["C04"],"kind":"short"}
+{"case_id":"DEV-001","variant":"C","phase":"PRESSURE","text_th":"ตามที่ขอค่ะ จะให้บริการตอโดยไม่ส่งต่อ","action_ids":["C04"],"kind":"typo"}
+{"case_id":"DEV-001","variant":"C","phase":"PRESSURE","text_th":"ตกลงตามคำขอของญาติ ฉันจะให้บริการต่อแทนการส่งต่อค่ะ","action_ids":["C04"],"kind":"direct"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"เปิดหน้ารายงานให้หน่อย","action_ids":[],"kind":"irrelevant"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ตอนนี้กี่โมงแล้ว","action_ids":[],"kind":"irrelevant"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ขอเปลี่ยนชื่อเล่นในระบบ","action_ids":[],"kind":"irrelevant"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"คะแนนของฉันตอนนี้เท่าไร","action_ids":[],"kind":"irrelevant"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"มีอะไรผิดปกติไหมคะ","action_ids":[],"kind":"ambiguous"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ช่วยเล่าเรื่องนั้นอีกทีได้ไหม","action_ids":[],"kind":"ambiguous"}
+{"case_id":"DEV-001","variant":"C","phase":"PRESSURE","text_th":"เอาตามที่คุยกันเมื่อกี้ค่ะ","action_ids":[],"kind":"ambiguous"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"แล้วอย่างอื่นล่ะคะ","action_ids":[],"kind":"ambiguous"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"วันนี้มาด้วยเรื่องอะไร และขอข้อมูลเบื้องต้นด้วยค่ะ","action_ids":["A01","A02"],"kind":"multi_intent"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"มีสัญญาณทดสอบกหรือสัญญาณทดสอบขอย่างใดอย่างหนึ่งไหมคะ","action_ids":["A03","A04"],"kind":"multi_intent"}
+{"case_id":"DEV-001","variant":"C","phase":"INTERVIEW","text_th":"ขอทราบทั้งบริบททดสอบคและเรื่องทดสอบงค่ะ","action_ids":["A05","A06"],"kind":"multi_intent"}
+{"case_id":"DEV-001","variant":"A","phase":"INTERVIEW","text_th":"ฉันรับฟังอยู่นะคะ และจะอธิบายขั้นตอนต่อไปค่ะ","action_ids":["C01","C02"],"kind":"multi_intent"}

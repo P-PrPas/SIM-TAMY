@@ -363,7 +363,7 @@ export interface paths {
         };
         /**
          * List recorded sessions available for Replay Mode
-         * @description Served from `recordings/`. Enabled when `ENABLE_REPLAY=true`; otherwise returns an empty list.
+         * @description Served from `recordings/` only when `ENABLE_REPLAY=true`; otherwise returns NOT_FOUND.
          */
         get: operations["listRecordings"];
         put?: never;
@@ -852,6 +852,14 @@ export interface components {
             reason: string;
             /** Format: date-time */
             created_at: string;
+        };
+        RecordingList: {
+            items: components["schemas"]["RecordingListItem"][];
+        };
+        /** @description A recording summary plus the case status of its snapshot (shown as a badge). */
+        RecordingListItem: components["schemas"]["RecordingSummary"] & {
+            status: components["schemas"]["CaseStatus"];
+            status_label_th: string;
         };
         RecordingSummary: {
             recording_id: string;
@@ -1863,11 +1871,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        items: components["schemas"]["RecordingSummary"][];
-                    };
+                    "application/json": components["schemas"]["RecordingList"];
                 };
             };
+            404: components["responses"]["NotFound"];
         };
     };
     getRecording: {

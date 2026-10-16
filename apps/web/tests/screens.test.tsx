@@ -208,6 +208,14 @@ describe("S3 Chat", () => {
     expect(mocks.post).not.toHaveBeenCalled();
   });
 
+  it("sends a completed session straight to its report instead of a dead chat", async () => {
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
+    mocks.get.mockResolvedValue({ data: { ...sessionView, phase: "COMPLETED", status: "completed" } });
+    render(<ChatPage />);
+    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/report"));
+    expect(screen.queryByLabelText(t("chat.messageLabel"))).toBeNull();
+  });
+
   it("shows a safe loading error when session history cannot be fetched", async () => {
     saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
     mocks.get.mockRejectedValue(new Error("offline"));
