@@ -14,7 +14,7 @@ def _sql(statement: object) -> str:
     return str(statement.compile(dialect=postgresql.dialect()))  # type: ignore[attr-defined]
 
 
-def test_purge_selects_only_expired_sessions_older_than_cutoff() -> None:
+def test_purge_selects_only_finished_sessions_older_than_cutoff() -> None:
     db = MagicMock()
     db.scalars.return_value = []
 
@@ -22,12 +22,12 @@ def test_purge_selects_only_expired_sessions_older_than_cutoff() -> None:
 
     statement = db.scalars.call_args.args[0]
     sql = _sql(statement)
-    assert "sessions.status =" in sql
+    assert "sessions.status IN" in sql
     assert "sessions.ended_at <" in sql
     assert "FOR UPDATE SKIP LOCKED" in sql
-    assert list(statement.compile(dialect=postgresql.dialect()).params.values())[-1] == datetime(
-        2026, 9, 16, tzinfo=UTC
-    )
+    params = list(statement.compile(dialect=postgresql.dialect()).params.values())
+    assert set(params[0]) == {"completed", "expired"}
+    assert params[-1] == datetime(2026, 9, 16, tzinfo=UTC)
     db.execute.assert_not_called()
 
 
@@ -44,7 +44,7 @@ def test_purge_deletes_unlinked_metadata_then_expired_parent_not_events_directly
     assert statements[0].startswith("DELETE FROM llm_calls")
     assert statements[1].startswith("DELETE FROM score_overrides")
     assert statements[2].startswith("DELETE FROM sessions")
-    assert "sessions.status =" in statements[2] and "sessions.ended_at <" in statements[2]
+    assert "sessions.status IN" in statements[2] and "sessions.ended_at <" in statements[2]
     assert not any("DELETE FROM events" in statement for statement in statements)
 
 

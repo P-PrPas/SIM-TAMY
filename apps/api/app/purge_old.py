@@ -1,6 +1,6 @@
-"""T-049 retention CLI: purge only expired sessions past their retention date.
+"""T-049 retention CLI: purge completed or expired sessions past retention.
 
-Live event logs remain append-only. Deleting an expired parent session cascades its
+Live event logs remain append-only. Deleting a finished parent session cascades its
 turns, events and report; metadata without foreign keys is removed explicitly.
 """
 
@@ -14,6 +14,8 @@ from app.core.config import get_settings
 from app.db.models import LearnerSession, LlmCall, ScoreOverride
 from app.db.session import get_sessionmaker
 
+FINISHED_STATUSES = ("completed", "expired")
+
 
 def purge_expired(db: Session, *, retention_days: int, now: datetime) -> int:
     """Delete eligible sessions in the caller's transaction; return number deleted."""
@@ -25,7 +27,7 @@ def purge_expired(db: Session, *, retention_days: int, now: datetime) -> int:
     ids = list(
         db.scalars(
             select(LearnerSession.id)
-            .where(LearnerSession.status == "expired", LearnerSession.ended_at < cutoff)
+            .where(LearnerSession.status.in_(FINISHED_STATUSES), LearnerSession.ended_at < cutoff)
             .with_for_update(skip_locked=True)
         )
     )
@@ -38,7 +40,7 @@ def purge_expired(db: Session, *, retention_days: int, now: datetime) -> int:
             delete(LearnerSession)
             .where(
                 LearnerSession.id.in_(ids),
-                LearnerSession.status == "expired",
+                LearnerSession.status.in_(FINISHED_STATUSES),
                 LearnerSession.ended_at < cutoff,
             )
             .returning(LearnerSession.id)
@@ -50,7 +52,7 @@ def purge_expired(db: Session, *, retention_days: int, now: datetime) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Purge expired sessions past retention")
+    parser = argparse.ArgumentParser(description="Purge finished sessions past retention")
     parser.add_argument(
         "--dry-run", action="store_true", help="show eligible count without deletion"
     )
@@ -61,14 +63,15 @@ def main() -> None:
             cutoff = datetime.now(UTC) - timedelta(days=days)
             count = db.scalar(
                 select(func.count(LearnerSession.id)).where(
-                    LearnerSession.status == "expired", LearnerSession.ended_at < cutoff
+                    LearnerSession.status.in_(FINISHED_STATUSES),
+                    LearnerSession.ended_at < cutoff,
                 )
             )
-            print(f"Eligible expired sessions: {count}")
+            print(f"Eligible finished sessions: {count}")
             return
         with db.begin():
             count = purge_expired(db, retention_days=days, now=datetime.now(UTC))
-    print(f"Purged expired sessions: {count}")
+    print(f"Purged finished sessions: {count}")
 
 
 if __name__ == "__main__":
