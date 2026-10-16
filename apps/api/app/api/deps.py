@@ -92,7 +92,9 @@ def require_instructor_secret(
     configured = get_settings().instructor_secret
     if configured is None or not x_instructor_secret:
         raise ApiError("UNAUTHORIZED", "instructor secret required")
-    if not hmac.compare_digest(x_instructor_secret, configured.get_secret_value()):
+    if not hmac.compare_digest(
+        x_instructor_secret.encode(), configured.get_secret_value().encode()
+    ):
         raise ApiError("FORBIDDEN", "invalid instructor secret")
 
 

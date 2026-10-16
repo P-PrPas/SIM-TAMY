@@ -93,6 +93,21 @@ def test_instructor_secret_is_constant_time_checked_and_never_logged(
     assert "wrong-secret" not in str(wrong.value)
 
 
+@pytest.mark.parametrize("header", ["ผิด", "café", "ÿ"])
+def test_a_non_ascii_instructor_header_is_forbidden_not_a_500(
+    monkeypatch: pytest.MonkeyPatch, header: str
+) -> None:
+    monkeypatch.setattr(
+        "app.api.deps.get_settings",
+        lambda: Settings(instructor_secret=SecretStr("test-secret")),
+    )
+
+    with pytest.raises(ApiError) as bad:
+        require_instructor_secret(header)
+
+    assert bad.value.code == "FORBIDDEN"
+
+
 def test_instructor_can_read_any_session_but_missing_auth_cannot(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
