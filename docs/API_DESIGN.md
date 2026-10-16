@@ -55,6 +55,7 @@
 - token ผิด/หาย → `401 UNAUTHORIZED`; token ถูกแต่ session ไม่ใช่ของตัวเอง → `404 NOT_FOUND` (ไม่เปิดเผยว่า session มีอยู่)
 - instructor ใช้ endpoint ผู้เรียนได้เฉพาะแบบ **อ่าน** (`getSession`, `getReport`, `getLiveGlassBox`) ห้ามส่ง turn/decision แทนผู้เรียน
 - Secret/token ห้ามอยู่ใน URL หรือ log; FE เก็บ learner token ใน `sessionStorage` (หายเมื่อปิดแท็บ — ยอมรับได้สำหรับ MVP) ไม่ใช้ `localStorage`
+- S8 รับ instructor secret ผ่านช่องรหัสและเก็บเฉพาะในหน่วยความจำของหน้า; ไม่บันทึกลง URL, storage หรือ log. รายการ session แสดง `case_status` ของเวอร์ชันเคสที่ session นั้นใช้; analytics คำนวณจากรายงานที่จบและถูกบันทึกแล้วเท่านั้น (ไม่มีข้อมูล = `null`).
 
 ## 4. Endpoint overview
 

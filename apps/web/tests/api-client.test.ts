@@ -35,6 +35,19 @@ const turn = (api: ReturnType<typeof setup>["api"]) =>
   });
 
 describe("api client", () => {
+  it("sends instructor secret only in its dedicated client header", async () => {
+    const fetchImpl = vi.fn(async (_request: Request) => json(200, { items: [] }));
+    const client = createApi({
+      baseUrl: "http://api.test", getInstructorSecret: () => "synthetic-secret",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    await client.GET("/v1/instructor/classes");
+    const sent = fetchImpl.mock.calls[0]?.[0] as unknown as Request;
+    expect(sent.headers.get("X-Instructor-Secret")).toBe("synthetic-secret");
+    expect(sent.headers.get("Authorization")).toBeNull();
+    expect(sent.url).not.toContain("synthetic-secret");
+  });
+
   it("sends the session token and returns typed data", async () => {
     const { api, fetchImpl } = setup(
       json(200, { status: "ok", version: "0.1.0", time: "2026-10-12T00:00:00Z" }),

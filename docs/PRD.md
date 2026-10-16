@@ -594,6 +594,8 @@ CREATE TABLE score_overrides (          -- Could (FR-INS-04)
 
 **Conventions:** JSON, UTF-8; Auth: `Authorization: Bearer <session_token>` (learner) / `X-Instructor-Secret` (instructor); เวลา ISO 8601; ทุก response มี `X-Request-ID`
 
+Instructor session summaries include the pinned `case_status` and `case_status_label_th`, allowing S8 to show the required case-status badge for each case. Cohort analytics use completed, persisted report scores only; missing samples remain null rather than being reported as zero.
+
 **Error format**
 
 ```json

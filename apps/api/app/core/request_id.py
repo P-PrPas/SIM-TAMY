@@ -16,7 +16,10 @@ class RequestIdMiddleware:
             return
         rid = uuid.uuid4().hex[:12]  # never taken from the client (log injection)
         scope.setdefault("state", {})["request_id"] = rid
-        no_store = scope["path"].startswith("/v1/sessions")
+        no_store = (
+            scope["path"].startswith(("/v1/sessions", "/v1/instructor"))
+            or scope["path"] == "/v1/classes"
+        )
 
         async def send_with_id(message: Message) -> None:
             if message["type"] == "http.response.start":
