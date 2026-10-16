@@ -12,6 +12,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import __version__
+from app.ai.debrief import generate_debrief
+from app.ai.llm_client import LLMCallRecord
+from app.api.deps import LLMFactory
 from app.api.v1.schemas import (
     CaseStatus,
     CompleteRequest,
@@ -30,7 +33,7 @@ from app.api.v1.schemas import (
 from app.content.loader import ContentStore, LoadedCase
 from app.core.errors import ApiError
 from app.db.models import Event, LearnerSession, Report
-from app.db.repo import EventRepo, SessionRepo
+from app.db.repo import EventRepo, LlmCallRepo, SessionRepo
 from app.domain.case import VariantId
 from app.domain.events import LoggedEvent
 from app.domain.scoring import Finding, Scoring
@@ -121,7 +124,7 @@ def _template_debrief(findings: tuple[Finding, ...]) -> Debrief:
 
 
 def complete(
-    db: Session, store: ContentStore, authed: LearnerSession, req: CompleteRequest
+    db: Session, store: ContentStore, llm: LLMFactory, authed: LearnerSession, req: CompleteRequest
 ) -> CompleteResponse:
     row = lock_session(db, authed.id)
     if row.status == "completed":
@@ -151,12 +154,28 @@ def complete(
         log.error("session %s cannot be scored: %s", row.id, exc)
         raise ApiError("INTERNAL_ERROR", "the session could not be scored") from exc
 
+    calls: list[LLMCallRecord] = []
+    debrief = generate_debrief(llm("debrief", calls.append), findings)
+    for call in calls:
+        LlmCallRepo(db).record(
+            purpose=call.purpose,
+            session_id=row.id,
+            turn_idx=idx,
+            provider=call.provider,
+            model=call.model,
+            prompt_tokens=call.prompt_tokens,
+            completion_tokens=call.completion_tokens,
+            latency_ms=call.latency_ms,
+            ok=call.ok,
+            error=call.error,
+        )
+
     db.add(
         Report(
             session_id=row.id,
             rubric_version=loaded.rubric.rubric_version,
             scoring=scoring.model_dump(mode="json"),  # the shape `make rescore` diffs
-            debrief=_template_debrief(findings).model_dump(mode="json"),
+            debrief=debrief.model_dump(mode="json"),
             glassbox=build_glassbox(log_, loaded.case, loaded.actions).model_dump(mode="json"),
             replay=build_replay(log_, loaded.case, disclaimer_th()).model_dump(mode="json"),
         )

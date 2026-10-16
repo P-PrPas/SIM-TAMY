@@ -67,9 +67,9 @@ def commit_decision(body: DecisionRequest, row: Learner, db: Db, store: Store) -
     operation_id="completeSession",
 )
 def complete_session(
-    row: Learner, db: Db, store: Store, body: CompleteRequest | None = None
+    row: Learner, db: Db, store: Store, llm: Llm, body: CompleteRequest | None = None
 ) -> CompleteResponse:
-    return closing.complete(db, store, row, body or CompleteRequest())
+    return closing.complete(db, store, llm, row, body or CompleteRequest())
 
 
 @router.get(
