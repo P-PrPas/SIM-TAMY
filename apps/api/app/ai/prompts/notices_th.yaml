@@ -18,3 +18,8 @@ timeline:
   DECISION_COMMITTED: "ตัดสินใจ"
   NOTE_SUBMITTED: "ส่งสรุปเคส"
   SESSION_COMPLETED: "จบเคส"
+# Consequence Replay markers (FR-REP-01); `{fact}` is the case's own text of the fact.
+replay_notes:
+  revealed: "คุณได้รับข้อมูลนี้แล้วแต่ยังไม่หยุดส่งต่อ: {fact}"
+  never_asked: "ข้อมูลสำคัญนี้ไม่เคยถูกถามก่อนตัดสินใจ: {fact}"
+  gave_in: "คุณส่งต่อแล้วแต่ยอมตามแรงกดดัน ทั้งที่ได้รับข้อมูลนี้: {fact}"

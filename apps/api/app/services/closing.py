@@ -44,7 +44,7 @@ from app.engine.glassbox import build_glassbox, build_timeline
 from app.engine.replay import build_replay
 from app.engine.scenario import commit_decision
 from app.engine.scoring import InvalidRubric, MalformedEvent, score
-from app.services.briefs import disclaimer_th, status_label, timeline_labels
+from app.services.briefs import disclaimer_th, replay_notes, status_label, timeline_labels
 from app.services.sessions import ensure_alive, lock_session, pinned_case, public_phase, state_of
 
 log = logging.getLogger("app.closing")
@@ -189,7 +189,9 @@ def complete(
             scoring=scoring.model_dump(mode="json"),  # the shape `make rescore` diffs
             debrief=debrief.model_dump(mode="json"),
             glassbox=build_glassbox(log_, loaded.case, loaded.actions).model_dump(mode="json"),
-            replay=build_replay(log_, loaded.case, disclaimer_th()).model_dump(mode="json"),
+            replay=build_replay(log_, loaded.case, disclaimer_th(), replay_notes()).model_dump(
+                mode="json"
+            ),
         )
     )
     SessionRepo(db).save_state(

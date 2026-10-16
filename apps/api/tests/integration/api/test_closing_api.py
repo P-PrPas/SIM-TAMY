@@ -352,6 +352,9 @@ def test_report_for_an_unsafe_path_is_not_met_and_replays_the_consequence(api: A
     assert any(i["result"] == "fail" for i in critical)
     assert body["replay"]["terminal_state"] == "UnsafeProceed"
     assert body["replay"]["timeline_th"] and body["replay"]["disclaimer_th"]
+    missed = body["replay"]["missed_opportunities"]
+    assert [(m["fact_id"], m["turn_idx"]) for m in missed] == [("H1", 1), ("H2", 2)]
+    assert all(m["note_th"] for m in missed)
     assert {r["id"] for r in body["references"]} == {"REF1"}
     improve = [f for f in body["findings"] if f["polarity"] == "improve"]
     assert improve and all(f["evidence_refs"] for f in improve)

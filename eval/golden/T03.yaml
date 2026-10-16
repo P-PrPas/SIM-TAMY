@@ -13,3 +13,4 @@ expect:
   events_include: [UNSAFE_ACTION]
   items: {R-RISK-01: pass, R-ESC-01: fail}
   replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2]

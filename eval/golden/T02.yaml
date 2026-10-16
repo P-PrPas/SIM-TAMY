@@ -12,8 +12,4 @@ expect:
   revealed: []
   items: {R-RISK-01: fail, R-DEC-01: fail}
   replay_terminal_state: UnsafeProceed
-pending:
-  # the replay builder returns no missed opportunities yet
-  - blocked_by: T-064
-    expect:
-      replay_missed_opportunities_include: [H1, H2]
+  replay_missed_opportunities_include: [H1, H2]

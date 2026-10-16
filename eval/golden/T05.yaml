@@ -11,3 +11,5 @@ steps:
 expect:
   safety_status: SAFETY_NOT_MET
   items: {R-COMM-03: fail, R-COMM-02: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2]
