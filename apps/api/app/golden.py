@@ -207,12 +207,13 @@ class Env:
     mode: str
 
 
-def run_golden(g: Golden, env: Env) -> Outcome:
+def run_golden(g: Golden, env: Env, session: dict[str, Any] | None = None) -> Outcome:
+    """`session` adds to the createSession body (the demo seed adds a class and a name)."""
     out = Outcome(g.id, "PASS", env.mode)
     loaded = load_case(_content_dir() / "cases" / g.case)
     r = env.client.post(
         "/v1/sessions",
-        json={"case_id": g.case, "variant": g.variant, "learner_name": "golden"},
+        json={"case_id": g.case, "variant": g.variant, "learner_name": "golden", **(session or {})},
     )
     if r.status_code != 201:
         code = r.json().get("error", {}).get("code")
