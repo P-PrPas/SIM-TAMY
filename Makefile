@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate mock-api gen-api lint test test-coverage test-e2e validate-content leakcheck eval bench rescore stats cost-report purge-old demo
+.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e validate-content leakcheck eval bench rescore stats cost-report purge-old demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -34,6 +34,13 @@ mock-api:
 
 gen-api:
 	cd $(WEB) && npm run gen:api
+
+# Pydantic is authoritative; commit these editor schemas and verify drift in CI (T-012).
+gen-content-schemas:
+	cd $(API) && ../../$(PY) -m app.content.export_schemas
+
+check-content-schemas:
+	cd $(API) && ../../$(PY) -m app.content.export_schemas --check
 
 lint:
 	cd $(API) && ../../$(PY) -m ruff check . && ../../$(PY) -m ruff format --check . && ../../$(PY) -m mypy app

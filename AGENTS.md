@@ -66,6 +66,7 @@ Defined in the root `Makefile` (ticket T-001). If a target is missing, add it ra
 | `make up` / `make down` | Start/stop Docker Compose (api, web, db) |
 | `make migrate` | Run Alembic migrations |
 | `make mock-api` | Prism mock of `docs/openapi.yaml` on :4010 (web can build before the backend); `make gen-api` regenerates `apps/web/lib/api/schema.d.ts` |
+| `make gen-content-schemas` / `make check-content-schemas` | Export/check Pydantic JSON Schemas in `content/schemas/` for content-editor autocomplete |
 | `make validate-content [STRICT=1]` | Validate `content/` against schemas (`STRICT=1` also requires `source` on clinical items) |
 | `make leakcheck` | Fail if a play-time schema in `docs/openapi.yaml` can expose hidden fields (`scripts/leakcheck.py`) |
 | `make test` | Unit + integration tests (api + web) |

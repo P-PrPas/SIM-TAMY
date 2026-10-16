@@ -53,6 +53,8 @@ jobs:
         run: python -m app.content.validator_cli
         env:
           CONTENT_DIR: ../../content
+      - name: generated content schemas match Pydantic models
+        run: python -m app.content.export_schemas --check
       - name: no hidden fields in play-time schemas
         run: python ../../scripts/leakcheck.py
 
