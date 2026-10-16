@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { StatusBadge } from "@/components/status-badge";
+import { ConsequenceReplayPanel, GlassBoxPanel } from "@/components/report-panels";
 import { ApiError } from "@/lib/api/client";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
@@ -12,7 +13,7 @@ import { t } from "@/lib/i18n";
 
 type Report = components["schemas"]["ReportResponse"];
 type CaseStatus = components["schemas"]["CaseStatus"];
-type Tab = "summary" | "timeline" | "review";
+type Tab = "summary" | "timeline" | "glassBox" | "consequenceReplay" | "review";
 
 export default function ReportPage() {
   const { replace } = useRouter();
@@ -31,7 +32,7 @@ export default function ReportPage() {
       const { data } = await api().GET("/v1/sessions/{session_id}/report", {
         params: { path: { session_id: id } },
       });
-      if (!data || !data.effective || !data.case
+      if (!data || data.session_id !== id || !data.effective || !data.case
         || !["SAFETY_MET", "SAFETY_NOT_MET"].includes(data.effective.safety_status)
         || typeof data.effective.total_score !== "number"
         || !Number.isFinite(data.effective.total_score)
@@ -40,6 +41,12 @@ export default function ReportPage() {
         || !Array.isArray(data.competencies)
         || !Array.isArray(data.findings) || !Array.isArray(data.timeline)
         || !Array.isArray(data.references) || !Array.isArray(data.debrief?.paragraphs)
+        || !Array.isArray(data.glassbox?.facts)
+        || !Array.isArray(data.glassbox?.risk_state_timeline)
+        || !Array.isArray(data.glassbox?.learner_actions)
+        || !Array.isArray(data.replay?.timeline_th)
+        || !Array.isArray(data.replay?.missed_opportunities)
+        || typeof data.replay?.disclaimer_th !== "string"
         || !Array.isArray(data.disclaimers)) throw new Error("Invalid report response");
       if (current === request.current) setReport(data);
     } catch (cause) {
@@ -80,7 +87,7 @@ export default function ReportPage() {
 
   const safetyNotMet = report.effective.safety_status === "SAFETY_NOT_MET";
   const needsReview = report.findings.filter((finding) => finding.polarity === "improve");
-  const tabs: Tab[] = ["summary", "timeline", "review"];
+  const tabs: Tab[] = ["summary", "timeline", "glassBox", "consequenceReplay", "review"];
 
   return <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
     <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
@@ -125,6 +132,8 @@ export default function ReportPage() {
           </li>)}
         </ol>}
       </section>}
+      {tab === "glassBox" && <GlassBoxPanel report={report} />}
+      {tab === "consequenceReplay" && <ConsequenceReplayPanel replay={report.replay} />}
       {tab === "review" && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         {needsReview.length === 0 ? <p>{t("report.noReview")}</p> : <ul className="space-y-6">
           {needsReview.map((finding) => {

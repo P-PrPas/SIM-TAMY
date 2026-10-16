@@ -118,3 +118,66 @@ describe("T-053 Report", () => {
     expect(screen.queryByText(t("report.safetyMet"))).toBeNull();
   });
 });
+
+describe("T-054 Glass Box and Consequence Replay", () => {
+  const detailed = {
+    ...report,
+    glassbox: {
+      facts: [
+        { id: "H1", kind: "hidden", text_th: "Synthetic unlocked fact", risk_relevance: "critical", revealed: true, revealed_at_idx: 2 },
+        { id: "H2", kind: "hidden", text_th: "Synthetic never-asked fact", risk_relevance: "contextual", revealed: false, revealed_at_idx: null },
+      ],
+      risk_state_timeline: [{ turn_idx: 2, risk_state: "recognized" }],
+      learner_actions: [{ turn_idx: 2, action_id: "A03", label_th: "Synthetic question", repeated: false }],
+    },
+    replay: {
+      terminal_state: "UnsafeProceed", timeline_th: ["Synthetic scripted scene"],
+      missed_opportunities: [{ turn_idx: 4, fact_id: "H1", note_th: "Synthetic missed-opportunity marker" }],
+      disclaimer_th: "Synthetic replay education notice",
+    },
+  };
+
+  it("shows the completed conversation beside unlocked and never-asked facts, with risk and events", async () => {
+    mocks.get.mockImplementation((path: string) => Promise.resolve({ data: path.includes("/report")
+      ? detailed
+      : { status: "completed", history: [
+        { idx: 1, speaker: "learner", text: "Synthetic learner question", created_at: "2026-10-15T00:00:00Z" },
+        { idx: 1, speaker: "patient", text: "Synthetic patient answer", created_at: "2026-10-15T00:00:01Z" },
+      ] } }));
+    render(<ReportPage />);
+    await screen.findByText("Risk recognition");
+    fireEvent.click(screen.getByRole("tab", { name: t("report.glassBox") }));
+
+    expect(await screen.findByText("Synthetic learner question")).toBeTruthy();
+    expect(screen.getByText("Synthetic patient answer")).toBeTruthy();
+    expect(screen.getByText("Synthetic unlocked fact")).toBeTruthy();
+    expect(screen.getByText("Synthetic never-asked fact")).toBeTruthy();
+    expect(screen.getByText(t("report.neverAsked"))).toBeTruthy();
+    expect(screen.getByText(`${t("report.unlockedAt")} 2`)).toBeTruthy();
+    expect(screen.getByText(new RegExp(t("report.risk.recognized")))).toBeTruthy();
+    expect(screen.getByText("Synthetic timeline event")).toBeTruthy();
+  });
+
+  it("shows the scripted UnsafeProceed scene and missed-opportunity marker with disclaimer", async () => {
+    mocks.get.mockResolvedValue({ data: detailed });
+    render(<ReportPage />);
+    await screen.findByText("Risk recognition");
+    fireEvent.click(screen.getByRole("tab", { name: t("report.consequenceReplay") }));
+
+    expect(screen.getByText("Synthetic scripted scene")).toBeTruthy();
+    expect(screen.getByText("Synthetic missed-opportunity marker")).toBeTruthy();
+    expect(screen.getByText("Synthetic replay education notice")).toBeTruthy();
+    expect(screen.getByText(`${t("report.turn")} 4`)).toBeTruthy();
+    expect(screen.getByText(t("report.safetyNotMet"))).toBeTruthy();
+  });
+
+  it("does not claim there were no missed opportunities when UnsafeProceed markers are missing", async () => {
+    mocks.get.mockResolvedValue({ data: { ...detailed, replay: { ...detailed.replay, missed_opportunities: [] } } });
+    render(<ReportPage />);
+    await screen.findByText("Risk recognition");
+    fireEvent.click(screen.getByRole("tab", { name: t("report.consequenceReplay") }));
+
+    expect(screen.getByText(t("report.missedDataUnavailable"))).toBeTruthy();
+    expect(screen.queryByText(t("report.noMissedOpportunities"))).toBeNull();
+  });
+});
