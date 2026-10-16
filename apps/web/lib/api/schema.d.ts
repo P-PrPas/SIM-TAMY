@@ -854,7 +854,12 @@ export interface components {
             created_at: string;
         };
         RecordingList: {
-            items: components["schemas"]["RecordingSummary"][];
+            items: components["schemas"]["RecordingListItem"][];
+        };
+        /** @description A recording summary plus the case status of its snapshot (shown as a badge). */
+        RecordingListItem: components["schemas"]["RecordingSummary"] & {
+            status: components["schemas"]["CaseStatus"];
+            status_label_th: string;
         };
         RecordingSummary: {
             recording_id: string;

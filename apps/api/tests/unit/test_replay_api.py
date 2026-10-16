@@ -102,15 +102,19 @@ def test_replay_lists_and_returns_valid_recording_without_llm_or_db(client):
     assert listing.json() == {
         "items": [
             {
-                key: snapshot[key]
-                for key in (
-                    "recording_id",
-                    "title_th",
-                    "case_id",
-                    "variant",
-                    "description_th",
-                    "steps_count",
-                )
+                **{
+                    key: snapshot[key]
+                    for key in (
+                        "recording_id",
+                        "title_th",
+                        "case_id",
+                        "variant",
+                        "description_th",
+                        "steps_count",
+                    )
+                },
+                "status": "Draft",
+                "status_label_th": "Draft",
             }
         ]
     }

@@ -463,5 +463,12 @@ class Recording(RecordingSummary):
     report: ReportResponse
 
 
+class RecordingListItem(RecordingSummary):
+    """A list row also carries the snapshot's case status, so every row can show its badge."""
+
+    status: CaseStatus
+    status_label_th: str
+
+
 class RecordingList(BaseModel):
-    items: list[RecordingSummary]
+    items: list[RecordingListItem]
