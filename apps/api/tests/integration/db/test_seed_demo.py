@@ -2,51 +2,127 @@
 
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import pytest
+import yaml
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
+from app import seed_demo
 from app.api.deps import get_store
 from app.core.config import get_settings
 from app.db.models import ClassRoom, LearnerSession, Report
 from app.rescore import rescore
 from app.seed_demo import CLASS_CODE, SCENARIOS, main, seed
 
+REPO = Path(__file__).resolve().parents[5]
 
-def test_seed_creates_a_synthetic_class_and_is_idempotent(
-    make_db: Callable[[], str], monkeypatch: pytest.MonkeyPatch
-) -> None:
+
+@pytest.fixture
+def database(make_db: Callable[[], str], monkeypatch: pytest.MonkeyPatch) -> str:
     url = make_db()
     monkeypatch.setenv("DATABASE_URL", url)
-    monkeypatch.setenv("CONTENT_DIR", str(Path(__file__).resolve().parents[5] / "content"))
+    monkeypatch.setenv("CONTENT_DIR", str(REPO / "content"))
     get_settings.cache_clear()
     get_store.cache_clear()
     monkeypatch.chdir(Path(__file__).resolve().parents[3])  # where alembic.ini is
+    return url
+
+
+def sessions_of(url: str) -> list[tuple[str, str]]:
+    """(learner name, status) of every session in the demo class."""
+    engine = create_engine(url)
+    try:
+        with Session(engine) as db:
+            room = db.scalar(select(ClassRoom).where(ClassRoom.code == CLASS_CODE))
+            assert room is not None
+            rows = db.scalars(select(LearnerSession).where(LearnerSession.class_id == room.id))
+            return sorted((r.learner_name, r.status) for r in rows)
+    finally:
+        engine.dispose()
+
+
+def test_seed_creates_a_synthetic_class_and_is_idempotent(database: str) -> None:
+    labels: dict[str, Any] = yaml.safe_load(
+        (REPO / "content" / "demo" / "demo_class_th.yaml").read_text(encoding="utf-8")
+    )
 
     first = seed()
     again = seed()
 
     assert [o.status for o in first] == ["PASS"] * len(SCENARIOS)
-    assert again == []  # the class has sessions: nothing more is added
-    engine = create_engine(url)
+    assert again == []  # the class is complete: nothing more is added
+    engine = create_engine(database)
     try:
         with Session(engine) as db:
             room = db.scalar(select(ClassRoom).where(ClassRoom.code == CLASS_CODE))
-            assert room is not None and "สังเคราะห์" in (room.name or "")
+            assert room is not None and room.name == labels["class_name_th"]
             rows = list(
                 db.scalars(select(LearnerSession).where(LearnerSession.class_id == room.id))
             )
-            assert len(rows) == len(SCENARIOS)
-            assert all(r.status == "completed" and "สังเคราะห์" in r.learner_name for r in rows)
+            expected = [labels["learner_name_template_th"].format(n=n) for n in (1, 2, 3, 4, 5)]
+            assert sorted(r.learner_name for r in rows) == sorted(expected)
+            assert all(r.status == "completed" for r in rows)
             assert db.scalar(select(func.count()).select_from(Report)) == len(SCENARIOS)
             assert {r.variant for r in rows} == {"A", "C"}  # a spread of outcomes
             for r in rows:
-                assert (
-                    rescore(db, get_store(), r.id).diffs == []
-                )  # reports are genuine engine output
+                assert rescore(db, get_store(), r.id).diffs == []  # genuine engine output
     finally:
         engine.dispose()
+
+
+def test_a_run_that_stops_midway_is_completed_by_the_next(
+    database: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    real = seed_demo.run_golden
+    calls: list[str] = []
+
+    def dies_on_the_third(g: Any, env: Any, session: Any = None) -> Any:
+        calls.append(g.id)
+        if len(calls) == 3:
+            raise RuntimeError("the machine went to sleep")
+        return real(g, env, session)
+
+    monkeypatch.setattr(seed_demo, "run_golden", dies_on_the_third)
+    with pytest.raises(RuntimeError):
+        seed()
+    assert len(sessions_of(database)) == 2  # two scenarios made it
+
+    monkeypatch.setattr(seed_demo, "run_golden", real)
+    rest = seed()
+
+    assert [o.id for o in rest] == list(SCENARIOS[2:])  # only the three that were missing
+    done = sessions_of(database)
+    assert len(done) == len(SCENARIOS) and {status for _, status in done} == {"completed"}
+    assert len({name for name, _ in done}) == len(SCENARIOS)  # nobody twice
+
+
+def test_an_unfinished_session_does_not_count_as_seeded(
+    database: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    real = seed_demo.run_golden
+    calls: list[str] = []
+
+    def stops_before_complete(g: Any, env: Any, session: Any = None) -> Any:
+        calls.append(g.id)
+        if len(calls) == 2:  # the second scenario is cut short: its session stays active
+            g = g.model_copy(update={"steps": g.steps[:2]})
+        return real(g, env, session)
+
+    monkeypatch.setattr(seed_demo, "run_golden", stops_before_complete)
+    seed()
+    assert sorted(status for _, status in sessions_of(database)).count("active") == 1
+
+    monkeypatch.setattr(seed_demo, "run_golden", real)
+    again = seed()
+
+    assert [o.id for o in again] == [SCENARIOS[1]]  # only the one that never finished
+    final = sessions_of(database)
+    assert sorted(name for name, status in final if status == "completed") == sorted(
+        {name for name, _ in final}
+    )  # every name has a completed session
+    assert [status for _, status in final].count("completed") == len(SCENARIOS)
 
 
 def test_no_database_is_a_quiet_failure(

@@ -12,9 +12,10 @@ from collections.abc import Sequence
 from pathlib import Path
 from unittest import mock
 
+import yaml
 from alembic.config import Config
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import create_engine, select
 from sqlalchemy.exc import OperationalError
 
 from app.ai.llm_client import LLMClient
@@ -28,13 +29,14 @@ from app.golden import REPO_DIR, Env, LexicalProvider, Outcome, load_golden, run
 from app.main import create_app
 
 CLASS_CODE = "DEMO01"
-CLASS_NAME = "ห้องเรียนตัวอย่าง (ข้อมูลสังเคราะห์ ไม่ใช่ผู้เรียนจริง)"
 # a safe referral, two unsafe/late paths and both Variant C outcomes: a dashboard with variety
 SCENARIOS = ("T01", "T02", "T03", "T05", "T06")
 
 
-def _name(n: int) -> str:
-    return f"ตัวอย่าง {n} (สังเคราะห์)"
+def _labels() -> dict[str, str]:
+    """The Thai display text lives with the content, not in code (AGENTS.md)."""
+    path = get_settings().content_dir / "demo" / "demo_class_th.yaml"
+    return dict(yaml.safe_load(path.read_text(encoding="utf-8")))
 
 
 def _reachable() -> None:
@@ -48,7 +50,11 @@ def _reachable() -> None:
 
 
 def seed(golden_dir: Path | None = None) -> list[Outcome]:
-    """Seed the database named by DATABASE_URL; [] when the class already has sessions."""
+    """Seed the database named by DATABASE_URL; the outcomes of the sessions it added.
+
+    Each scenario is tracked by its own name, so a run that stopped midway is completed by the next
+    (a session left unfinished is skipped over, not reused or deleted); a full class adds nothing.
+    """
     golden_dir = golden_dir or REPO_DIR / "eval" / "golden"
     caches = (get_settings, get_engine, get_sessionmaker, get_store)
     env_patch = {"ALLOW_DRAFT_CASES": "true", "RATE_LIMIT_PER_MIN": "0"}
@@ -60,23 +66,30 @@ def seed(golden_dir: Path | None = None) -> list[Outcome]:
             _reachable()
             migrate(Config("alembic.ini"))  # `make demo` may be the first run on a new database
             maker = get_sessionmaker()
+            labels = _labels()
+            names = [
+                labels["learner_name_template_th"].format(n=n) for n in range(1, 1 + len(SCENARIOS))
+            ]
             with maker.begin() as db:
                 room = db.scalar(select(ClassRoom).where(ClassRoom.code == CLASS_CODE))
                 if room is None:
-                    room = ClassRoom(code=CLASS_CODE, name=CLASS_NAME)
+                    room = ClassRoom(code=CLASS_CODE, name=labels["class_name_th"])
                     db.add(room)
                     db.flush()
-                taken = db.scalar(
-                    select(func.count())
-                    .select_from(LearnerSession)
-                    .where(LearnerSession.class_id == room.id)
+                done = set(
+                    db.scalars(
+                        select(LearnerSession.learner_name).where(
+                            LearnerSession.class_id == room.id, LearnerSession.status == "completed"
+                        )
+                    )
                 )
-            if taken:
+            todo = [(n, s) for n, s in enumerate(SCENARIOS) if names[n] not in done]
+            if not todo:
                 return []
             app = create_app()
             env = Env(TestClient(app, raise_server_exceptions=False), maker, "mock")
             outcomes: list[Outcome] = []
-            for n, scenario in enumerate(SCENARIOS, start=1):
+            for n, scenario in todo:
                 g = load_golden(golden_dir / f"{scenario}.yaml")
                 provider = LexicalProvider(load_case(get_settings().content_dir / "cases" / g.case))
                 app.dependency_overrides[get_llm_factory] = lambda p=provider: (
@@ -85,7 +98,7 @@ def seed(golden_dir: Path | None = None) -> list[Outcome]:
                     )
                 )
                 outcomes.append(
-                    run_golden(g, env, {"learner_name": _name(n), "class_code": CLASS_CODE})
+                    run_golden(g, env, {"learner_name": names[n], "class_code": CLASS_CODE})
                 )
             return outcomes
         finally:
@@ -103,7 +116,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 2
     if not outcomes:
-        print(f"class {CLASS_CODE} already has sessions: nothing to seed")
+        print(f"class {CLASS_CODE} already has all {len(SCENARIOS)} sessions: nothing to seed")
         return 0
     for o in outcomes:
         print(f"{o.id}: {o.status}" + ("" if o.status == "PASS" else f" {'; '.join(o.details)}"))
