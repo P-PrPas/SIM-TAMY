@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.limits import MAX_TEXT_CHARS
+from app.core.security_headers import security_headers
 from app.engine.scenario import EngineError
 
 log = logging.getLogger("app.errors")
@@ -120,7 +121,13 @@ def _http(request: Request, exc: Exception) -> JSONResponse:
 
 def _unexpected(request: Request, exc: Exception) -> JSONResponse:
     log.exception("unhandled error request_id=%s", request_id(request))
-    return envelope(request, "INTERNAL_ERROR", "unexpected server error")
+    # this response is built by Starlette's outermost handler, so no middleware sees it
+    return envelope(
+        request,
+        "INTERNAL_ERROR",
+        "unexpected server error",
+        headers=security_headers(request.url.path),
+    )
 
 
 def install(app: FastAPI) -> None:

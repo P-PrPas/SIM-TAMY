@@ -1,5 +1,6 @@
 """Sliding-window rate limit, in process (T-048, API_DESIGN 8): N requests per minute per key."""
 
+import threading
 import time
 from collections import deque
 from collections.abc import Hashable
@@ -7,11 +8,17 @@ from collections.abc import Hashable
 WINDOW_S = 60.0
 _MAX_KEYS = 10_000
 _hits: dict[Hashable, deque[float]] = {}
+_lock = threading.Lock()  # sync routes run in a thread pool: prune, check and append are one step
 now = time.monotonic  # tests replace it
 
 
 def hit(key: Hashable, limit: int) -> tuple[bool, int, int]:
     """Count one request: (allowed, remaining, retry_after_s). A refused one is not counted."""
+    with _lock:
+        return _hit(key, limit)
+
+
+def _hit(key: Hashable, limit: int) -> tuple[bool, int, int]:
     t = now()
     if len(_hits) > _MAX_KEYS:  # ponytail: one instance; a shared store (Redis) if we scale out
         for k in [k for k, q in _hits.items() if not q or q[-1] <= t - WINDOW_S]:

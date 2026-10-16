@@ -5,15 +5,7 @@ from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.core import errors, limits
-
-SECURITY_HEADERS = {
-    "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
-    "Referrer-Policy": "no-referrer",
-}
-# a JSON API renders nothing; the Swagger pages need their own scripts, so they are left out
-CSP = "default-src 'none'; frame-ancestors 'none'"
-DOC_PATHS = ("/docs", "/redoc")
+from app.core.security_headers import security_headers
 
 
 class HardeningMiddleware:
@@ -38,15 +30,13 @@ class HardeningMiddleware:
         await self.app(scope, receive, self._with_headers(scope, send))
 
     def _with_headers(self, scope: Scope, send: Send) -> Send:
-        docs = scope["path"].startswith(DOC_PATHS)
+        extra = security_headers(scope["path"])
 
         async def send_with(message: Message) -> None:
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
-                for name, value in SECURITY_HEADERS.items():
+                for name, value in extra.items():
                     headers[name] = value
-                if not docs:
-                    headers["Content-Security-Policy"] = CSP
                 rate = scope.get("state", {}).get("rate_limit")
                 if rate:  # (limit, remaining) set by the sendTurn dependency
                     headers["X-RateLimit-Limit"], headers["X-RateLimit-Remaining"] = map(str, rate)

@@ -117,3 +117,19 @@ def test_a_request_from_a_non_allowed_origin_is_rejected(
         assert "access-control-allow-origin" not in simple.headers
     finally:
         get_settings.cache_clear()
+
+
+def test_security_headers_also_ride_on_an_unhandled_500(api: Api) -> None:
+    def boom() -> None:
+        raise RuntimeError("secret learner text must not leak")
+
+    api.client.app.add_api_route("/boom", boom)  # type: ignore[attr-defined]
+
+    r = api.client.get("/boom")
+
+    assert r.status_code == 500 and r.json()["error"]["code"] == "INTERNAL_ERROR"
+    assert "secret" not in r.text
+    assert r.headers["X-Content-Type-Options"] == "nosniff"
+    assert r.headers["X-Frame-Options"] == "DENY"
+    assert "default-src 'none'" in r.headers["Content-Security-Policy"]
+    assert r.headers["X-Request-ID"]
