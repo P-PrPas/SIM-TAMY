@@ -445,6 +445,8 @@ export interface components {
             cases_loaded?: number;
             /** @description Provider name, for example `mock`. Never includes keys. */
             llm_provider?: string;
+            /** @description Git SHA of the running build (`GIT_COMMIT`, or Render's `RENDER_GIT_COMMIT`); null when unknown. */
+            commit?: string | null;
         };
         LearningObjective: {
             id: string;

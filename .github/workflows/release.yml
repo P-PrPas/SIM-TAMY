@@ -39,14 +39,13 @@ jobs:
           code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "${HOOK}${sep}ref=${GITHUB_SHA}")
           echo "deploy hook answered HTTP $code"
           [ "$code" = 200 ] || [ "$code" = 202 ]
-      - name: smoke test production
+      - name: wait for this commit to be live, then smoke test production
         run: |
           if [ -z "$HOOK" ] || [ -z "$PROD_API_URL" ]; then
             echo "::notice::smoke test skipped: needs RENDER_DEPLOY_HOOK_PROD and the PROD_API_URL variable"
             exit 0
           fi
-          # ponytail: the hook answers when the deploy starts, not when it ends, and Render offers no
-          # finished signal without an API key. Wait, then let smoke.py poll /health; use the Render
-          # API (deploy status) if this ever races.
-          sleep 120
-          python3 scripts/smoke.py "$PROD_API_URL" --wait 300
+          # the hook answers when the deploy starts, not when it succeeds. /health reports the running
+          # commit (RENDER_GIT_COMMIT), so wait until it is this tag's commit; a failed new deploy
+          # leaves the old instance answering 200 with the old commit, and this step goes red.
+          python3 scripts/smoke.py "$PROD_API_URL" --wait 900 --expect-sha "$GITHUB_SHA"

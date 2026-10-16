@@ -1,11 +1,13 @@
 """Post-deploy smoke test (T-094): one learner journey against a running API.
 
     python scripts/smoke.py https://<service>.onrender.com [--case-id DEV-001] [--wait 120]
+                            [--expect-sha <git sha>]
 
 health -> case list -> create session -> one turn -> decision -> complete -> report. Exit 0 only if
 every step held; the first failure prints which step and exits 1. It creates a real (synthetic)
 session named "smoke", so the retention purge removes it like any other. Stdlib only. It prints
-no token, learner text or key.
+no token, learner text or key. With --expect-sha it first waits until /health reports that commit,
+so a new deploy that failed (the old instance still answering 200) fails the run.
 """
 
 import argparse
@@ -40,17 +42,28 @@ def keys_of(value: Any) -> set[str]:
     return set()
 
 
-def run(call: Call, case_id: str | None = None, wait_s: float = 0) -> None:
+def run(
+    call: Call, case_id: str | None = None, wait_s: float = 0, expect_sha: str | None = None
+) -> None:
     deadline = time.monotonic() + wait_s
     while True:  # a sleeping free instance needs a while to answer
         try:
             status, health = call("GET", "/health", None, None)
         except OSError as exc:
             status, health = 0, {"error": type(exc).__name__}
-        if status == 200 or time.monotonic() >= deadline:
+        live = str(health.get("commit") or "").lower()
+        if (status == 200 and (not expect_sha or live == expect_sha.lower())) or (
+            time.monotonic() >= deadline
+        ):
             break
         time.sleep(5)
     check(status == 200 and health.get("status") == "ok", "health", f"{status} {health}")
+    if expect_sha:
+        check(
+            live == expect_sha.lower(),
+            "deployed commit",
+            f"live {live[:12] or 'unknown'}, expected {expect_sha[:12]}",
+        )
     check(health.get("db") == "ok" and health.get("cases_loaded", 0) >= 1, "health db and content")
 
     status, cases = call("GET", "/v1/cases", None, None)
@@ -111,9 +124,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("base_url")
     parser.add_argument("--case-id")
     parser.add_argument("--wait", type=float, default=0, help="seconds to wait for /health")
+    parser.add_argument("--expect-sha", help="wait for /health to report this commit")
     args = parser.parse_args(argv)
     try:
-        run(http_call(args.base_url), args.case_id, args.wait)
+        run(http_call(args.base_url), args.case_id, args.wait, args.expect_sha)
     except SmokeFailure as exc:
         print(exc, file=sys.stderr)
         return 1
