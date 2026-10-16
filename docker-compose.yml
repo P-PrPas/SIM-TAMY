@@ -36,6 +36,7 @@ services:
       ENABLE_REPLAY: ${ENABLE_REPLAY:-false}
       RECORDINGS_DIR: /recordings
       LOG_RETENTION_DAYS: ${LOG_RETENTION_DAYS:-30}
+      RATE_LIMIT_PER_MIN: ${RATE_LIMIT_PER_MIN:-10}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     volumes:
       - ./content:/content:ro

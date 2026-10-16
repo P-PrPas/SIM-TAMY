@@ -43,9 +43,16 @@ STATUS: dict[str, int] = {
 
 
 class ApiError(Exception):
-    def __init__(self, code: str, message: str, details: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        details: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
         super().__init__(f"{code}: {message}")
         self.code, self.message, self.details = code, message, details or {}
+        self.headers = headers or {}
 
 
 def request_id(request: Request) -> str:
@@ -53,7 +60,11 @@ def request_id(request: Request) -> str:
 
 
 def envelope(
-    request: Request, code: str, message: str, details: dict[str, Any] | None = None
+    request: Request,
+    code: str,
+    message: str,
+    details: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
 ) -> JSONResponse:
     body = {
         "error": {
@@ -65,13 +76,15 @@ def envelope(
     }
     # also set here: errors raised outside the request-id middleware (500) never pass through it
     return JSONResponse(
-        body, status_code=STATUS[code], headers={"X-Request-ID": request_id(request)}
+        body,
+        status_code=STATUS[code],
+        headers={**(headers or {}), "X-Request-ID": request_id(request)},
     )
 
 
 def _api_error(request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, ApiError)
-    return envelope(request, exc.code, exc.message, exc.details)
+    return envelope(request, exc.code, exc.message, exc.details, exc.headers)
 
 
 def _engine_error(request: Request, exc: Exception) -> JSONResponse:

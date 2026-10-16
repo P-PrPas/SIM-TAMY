@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     allow_draft_cases: bool = True
     glass_box_live: bool = False
     log_retention_days: int = 30
+    rate_limit_per_min: int = Field(default=10, ge=0)  # sendTurn per session; 0 = off (eval bots)
     cors_origins: str = ""  # comma-separated
     cors_origin_regex: str | None = None  # e.g. Vercel previews; matched against the whole origin
 
