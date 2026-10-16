@@ -57,18 +57,22 @@ validate-content:
 leakcheck:
 	$(PY) scripts/leakcheck.py
 
+# Plays eval/golden/T*.yaml through the real API on a throwaway Postgres (DATABASE_URL). Mock LLM by default;
+# `make eval PROVIDER=env` uses the configured LLM and reports what it measures.
 eval:
-	@echo "not implemented: Golden Test Suite (T-070)"; exit 1
+	cd $(API) && CONTENT_DIR=../../content ../../$(PY) ../../eval/run_eval.py $(if $(PROVIDER),--provider $(PROVIDER))
 bench:
-	@echo "not implemented: model bench (T-005)"; exit 1
+	cd $(API) && ../../$(PY) ../../eval/model_bench.py $(BENCH_ARGS)
 # Rebuilds the score from the Event Log and diffs it with the stored report (needs DATABASE_URL).
 rescore:
 	@test -n "$(SESSION)" || { echo "usage: make rescore SESSION=<id>"; exit 2; }
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.rescore $(SESSION)
+# Measured from llm_calls / events (needs DATABASE_URL). Prices are never assumed:
+# `make cost-report COST_ARGS='--price openai_like:MODEL=INPUT_USD_PER_M,OUTPUT_USD_PER_M'`.
 stats:
-	@echo "not implemented: latency stats (T-044)"; exit 1
+	cd $(API) && ../../$(PY) -m app.stats stats
 cost-report:
-	@echo "not implemented: LLM cost report (T-044)"; exit 1
+	cd $(API) && ../../$(PY) -m app.stats cost-report $(COST_ARGS)
 purge-old:
 	@echo "not implemented: retention purge"; exit 1
 demo:

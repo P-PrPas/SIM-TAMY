@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -13,6 +13,7 @@ import { t } from "@/lib/i18n";
 
 type CaseBrief = components["schemas"]["CaseBrief"];
 type SessionView = components["schemas"]["SessionView"];
+const quickPromptKeys = ["chat.quickPromptReason", "chat.quickPromptWhen", "chat.quickPromptMore"] as const;
 
 export default function ChatPage() {
   const { push, replace } = useRouter();
@@ -22,6 +23,7 @@ export default function ChatPage() {
   const [draft, setDraft] = useState("");
   const [inFlight, setInFlight] = useState(false);
   const [error, setError] = useState("");
+  const messageRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const active = readSession();
@@ -31,6 +33,7 @@ export default function ChatPage() {
       .then((sessionResult) => {
       if (cancelled) return;
       if (!sessionResult.data) { setError(t("chat.loadError")); return; }
+      if (sessionResult.data.phase === "COMPLETED") { replace("/report"); return; } // nothing to send; the report is next
       setSession(sessionResult.data);
       setBrief(active.brief); // the version this session was created with, not the latest case
       setMessages(sessionResult.data.history.map((message, position) => ({
@@ -86,7 +89,9 @@ export default function ChatPage() {
     {error ? <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p> : <p role="status">{t("chat.loading")}</p>}
   </main>;
 
-  const canSend = (session.phase === "INTERVIEW" || session.phase === "PRESSURE") && session.turns_remaining > 0;
+  const canSend = session.phase === "PRESSURE" || (session.phase === "INTERVIEW" && session.turns_remaining > 0);
+  const canCompose = canSend && !inFlight && !messages.some((item) => item.delivery === "failed");
+  const canChoosePrompt = canCompose && draft.trim().length === 0;
   return <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
     <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div>
@@ -99,9 +104,9 @@ export default function ChatPage() {
     </header>
     <div className="grid gap-5 lg:grid-cols-[1fr_18rem]">
       <section aria-label={t("chat.title")} className="flex min-h-[60vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 font-semibold text-slate-800">
+        {session.phase !== "PRESSURE" && <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 font-semibold text-slate-800">
           {t("chat.turnsRemaining")}: {session.turns_remaining}
-        </div>
+        </div>}
         <ol aria-live="polite" aria-relevant="additions" className="flex-1 space-y-4 p-4 sm:p-6">
           {messages.map((message) => <li key={message.id} className={`max-w-[90%] rounded-2xl p-4 shadow-sm ${message.speaker === "learner" ? "ml-auto bg-teal-900 text-white" : "border border-slate-200 bg-slate-50 text-slate-950"}`}>
             <p className="mb-1 text-sm font-bold">{t(`chat.${message.speaker}`)}</p>
@@ -112,10 +117,23 @@ export default function ChatPage() {
         {inFlight && <p role="status" className="px-5 pb-3 text-slate-700">{t("chat.typing")}</p>}
         {error && <p role="alert" className="mx-4 mb-3 rounded-lg bg-rose-50 p-3 text-rose-950">{error}</p>}
         <form onSubmit={submit} className="border-t border-slate-200 p-4 sm:p-5">
+          <details className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <summary className="cursor-pointer text-base font-semibold text-teal-900">{t("chat.quickPromptsTitle")}</summary>
+            <p className="mt-2 text-base text-slate-700">{t("chat.quickPromptsHelp")}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {quickPromptKeys.map((key) => <button
+                key={key}
+                type="button"
+                disabled={!canChoosePrompt}
+                onClick={() => { setDraft(t(key)); setError(""); messageRef.current?.focus(); }}
+                className="rounded-lg border border-teal-700 bg-white px-3 py-2 text-left text-base text-teal-950 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:opacity-50"
+              >{t(key)}</button>)}
+            </div>
+          </details>
           <label htmlFor="message" className="mb-2 block font-semibold">{t("chat.messageLabel")}</label>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <textarea id="message" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={500} rows={2} placeholder={t("chat.messagePlaceholder")} disabled={!canSend || inFlight || messages.some((item) => item.delivery === "failed")} className="min-w-0 flex-1 resize-y rounded-xl border border-slate-400 px-4 py-3 focus:outline-teal-700 disabled:bg-slate-100" />
-            <button type="submit" disabled={!canSend || inFlight || messages.some((item) => item.delivery === "failed")} className="rounded-xl bg-teal-900 px-5 py-3 font-bold text-white hover:bg-teal-800 disabled:opacity-50">{t("chat.send")}</button>
+            <textarea ref={messageRef} id="message" value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={500} rows={2} placeholder={t("chat.messagePlaceholder")} disabled={!canCompose} className="min-w-0 flex-1 resize-y rounded-xl border border-slate-400 px-4 py-3 focus:outline-teal-700 disabled:bg-slate-100" />
+            <button type="submit" disabled={!canCompose} className="rounded-xl bg-teal-900 px-5 py-3 font-bold text-white hover:bg-teal-800 disabled:opacity-50">{t("chat.send")}</button>
           </div>
           <p className="mt-2 text-sm font-semibold text-amber-900">{t("chat.privacy")}</p>
         </form>

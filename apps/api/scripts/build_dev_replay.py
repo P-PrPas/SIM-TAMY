@@ -15,7 +15,7 @@ from app.engine.findings import build_findings
 from app.engine.glassbox import build_glassbox
 from app.engine.replay import build_replay
 from app.engine.scoring import score
-from app.services.briefs import case_brief, disclaimer_th
+from app.services.briefs import case_brief, disclaimer_th, replay_notes
 from app.services.closing import _assemble, _template_debrief
 from tests.unit.engine.play import Play
 
@@ -56,7 +56,9 @@ def build() -> Recording:
         rubric_version=LOADED.rubric.rubric_version,
         debrief=_template_debrief(findings).model_dump(mode="json"),
         glassbox=build_glassbox(play.events, LOADED.case, LOADED.actions).model_dump(mode="json"),
-        replay=build_replay(play.events, LOADED.case, disclaimer_th()).model_dump(mode="json"),
+        replay=build_replay(play.events, LOADED.case, disclaimer_th(), replay_notes()).model_dump(
+            mode="json"
+        ),
     )
     row = SimpleNamespace(id=uuid.UUID("00000000-0000-0000-0000-000000000073"), variant="A")
     report = _assemble(row, LOADED, saved, scoring, findings, play.events)

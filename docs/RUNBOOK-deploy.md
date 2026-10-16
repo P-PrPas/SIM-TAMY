@@ -57,7 +57,74 @@ redirect HTTP to HTTPS. Secrets are only in the Render dashboard.
 Add `LLM_API_KEY` (and `LLM_PROVIDER`, `LLM_MODEL_*`, `LLM_BASE_URL`) in the Render dashboard; never in
 `render.yaml`. Set `LLM_PROVIDER` back to `mock` to fall back to the deterministic provider.
 
+## 7. The API image (T-091)
+
+One image (`apps/api/Dockerfile`, built from the repo root) runs everywhere: `docker compose`, Render
+staging and production. Its contract:
+
+- `CMD` runs `alembic upgrade head`, then `uvicorn` on `$PORT` (8000 locally). Migrations are idempotent,
+  so a restart is safe, and a failed migration stops the container before it serves traffic.
+- It runs as the non-root user `app` (uid 10001); `HEALTHCHECK` calls `/health`.
+- `content/` and `recordings/` are baked in; there are no secrets in the image (all come from env).
+- Checked from an empty database: `docker compose up --wait db api`, then `/health` is `ok` and
+  `POST /v1/sessions` returns 201.
+
+## 8. Smoke test (T-094)
+
+`python scripts/smoke.py https://<service>.onrender.com [--wait 120]` plays one learner journey (health,
+case list, create session, one turn, decision, complete, report) and exits non-zero at the first broken
+step, naming it. Use `--wait` for a sleeping free instance, and `--expect-sha` to wait until `/health`
+reports a given commit. CI runs it against `docker compose` from an
+empty database on every PR. It creates one synthetic session named `smoke`; with a real LLM provider the
+turn makes a few real LLM calls. Run it after every production deploy and before sharing the link.
+
+## 9. Rollback (T-094)
+
+1. **Code:** Render dashboard -> `sim-tamy-api` -> Deploys -> **Rollback** on the last good deploy -> "Rollback
+   to this deploy". It reuses that deploy's build artifact, so it is fast. Limits from Render's docs:
+   it works only while that build artifact is still retained, and a dashboard rollback **turns autodeploy
+   off** for the service; turn it back on in Settings once the fix is on `main`. The docs do not say
+   whether free instances can roll back: if the button is missing, redeploy the previous tag instead
+   (re-run the release workflow's deploy for the old tag, or "Manual Deploy" -> a specific commit).
+2. **Check:** run the smoke test against the service.
+3. **Database:** a rollback does **not** undo migrations, and the free Postgres has no backups. The
+   previous image does not contain the newer revision scripts, so plain `alembic upgrade head` would stop
+   with `Can't locate revision` before the API opened. The image therefore starts with
+   `python -m app.db.migrate` (`app/db/migrate.py`): if the database is at a revision the image does not
+   know, it logs `database is at revision X, newer than this image: serving without migrating (rollback)`
+   and serves. That is only safe while migrations stay **additive** while a release is live (add nullable
+   columns/tables; drop or rename only in a later release), so the old code still works on the newer
+   schema. Tested for real: a database migrated past the image's head (`tests/integration/db/
+   test_migrate_on_start.py`), and in Docker (database set to an unknown revision, image restarted, `/health`
+   ok, smoke test passes). If a release shipped a destructive migration there is no automatic way back:
+   restore from your own dump, or recreate the database and run `alembic upgrade head` (sessions are lost;
+   content is in the image).
+4. **After:** write down what broke and which tag is live. `/health` returns `version`.
+
+## 10. Releases: staging and production (T-092)
+
+- **Staging** is `sim-tamy-api` from the Blueprint. `autoDeployTrigger: checksPass` makes Render deploy
+  `main` only after its CI checks pass. (Render's older `autoDeploy` field is deprecated.)
+- **Production** deploys when you push a tag: `git tag v0.1.0 && git push origin v0.1.0`.
+  `.github/workflows/release.yml` runs the same CI gates, checks the tag's commit is on `main`, calls the
+  production service's Deploy Hook with `ref=<that commit>` (so it deploys the tag, not whatever `main`
+  is by then), then runs `scripts/smoke.py "$PROD_API_URL" --wait 900 --expect-sha <that commit>`. The
+  hook only says the deploy *started* (HTTP 200/202), so success is proven by `/health`: it reports the
+  running commit (`commit`, from Render's `RENDER_GIT_COMMIT`, or `GIT_COMMIT` elsewhere), and the job
+  waits up to 15 minutes for it to equal the tag's commit before the smoke journey runs. If the new deploy
+  fails and the old instance keeps answering 200, the commit never matches and the job goes red.
+- **One-time setup (yours; nothing here creates it):**
+  1. Render -> New -> Web Service -> same repo, runtime Docker, Dockerfile `./apps/api/Dockerfile`, context
+     `.`, health check `/health`, **Auto-Deploy: Off**. Give production its own database and its own
+     `INSTRUCTOR_SECRET`, `CORS_ORIGINS`, `LLM_*` values (section 6).
+  2. Render -> that service -> Settings -> **Deploy Hook**: copy the URL (it is a secret; Regenerate Hook if it leaks).
+  3. GitHub -> Settings -> Secrets and variables -> Actions: secret `RENDER_DEPLOY_HOOK_PROD` = the hook URL;
+     variable `PROD_API_URL` = `https://<prod-service>.onrender.com`.
+- Until those exist the workflow still runs CI, then ends the deploy and smoke steps with an explicit
+  "skipped" notice instead of failing. A skipped deploy is not a deploy: check the notice.
+- To roll back, see section 9. After a rollback `/health` reports the older commit, which is the proof.
+  Check it by hand with `python scripts/smoke.py <url> --expect-sha <sha>`.
+
 ## Not covered here
 
-CD from `main`/tags (T-092), image hardening (T-091), rate limiting and security headers (T-048),
-production smoke test and rollback (T-094).
+Rate limiting and security headers (T-048).

@@ -1,0 +1,16 @@
+# T03 Found but Proceeded: the risk was uncovered, the learner proceeds anyway.
+id: T03
+case: DEV-001
+variant: A
+steps:
+  - {say: "ขอถามเรื่องสัญญาณทดสอบกหน่อยค่ะ", expect_actions_any: [A03]}
+  - {say: "ขอถามเรื่องสัญญาณทดสอบขหน่อยค่ะ", expect_actions_any: [A04]}
+  - {decision: proceed_service}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  revealed: [H1, H2]
+  events_include: [UNSAFE_ACTION]
+  items: {R-RISK-01: pass, R-ESC-01: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2]

@@ -29,7 +29,7 @@ const recording = {
 beforeEach(() => {
   mocks.get.mockReset(); mocks.post.mockReset();
   mocks.get.mockImplementation((path: string) => Promise.resolve({ data: path === "/v1/replay/recordings"
-    ? { items: [recording] } : recording }));
+    ? { items: [{ ...recording, status: "Draft", status_label_th: "Draft" }] } : recording }));
 });
 afterEach(() => cleanup());
 
@@ -55,6 +55,18 @@ describe("T-073 Replay Mode", () => {
     expect(mocks.post).not.toHaveBeenCalled();
   });
 
+  it("shows the case status badge on every recording row before it is opened", async () => {
+    mocks.get.mockImplementation(() => Promise.resolve({ data: { items: [
+      { ...recording, recording_id: "a", title_th: "Row A", status: "Draft", status_label_th: "Draft" },
+      { ...recording, recording_id: "b", title_th: "Row B", status: "In Review", status_label_th: "In Review" },
+    ] } }));
+    render(<ReplayPage />);
+    const rows = (await screen.findAllByRole("listitem"));
+    expect(rows).toHaveLength(2);
+    expect(rows[0]?.textContent).toContain(t("status.draft"));
+    expect(rows[1]?.textContent).toContain(t("status.inReview"));
+  });
+
   it("handles disabled replay as a safe unavailable state", async () => {
     mocks.get.mockRejectedValue(new Error("private detail"));
     render(<ReplayPage />);
@@ -64,7 +76,7 @@ describe("T-073 Replay Mode", () => {
 
   it("fails closed on an invalid safety result instead of showing met language", async () => {
     mocks.get.mockImplementation((path: string) => Promise.resolve({ data: path === "/v1/replay/recordings"
-      ? { items: [recording] } : { ...recording, report: { ...recording.report,
+      ? { items: [{ ...recording, status: "Draft", status_label_th: "Draft" }] } : { ...recording, report: { ...recording.report,
         effective: { safety_status: "UNKNOWN", total_score: 99 } } } }));
     render(<ReplayPage />);
     await screen.findByText("Synthetic engineering replay");

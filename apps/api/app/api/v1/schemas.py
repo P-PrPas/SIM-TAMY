@@ -5,12 +5,23 @@ the spec, and inline objects use `WithJsonSchema` so the generated shape matches
 compares them.
 """
 
+import unicodedata
 import uuid
 from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, StringConstraints, WithJsonSchema
+from pydantic import BaseModel, BeforeValidator, Field, StringConstraints, WithJsonSchema
+
+
+def _no_controls(value: object) -> object:
+    """Drop control characters (a NUL makes Postgres refuse the row); keep newline and tab."""
+    if not isinstance(value, str):
+        return value
+    return "".join(c for c in value if c in "\n\t" or unicodedata.category(c) != "Cc")
+
+
+Clean = BeforeValidator(_no_controls)
 
 
 class Variant(StrEnum):
@@ -88,7 +99,7 @@ class CreateSessionRequest(BaseModel):
     case_id: str
     variant: Variant = Variant.A
     learner_name: Annotated[
-        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=30)
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=30), Clean
     ]
     class_code: Annotated[str, StringConstraints(pattern=r"^[A-Z0-9]{6}$")] | None = None
 
@@ -162,7 +173,9 @@ class SessionView(BaseModel):
 
 
 class TurnRequest(BaseModel):
-    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)]
+    text: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500), Clean
+    ]
     client_turn_id: Annotated[str, StringConstraints(min_length=8, max_length=64)] | None = None
 
 
@@ -198,7 +211,7 @@ class TurnResponse(BaseModel):
 
 class DecisionRequest(BaseModel):
     option_id: str
-    rationale_th: Annotated[str, StringConstraints(max_length=300)] | None = None
+    rationale_th: Annotated[str, StringConstraints(max_length=300), Clean] | None = None
 
 
 _DECISION_SCHEMA = {
@@ -221,7 +234,7 @@ class DecisionResponse(BaseModel):
 
 
 class CompleteRequest(BaseModel):
-    note_th: Annotated[str, StringConstraints(max_length=500)] | None = None
+    note_th: Annotated[str, StringConstraints(max_length=500), Clean] | None = None
 
 
 class CompleteResponse(BaseModel):
@@ -463,5 +476,12 @@ class Recording(RecordingSummary):
     report: ReportResponse
 
 
+class RecordingListItem(RecordingSummary):
+    """A list row also carries the snapshot's case status, so every row can show its badge."""
+
+    status: CaseStatus
+    status_label_th: str
+
+
 class RecordingList(BaseModel):
-    items: list[RecordingSummary]
+    items: list[RecordingListItem]

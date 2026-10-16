@@ -8,7 +8,7 @@ from pathlib import Path
 from fastapi import APIRouter
 from pydantic import ValidationError
 
-from app.api.v1.schemas import Recording, RecordingList, RecordingSummary
+from app.api.v1.schemas import Recording, RecordingList, RecordingListItem
 from app.core.config import get_settings
 from app.core.errors import ApiError
 
@@ -61,11 +61,19 @@ def list_recordings() -> RecordingList:
     folder = _enabled_folder()
     if not folder.is_dir():
         return RecordingList(items=[])
-    items: list[RecordingSummary] = []
+    items: list[RecordingListItem] = []
     for file in sorted(folder.glob("*.json")):
         found = _read(folder, file.stem)
         if found is not None:
-            items.append(RecordingSummary.model_validate(found.model_dump()))
+            items.append(
+                RecordingListItem.model_validate(
+                    {
+                        **found.model_dump(),
+                        "status": found.case.status,
+                        "status_label_th": found.case.status_label_th,
+                    }
+                )
+            )
     return RecordingList(items=items)
 
 

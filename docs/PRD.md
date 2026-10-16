@@ -167,7 +167,7 @@ Session ──1 Report          (scoring + debrief + glass box + replay)
 | FR-ENG-02 | ปลดล็อก Hidden Fact เมื่อ Action ใน `unlock_on` ถูกยิง | M | Given A03 ยิงครั้งแรก, Then `H1` ใน `revealed` + event `FACT_REVEALED` · `allowed_facts` ที่ส่งให้ Generator = known facts + hidden fact ที่ปลดล็อกแล้ว **และ** `unlock_on` ตรงกับ Action ของเทิร์นนี้ (เฉพาะ `id` + `text_th`); `must_convey_fact_ids` = fact ที่เพิ่งปลดล็อกเทิร์นนี้; `set_risk_state` ต้องเป็น `unrecognized`/`recognized`/`escalated` |
 | FR-ENG-03 | Decision Panel: commit ตัวเลือกผ่าน `POST /decision` (ไม่ใช้การตีความข้อความ) | M | Given option `refer`, Then actions `B01`,`B02` ถูกบันทึก, phase เปลี่ยนตามกติกา |
 | FR-ENG-04 | ตรวจ Unsafe Action: rule ใน `branch_rules` ที่ขยับ phase และมี `mark_unsafe: true` ถูกยิง **หลัง**มี hidden fact ที่ `risk_relevance: critical` ถูกเปิดเผยแล้ว (ใช้ได้ทั้ง `on_decision` และ `on_action_any`; ไม่เพิ่ม field `unsafe_actions` ใน Case schema) | M | Given เปิดเผย H1 แล้ว commit `proceed_service`, Then event `UNSAFE_ACTION` |
-| FR-ENG-05 | Pressure Phase (Variant C): หลัง commit การส่งต่อ ระบบส่ง `pressure_script` ที่เขียนไว้ล่วงหน้า (ไม่ใช้ LLM) แล้วรอผู้เรียนตอบ ≤ 2 turns | S | Given C, When commit refer, Then speaker=relative ส่งข้อความจาก script |
+| FR-ENG-05 | Pressure Phase (Variant C): หลัง commit การส่งต่อ ระบบส่ง `pressure_script` ที่เขียนไว้ล่วงหน้า (ไม่ใช้ LLM) แล้วรอผู้เรียนตอบ ≤ 2 turns | S | Given C, When commit refer, Then speaker=relative ส่งข้อความจาก script; ครบ 2 turns โดยไม่ยืนยัน (C03) หรือยอม (C04) → ปิดเป็น CLOSING; turn ของ Pressure ไม่นับรวมเพดาน 40 (commit refer ที่ turn 40 ก็เล่นต่อจนจบได้), `PRESSURE_RESOLVED{resolved:false}` (ไม่นับเป็น unsafe) |
 | FR-ENG-06 | `apply(state, actions, case, variant)` เป็น pure function: input เดิม → output เดิม; ไม่เรียกเครือข่าย (`variant` เป็น parameter แยก ไม่เก็บใน state; `INTRO` เลื่อนเป็น `INTERVIEW` เมื่อผู้เรียนส่งข้อความแรก) | M | Property test: รัน 100 ครั้ง ผลเท่ากัน |
 
 ## 4.6 Patient Generator & Validator
@@ -372,6 +372,7 @@ sim-tamy/
 | `ALLOW_DRAFT_CASES` | `true` (dev/แข่ง) | production ตั้ง `false` เมื่อมี Approved |
 | `GLASS_BOX_LIVE` | `false` | |
 | `LOG_RETENTION_DAYS` | 30 | |
+| `RATE_LIMIT_PER_MIN` | 10 | จำนวน `sendTurn` ต่อนาทีต่อ session; เกิน → `429 RATE_LIMITED`; `0` = ปิด (ใช้กับ eval/golden) |
 | `CORS_ORIGINS` | — | origin ของเว็บ คั่นด้วย `,` |
 | `CORS_ORIGIN_REGEX` | — | origin ที่ตรงทั้งสตริง เช่น preview ของ Vercel; ใช้ร่วมกับ `CORS_ORIGINS` ได้ |
 
@@ -956,6 +957,7 @@ def score(events, case, rubric, variant) -> Scoring:
 
 ```yaml
 id: T03
+case: DEV-001        # ผูกกับเคสหนึ่งเคส (PP-001 มาพร้อม T-095)
 variant: A
 steps:
   - {say: "...", expect_actions_any: [A03]}
@@ -969,6 +971,15 @@ expect:
 ```
 
 > Golden ที่ผูกกับ LLM จริงต้องรายงาน "ผ่านกี่ข้อ" ตามผลจริง ไม่ปรับ test ให้ผ่านโดยไม่แก้ระบบ
+
+**รันด้วย `make eval` (T-070)** — ตัวรันอยู่ที่ `apps/api/app/golden.py`; เล่นแต่ละไฟล์ผ่าน API จริงบน Postgres ชั่วคราว
+
+- `steps`: `say` (+ `expect_actions_any` / `expect_actions` / `expect_events`), `decision`, `complete` (+ `note`)
+- `expect`: `safety_status`, `events_include|exclude`, `items: {R-DEC-02: fail}`, `revealed`, `fact_reveals: {H1: 1}` (exact FACT_REVEALED count per fact), `replay_terminal_state`, `min_step_pass_rate`
+- `pending: [{blocked_by: T-064, expect: {...}}]` = ความคาดหวังที่ระบบยังทำไม่ได้ รายงานเป็น pending ไม่นับเป็นผ่าน; ถ้าเริ่มผ่านจะมี WARN ให้ลบออก
+- `blocked_by` ระดับไฟล์ (เช่น Variant C รอ T-023) = SKIP เฉพาะเมื่อระบบปฏิเสธด้วย `VARIANT_NOT_AVAILABLE`; ถ้ารันได้ก็นับตามจริง
+- ตรวจทุกไฟล์เสมอ: คำตอบไม่มี `leak_terms_th` ของ fact ที่ยังไม่เปิดหรือคำต้องห้าม, response ระหว่างเล่นไม่มี field ต้องห้าม, report ที่เก็บไว้ตรงกับการ re-score จาก Event Log
+- ผลลัพธ์: PASS / FAIL / SKIP + จำนวน pending; exit code 1 เมื่อมี FAIL. โหมด `mock` (ค่าเริ่มต้น) ตอบ Interpreter ด้วย lexical matcher จากวลีในเคส จึงพิสูจน์ "ท่อทำงาน" ไม่ใช่ความเข้าใจภาษา; `make eval PROVIDER=env` ใช้ LLM ตาม environment และรายงานตามที่วัดได้
 
 ## 12.3 Definition of Done (ระดับ Ticket)
 

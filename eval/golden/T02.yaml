@@ -1,0 +1,15 @@
+# T02 Missed Risk: never asks about the critical signs, then proceeds.
+id: T02
+case: DEV-001
+variant: A
+steps:
+  - {say: "ขอถามเรื่องเหตุผลที่มาหน่อยค่ะ", expect_actions_any: [A01]}
+  - {say: "ขอถามเรื่องข้อมูลทั่วไปค่ะ", expect_actions_any: [A02]}
+  - {decision: proceed_service}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  revealed: []
+  items: {R-RISK-01: fail, R-DEC-01: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2]

@@ -1,6 +1,21 @@
-from fastapi import APIRouter, Response
+import json
+import unicodedata
+from collections.abc import Iterator
+from typing import Annotated
 
-from app.api.deps import Db, Learner, Llm, Store, VoiceDep
+from fastapi import APIRouter, Depends, Header, Response
+from fastapi.responses import StreamingResponse
+
+from app.api.deps import (
+    Db,
+    GlassboxCaller,
+    Learner,
+    Llm,
+    Reader,
+    Store,
+    VoiceDep,
+    turn_rate_limit,
+)
 from app.api.v1.schemas import (
     CompleteRequest,
     CompleteResponse,
@@ -8,14 +23,46 @@ from app.api.v1.schemas import (
     CreateSessionResponse,
     DecisionRequest,
     DecisionResponse,
+    LiveGlassBox,
     ReportResponse,
     SessionView,
     TurnRequest,
     TurnResponse,
 )
+from app.core.config import get_settings
+from app.core.errors import ApiError
 from app.services import closing, sessions, turns
+from app.services.live import live_glassbox
 
 router = APIRouter(prefix="/v1", tags=["Sessions"])
+_CHUNK_CHARS = 80
+
+
+def _chunks(text: str) -> Iterator[str]:
+    """Split accepted text without starting a chunk on a combining mark."""
+    start = 0
+    while start < len(text):
+        end = min(start + _CHUNK_CHARS, len(text))
+        while end < len(text) and unicodedata.combining(text[end]):
+            end += 1
+        yield text[start:end]
+        start = end
+
+
+def _frame(event: str, data: dict[str, object]) -> str:
+    # JSON escapes embedded newlines, so patient text cannot inject an SSE frame.
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    return f"event: {event}\ndata: {payload}\n\n"
+
+
+def sse_frames(result: TurnResponse) -> Iterator[str]:
+    """Called only after the full turn is validated and committed."""
+    seq = 0
+    for reply in result.replies:
+        for chunk in _chunks(reply.text):
+            yield _frame("delta", {"seq": seq, "speaker": reply.speaker, "text": chunk})
+            seq += 1
+    yield _frame("done", result.model_dump(mode="json"))
 
 
 @router.post(
@@ -30,12 +77,17 @@ def create_session(
 
 
 @router.get("/sessions/{session_id}", response_model=SessionView, operation_id="getSession")
-def get_session(row: Learner, db: Db, store: Store) -> SessionView:
+def get_session(row: Reader, db: Db, store: Store) -> SessionView:
     sessions.ensure_alive(db, row)
     return sessions.view_session(db, store, row)
 
 
-@router.post("/sessions/{session_id}/turns", response_model=TurnResponse, operation_id="sendTurn")
+@router.post(
+    "/sessions/{session_id}/turns",
+    response_model=TurnResponse,
+    operation_id="sendTurn",
+    dependencies=[Depends(turn_rate_limit)],
+)
 def send_turn(
     body: TurnRequest,
     response: Response,
@@ -44,9 +96,20 @@ def send_turn(
     store: Store,
     llm: Llm,
     voice: VoiceDep,
-    stream: bool = False,  # accepted for the contract; SSE (T-042) is not built, JSON is returned
-) -> TurnResponse:
+    stream: bool = False,
+    accept: Annotated[str | None, Header()] = None,
+) -> TurnResponse | StreamingResponse:
     outcome = turns.send_turn(db, store, llm, voice, row, body)
+    if stream or (accept is not None and "text/event-stream" in accept.lower()):
+        # A StreamingResponse is sent after yield dependencies unwind, so explicitly commit here.
+        # No event, including the first delta, can escape before persistence succeeds.
+        db.commit()
+        headers = {"Cache-Control": "no-store", "X-Accel-Buffering": "no"}
+        if outcome.replayed:
+            headers["Idempotent-Replay"] = "true"
+        return StreamingResponse(
+            sse_frames(outcome.response), media_type="text/event-stream", headers=headers
+        )
     if outcome.replayed:
         response.headers["Idempotent-Replay"] = "true"
     return outcome.response
@@ -67,13 +130,25 @@ def commit_decision(body: DecisionRequest, row: Learner, db: Db, store: Store) -
     operation_id="completeSession",
 )
 def complete_session(
-    row: Learner, db: Db, store: Store, body: CompleteRequest | None = None
+    row: Learner, db: Db, store: Store, llm: Llm, body: CompleteRequest | None = None
 ) -> CompleteResponse:
-    return closing.complete(db, store, row, body or CompleteRequest())
+    return closing.complete(db, store, llm, row, body or CompleteRequest())
 
 
 @router.get(
     "/sessions/{session_id}/report", response_model=ReportResponse, operation_id="getReport"
 )
-def get_report(row: Learner, db: Db, store: Store) -> ReportResponse:
+def get_report(row: Reader, db: Db, store: Store) -> ReportResponse:
     return closing.report(db, store, row)
+
+
+@router.get(
+    "/sessions/{session_id}/glassbox", response_model=LiveGlassBox, operation_id="getLiveGlassBox"
+)
+def get_live_glassbox(caller: GlassboxCaller, db: Db, store: Store) -> LiveGlassBox:
+    row, instructor = caller
+    if not (instructor or get_settings().glass_box_live):
+        raise ApiError("GLASSBOX_DISABLED", "the live Glass Box is not enabled")
+    if not instructor:
+        sessions.ensure_alive(db, row)
+    return live_glassbox(db, sessions.pinned_case(store, row), row.id, sessions.state_of(row))

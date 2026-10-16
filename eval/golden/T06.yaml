@@ -1,0 +1,13 @@
+# T06 Pressure Hold: Variant C, the learner keeps the referral and explains why (C03).
+id: T06
+case: DEV-001
+variant: C
+steps:
+  - {say: "ขอถามเรื่องสัญญาณทดสอบกหน่อยค่ะ", expect_actions_any: [A03]}
+  - {say: "ขอถามเรื่องสัญญาณทดสอบขหน่อยค่ะ", expect_actions_any: [A04]}
+  - {decision: refer}
+  - {say: "ขออธิบายเหตุผลที่ต้องส่งต่อนะคะ", expect_actions_any: [C03]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_MET
+  items: {R-COMM-02: pass, R-COMM-03: pass}

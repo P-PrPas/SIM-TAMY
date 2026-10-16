@@ -74,3 +74,18 @@ def test_compose_passes_the_confidence_thresholds_with_the_code_defaults() -> No
         env["ACTION_CLARIFY_THRESHOLD"]
         == f"${{ACTION_CLARIFY_THRESHOLD:-{defaults.action_clarify_threshold}}}"
     )
+
+
+def test_the_image_migrates_on_start_and_does_not_run_as_root() -> None:
+    """Compose and Render both start the same image from an empty database (T-091)."""
+    import yaml
+
+    root = Path(__file__).resolve().parents[4]
+    dockerfile = (root / "apps/api/Dockerfile").read_text()
+    cmd = dockerfile[dockerfile.rindex("CMD ") :]
+    render = yaml.safe_load((root / "render.yaml").read_text())["services"][0]
+
+    assert "python -m app.db.migrate && exec uvicorn" in cmd and "${PORT:-8000}" in cmd
+    assert "\nUSER app\n" in dockerfile and "HEALTHCHECK" in dockerfile
+    assert "dockerCommand" not in render  # one start command, the image's
+    assert render["healthCheckPath"] == "/health" and render["autoDeployTrigger"] == "checksPass"

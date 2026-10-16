@@ -22,8 +22,8 @@ from app.api.v1.schemas import (
 from app.content.loader import LoadedCase
 from app.core import limits
 
-# ponytail: Variant C needs the pressure scene (T-023); hidden until it exists.
-PLAYABLE_VARIANTS: tuple[str, ...] = ("A", "B")
+# A variant a case does not define is never offered (variants_available); B has no scene yet.
+PLAYABLE_VARIANTS: tuple[str, ...] = ("A", "B", "C")
 
 LIMITS = Limits(
     max_turns=limits.MAX_TURNS,
@@ -48,6 +48,10 @@ def timeline_labels() -> dict[str, str]:
 
 def status_label(status: str) -> str:
     return str(_ui()["status_labels"][status])
+
+
+def replay_notes() -> dict[str, str]:
+    return dict(_ui()["replay_notes"])
 
 
 def disclaimer_th() -> str:

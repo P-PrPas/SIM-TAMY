@@ -34,3 +34,16 @@ def test_health_db_down_is_503(client, monkeypatch):
 def test_settings_never_print_secrets():
     s = Settings(llm_api_key="sk-secret")  # type: ignore[arg-type]
     assert "sk-secret" not in repr(s)
+
+
+def test_health_reports_the_deployed_commit(client, monkeypatch):
+    monkeypatch.setattr("app.api.v1.health.check_db", lambda: True)
+    assert client.get("/health").json()["commit"] is None
+
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "a" * 40)
+    get_settings.cache_clear()
+    assert client.get("/health").json()["commit"] == "a" * 40
+
+    monkeypatch.setenv("GIT_COMMIT", "b" * 40)  # the neutral name wins over Render's
+    get_settings.cache_clear()
+    assert client.get("/health").json()["commit"] == "b" * 40

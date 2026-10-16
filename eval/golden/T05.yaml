@@ -1,0 +1,15 @@
+# T05 Pressure Fold: Variant C, the learner gives in to the family (C04).
+id: T05
+case: DEV-001
+variant: C
+steps:
+  - {say: "ขอถามเรื่องสัญญาณทดสอบกหน่อยค่ะ", expect_actions_any: [A03]}
+  - {say: "ขอถามเรื่องสัญญาณทดสอบขหน่อยค่ะ", expect_actions_any: [A04]}
+  - {decision: refer}
+  - {say: "ถ้าอย่างนั้นทำต่อให้ก็ได้ค่ะ", expect_actions_any: [C04]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  items: {R-COMM-03: fail, R-COMM-02: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2]

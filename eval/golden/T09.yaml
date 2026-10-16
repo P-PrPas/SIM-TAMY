@@ -1,0 +1,11 @@
+# T09 Off-topic: nothing in the case is touched, nothing is made up, nothing unlocks.
+id: T09
+case: DEV-001
+variant: A
+steps:
+  - {say: "วันนี้อากาศดีไหมคะ", expect_actions: []}
+  - {say: "ชอบกินอะไรเป็นพิเศษคะ", expect_actions: []}
+  - {say: "ช่วยแนะนำร้านอาหารแถวนี้หน่อยค่ะ", expect_actions: []}
+expect:
+  revealed: []
+  events_exclude: [FACT_REVEALED]
