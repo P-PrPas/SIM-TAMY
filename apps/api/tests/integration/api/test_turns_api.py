@@ -1,5 +1,6 @@
 """T-040b: sendTurn: pipeline, Event Log contract, idempotency, locking, limits, fallbacks."""
 
+import json
 import uuid
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
@@ -488,7 +489,7 @@ def test_turn_auth(api: Api) -> None:
     assert types_of(api, mine) == ["SESSION_STARTED"]
 
 
-def test_stream_flag_is_accepted_and_returns_json_until_sse_exists(api: Api) -> None:
+def test_stream_flag_emits_sse_and_persists_the_turn(api: Api) -> None:
     created = api.create()
 
     r = api.client.post(
@@ -497,7 +498,16 @@ def test_stream_flag_is_accepted_and_returns_json_until_sse_exists(api: Api) -> 
         headers=api.headers(created),
     )
 
-    assert r.status_code == 200 and r.headers["content-type"].startswith("application/json")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/event-stream")
+    frames = [frame for frame in r.text.split("\n\n") if frame]
+    assert frames[0].startswith("event: delta\n")
+    assert frames[-1].startswith("event: done\n")
+    deltas = [json.loads(frame.split("data: ", 1)[1]) for frame in frames[:-1]]
+    done = json.loads(frames[-1].split("data: ", 1)[1])
+    assert "".join(delta["text"] for delta in deltas) == done["replies"][0]["text"]
+    assert done["turn_idx"] == state_of(api, created)["turn_idx"] == 1
+    api.assert_no_leak(done)
 
 
 def test_a_failure_mid_turn_leaves_no_trace(api: Api, monkeypatch: pytest.MonkeyPatch) -> None:
