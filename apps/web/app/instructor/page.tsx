@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 
 import { StatusBadge } from "@/components/status-badge";
@@ -27,6 +27,8 @@ export default function InstructorPage() {
   const [error, setError] = useState("");
   const [reportError, setReportError] = useState("");
   const [busy, setBusy] = useState(false);
+  // bumped on every class switch / logout: a response that finds a newer value is stale and dropped
+  const view = useRef(0);
 
   async function enter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,19 +48,22 @@ export default function InstructorPage() {
   }
 
   async function selectClass(room: Room) {
-    setSelected(room); setReport(null); setError(""); setBusy(true);
+    const mine = ++view.current;
+    setSelected(room); setReport(null); setReportError(""); setError(""); setBusy(true);
+    setSessions([]); setAnalytics(null); setNextCursor(null);
     try {
       const client = instructorApi(secret);
       const [listed, summary] = await Promise.all([
         client.GET("/v1/instructor/sessions", { params: { query: { class_code: room.code, limit: 25 } } }),
         client.GET("/v1/instructor/analytics", { params: { query: { class_code: room.code } } }),
       ]);
+      if (mine !== view.current) return;
       if (!listed.data || !summary.data || !Array.isArray(listed.data.items)) throw new Error("Invalid instructor response");
       setSessions(listed.data.items);
       setNextCursor(listed.data.next_cursor);
       setAnalytics(summary.data);
-    } catch { setError(t("instructor.loadError")); }
-    finally { setBusy(false); }
+    } catch { if (mine === view.current) setError(t("instructor.loadError")); }
+    finally { if (mine === view.current) setBusy(false); }
   }
 
   async function createClass(event: FormEvent<HTMLFormElement>) {
@@ -77,33 +82,38 @@ export default function InstructorPage() {
 
   async function loadMore() {
     if (!selected || !nextCursor) return;
+    const mine = view.current;
     setBusy(true); setError("");
     try {
       const { data } = await instructorApi(secret).GET("/v1/instructor/sessions", {
         params: { query: { class_code: selected.code, limit: 25, cursor: nextCursor } },
       });
+      if (mine !== view.current) return;
       if (!data) throw new Error("Invalid session page");
       setSessions((current) => [...current, ...data.items]);
       setNextCursor(data.next_cursor);
-    } catch { setError(t("instructor.loadError")); }
-    finally { setBusy(false); }
+    } catch { if (mine === view.current) setError(t("instructor.loadError")); }
+    finally { if (mine === view.current) setBusy(false); }
   }
 
   async function openReport(sessionId: string) {
+    const mine = view.current;
     setReport(null); setReportError("");
     try {
       const { data } = await instructorApi(secret).GET("/v1/sessions/{session_id}/report", {
         params: { path: { session_id: sessionId } },
       });
+      if (mine !== view.current) return;
       if (!data || !data.case || !data.effective || !["SAFETY_MET", "SAFETY_NOT_MET"].includes(data.effective.safety_status))
         throw new Error("Invalid report");
       setReport(data);
-    } catch { setReportError(t("instructor.reportError")); }
+    } catch { if (mine === view.current) setReportError(t("instructor.reportError")); }
   }
 
   function logout() {
+    view.current++;
     setSecret(""); setDraftSecret(""); setClasses([]); setSelected(null);
-    setSessions([]); setAnalytics(null); setReport(null); setNextCursor(null);
+    setSessions([]); setAnalytics(null); setReport(null); setNextCursor(null); setBusy(false);
   }
 
   return <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -156,6 +166,7 @@ export default function InstructorPage() {
                 <p className="mt-2 text-slate-700">{t("instructor.case")}: {item.case_id} · {item.variant}</p>
                 <p className="text-slate-700">{t("instructor.started")}: <time dateTime={item.started_at}>{new Date(item.started_at).toLocaleString("th-TH")}</time></p>
                 <p className="text-slate-700">{t("instructor.turns")}: {item.turns}</p>
+                {item.status === "completed" && item.total_score != null && <p className="text-slate-700">{t("report.score")}: {item.total_score}</p>}
                 <p className="mt-2 font-semibold">{item.status === "completed" ? (item.safety_status === "SAFETY_NOT_MET" ? t("report.safetyNotMet") : t("report.safetyMet")) : t("instructor.active")}</p>
                 {item.status === "completed" && <button type="button" onClick={() => void openReport(item.session_id)} className="mt-3 rounded-lg border border-teal-800 px-4 py-2 font-semibold text-teal-900">{t("instructor.openReport")}</button>}
               </li>)}

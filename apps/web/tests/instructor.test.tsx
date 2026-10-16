@@ -58,6 +58,7 @@ describe("T-055/T-057 instructor dashboard", () => {
     expect(await screen.findByText("Synthetic learner")).toBeTruthy();
     expect(screen.getByText(t("status.draft"))).toBeTruthy();
     expect(screen.getByText(/Synthetic critical/)).toBeTruthy();
+    expect(screen.getByText(`${t("report.score")}: 45`)).toBeTruthy();
     expect(mocks.get).toHaveBeenCalledWith("/v1/instructor/sessions", expect.objectContaining({
       params: { query: expect.objectContaining({ class_code: "ABC123" }) },
     }));
@@ -77,5 +78,52 @@ describe("T-055/T-057 instructor dashboard", () => {
     fireEvent.click(screen.getByRole("button", { name: t("instructor.createClass") }));
     await waitFor(() => expect(mocks.post).toHaveBeenCalledWith("/v1/classes", { body: { name: "Another class" } }));
     expect(document.body.textContent).not.toContain("synthetic-secret");
+  });
+
+  describe("switching classes", () => {
+    const roomB = { ...room, class_id: "room-2", code: "XYZ789", name: "Second class" };
+    const rowB = { ...row, session_id: "session-2", learner_name: "Learner of B" };
+    const rowA = { ...row, learner_name: "Learner of A" };
+    const pending: Record<string, (value: unknown) => void> = {};
+    const sessionsFor = (code: string, slowA: boolean) => code === "ABC123"
+      ? slowA ? new Promise((resolve) => { pending[code] = resolve; }) : Promise.resolve({ data: { items: [rowA], next_cursor: null } })
+      : Promise.resolve({ data: { items: [rowB], next_cursor: null } });
+
+    async function openTwoClasses({ slowA = false, failB = false } = {}) {
+      mocks.get.mockImplementation(async (path: string, init?: { params: { query: { class_code: string } } }) => {
+        const code = init?.params?.query?.class_code ?? "";
+        if (path === "/v1/instructor/classes") return { data: { items: [room, roomB] } };
+        if (path === "/v1/instructor/sessions") {
+          if (code === "XYZ789" && failB) throw new Error("boom");
+          return sessionsFor(code, slowA);
+        }
+        if (path === "/v1/instructor/analytics") return { data: { ...analytics, class_code: code } };
+        throw new Error("unexpected request");
+      });
+      render(<InstructorPage />);
+      fireEvent.change(screen.getByLabelText(t("instructor.secret")), { target: { value: "synthetic-secret" } });
+      fireEvent.click(screen.getByRole("button", { name: t("instructor.enter") }));
+      await screen.findByText("Second class");
+    }
+
+    it("ignores a slow response of the class that was left", async () => {
+      await openTwoClasses({ slowA: true });
+      fireEvent.click(screen.getByRole("button", { name: /Synthetic class/ }));
+      fireEvent.click(screen.getByRole("button", { name: /Second class/ }));
+      expect(await screen.findByText("Learner of B")).toBeTruthy();
+      pending.ABC123({ data: { items: [rowA], next_cursor: null } });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(screen.queryByText("Learner of A")).toBeNull();
+      expect(screen.getByText("Learner of B")).toBeTruthy();
+    });
+
+    it("drops the previous class data when loading the new class fails", async () => {
+      await openTwoClasses({ failB: true });
+      fireEvent.click(screen.getByRole("button", { name: /Synthetic class/ }));
+      expect(await screen.findByText("Learner of A")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: /Second class/ }));
+      expect((await screen.findByRole("alert")).textContent).toContain(t("instructor.loadError"));
+      expect(screen.queryByText("Learner of A")).toBeNull();
+    });
   });
 });

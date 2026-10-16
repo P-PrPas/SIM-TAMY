@@ -1,5 +1,6 @@
-"""Instructor-only routes for classes, reports listing and cohort analytics."""
+"""Instructor-only routes for classes, reports listing, cohort analytics and score overrides."""
 
+import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Query
@@ -11,11 +12,14 @@ from app.api.v1.schemas import (
     ClassList,
     CreateClassRequest,
     InstructorSessionList,
+    Override,
+    OverrideRequest,
     SafetyStatus,
     SessionStatus,
     Variant,
 )
 from app.services import instructor as service
+from app.services import overrides
 
 router = APIRouter(prefix="/v1", tags=["Instructor"])
 
@@ -70,3 +74,15 @@ def get_analytics(
     class_code: Annotated[str, Query(pattern=r"^[A-Z0-9]{6}$")],
 ) -> ClassAnalytics:
     return service.class_analytics(db, store, class_code)
+
+
+@router.post(
+    "/instructor/sessions/{session_id}/overrides",
+    status_code=201,
+    response_model=Override,
+    operation_id="createOverride",
+)
+def create_override(
+    session_id: uuid.UUID, body: OverrideRequest, _: Instructor, db: Db, store: Store
+) -> Override:
+    return overrides.create(db, store, session_id, body)

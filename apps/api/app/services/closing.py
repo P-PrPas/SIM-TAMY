@@ -5,6 +5,7 @@ The score is a pure function of the Event Log (`engine.scoring`); nothing here d
 """
 
 import logging
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any
 
@@ -34,16 +35,18 @@ from app.api.v1.schemas import (
 from app.content.loader import ContentStore, LoadedCase
 from app.core import limits
 from app.core.errors import ApiError
-from app.db.models import Event, LearnerSession, Report, Turn
+from app.db.models import Event, LearnerSession, Report, ScoreOverride, Turn
 from app.db.repo import EventRepo, LlmCallRepo, SessionRepo, TurnRepo
 from app.domain.case import VariantId
 from app.domain.events import LoggedEvent
 from app.domain.scoring import Finding, Scoring
 from app.engine.findings import DuplicateResult, build_findings
 from app.engine.glassbox import build_glassbox, build_timeline
+from app.engine.overrides import apply_overrides
 from app.engine.replay import build_replay
 from app.engine.scenario import commit_decision
 from app.engine.scoring import InvalidRubric, MalformedEvent, score
+from app.services import overrides
 from app.services.briefs import disclaimer_th, replay_notes, status_label, timeline_labels
 from app.services.sessions import ensure_alive, lock_session, pinned_case, public_phase, state_of
 
@@ -215,7 +218,7 @@ def report(db: Session, store: ContentStore, row: LearnerSession) -> ReportRespo
     scoring = Scoring.model_validate(saved.scoring)
     findings = build_findings(scoring.items, loaded.rubric)
     log_ = logged_events(db, row.id)
-    return _assemble(row, loaded, saved, scoring, findings, log_)
+    return _assemble(row, loaded, saved, scoring, findings, log_, overrides.stored(db, row.id))
 
 
 def _assemble(
@@ -225,7 +228,12 @@ def _assemble(
     scoring: Scoring,
     findings: tuple[Finding, ...],
     log_: list[LoggedEvent],
+    overrides_: Sequence[ScoreOverride] = (),
 ) -> ReportResponse:
+    # the engine's own result stays in `scoring`; `effective` is that result with overrides applied
+    effective = apply_overrides(
+        scoring, loaded.rubric, [overrides.as_item_override(o) for o in overrides_]
+    )
     finding_of = {f.rubric_item_id: f.id for f in findings}
     cited = {i for f in findings for i in f.reference_ids}
     case = loaded.case
@@ -259,9 +267,10 @@ def _assemble(
             "glassbox": saved.glassbox,
             "replay": saved.replay,
             "references": [r.model_dump() for r in case.references if r.id in cited],
-            "overrides": [],
+            "overrides": [overrides.as_api(o) for o in overrides_],
             "effective": EffectiveScore(
-                safety_status=SafetyStatus(scoring.safety_status), total_score=scoring.total_score
+                safety_status=SafetyStatus(effective.safety_status),
+                total_score=effective.total_score,
             ),
             "disclaimers": [disclaimer_th()],
         }

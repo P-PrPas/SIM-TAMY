@@ -399,6 +399,15 @@ class Override(BaseModel):
     created_at: datetime
 
 
+class OverrideRequest(BaseModel):
+    rubric_item_id: str
+    new_result: Literal["pass", "fail", "partial"]
+    new_earned: float | None = None
+    reason: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=10, max_length=500), Clean
+    ]
+
+
 class EffectiveScore(BaseModel):
     safety_status: SafetyStatus
     total_score: float

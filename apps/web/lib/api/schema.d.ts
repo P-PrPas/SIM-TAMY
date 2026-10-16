@@ -345,7 +345,9 @@ export interface paths {
         /**
          * Override one rubric item result (kept as a separate event; original is preserved)
          * @description The original scoring is never modified. The report returns `overrides[]` and an `effective` block
-         *     recomputed with the overrides applied. A reason is mandatory.
+         *     recomputed with the overrides applied. A reason is mandatory (10-500 characters). Critical items
+         *     cannot be overridden (API_DESIGN section 14, Q1): `422 VALIDATION_ERROR`, as for an unknown item, an
+         *     item that does not apply to the variant, or a `partial` without `0 < new_earned < points`.
          */
         post: operations["createOverride"];
         delete?: never;
