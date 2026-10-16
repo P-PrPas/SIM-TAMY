@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { StatusBadge } from "@/components/status-badge";
 import { ApiError } from "@/lib/api/client";
@@ -65,6 +66,7 @@ export default function JoinPage() {
 
   return <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
     <div className="mb-8 max-w-2xl">
+      <Link href="/replay" className="mb-4 inline-flex rounded-lg border border-teal-800 px-3 py-2 font-semibold text-teal-900">{t("replay.switch")}</Link>
       <p className="mb-2 text-sm font-bold tracking-wide text-teal-800">{t("join.eyebrow")}</p>
       <h1 className="text-3xl font-bold leading-tight text-slate-950 sm:text-4xl">{t("join.title")}</h1>
       <p className="mt-3 text-slate-700">{t("join.description")}</p>
