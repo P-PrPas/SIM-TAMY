@@ -73,7 +73,8 @@ staging and production. Its contract:
 
 `python scripts/smoke.py https://<service>.onrender.com [--wait 120]` plays one learner journey (health,
 case list, create session, one turn, decision, complete, report) and exits non-zero at the first broken
-step, naming it. Use `--wait` for a sleeping free instance. CI runs it against `docker compose` from an
+step, naming it. Use `--wait` for a sleeping free instance, and `--expect-sha` to wait until `/health`
+reports a given commit. CI runs it against `docker compose` from an
 empty database on every PR. It creates one synthetic session named `smoke`; with a real LLM provider the
 turn makes a few real LLM calls. Run it after every production deploy and before sharing the link.
 
@@ -100,6 +101,30 @@ turn makes a few real LLM calls. Run it after every production deploy and before
    content is in the image).
 4. **After:** write down what broke and which tag is live. `/health` returns `version`.
 
+## 10. Releases: staging and production (T-092)
+
+- **Staging** is `sim-tamy-api` from the Blueprint. `autoDeployTrigger: checksPass` makes Render deploy
+  `main` only after its CI checks pass. (Render's older `autoDeploy` field is deprecated.)
+- **Production** deploys when you push a tag: `git tag v0.1.0 && git push origin v0.1.0`.
+  `.github/workflows/release.yml` runs the same CI gates, checks the tag's commit is on `main`, calls the
+  production service's Deploy Hook with `ref=<that commit>` (so it deploys the tag, not whatever `main`
+  is by then), then runs `scripts/smoke.py "$PROD_API_URL" --wait 900 --expect-sha <that commit>`. The
+  hook only says the deploy *started* (HTTP 200/202), so success is proven by `/health`: it reports the
+  running commit (`commit`, from Render's `RENDER_GIT_COMMIT`, or `GIT_COMMIT` elsewhere), and the job
+  waits up to 15 minutes for it to equal the tag's commit before the smoke journey runs. If the new deploy
+  fails and the old instance keeps answering 200, the commit never matches and the job goes red.
+- **One-time setup (yours; nothing here creates it):**
+  1. Render -> New -> Web Service -> same repo, runtime Docker, Dockerfile `./apps/api/Dockerfile`, context
+     `.`, health check `/health`, **Auto-Deploy: Off**. Give production its own database and its own
+     `INSTRUCTOR_SECRET`, `CORS_ORIGINS`, `LLM_*` values (section 6).
+  2. Render -> that service -> Settings -> **Deploy Hook**: copy the URL (it is a secret; Regenerate Hook if it leaks).
+  3. GitHub -> Settings -> Secrets and variables -> Actions: secret `RENDER_DEPLOY_HOOK_PROD` = the hook URL;
+     variable `PROD_API_URL` = `https://<prod-service>.onrender.com`.
+- Until those exist the workflow still runs CI, then ends the deploy and smoke steps with an explicit
+  "skipped" notice instead of failing. A skipped deploy is not a deploy: check the notice.
+- To roll back, see section 9. After a rollback `/health` reports the older commit, which is the proof.
+  Check it by hand with `python scripts/smoke.py <url> --expect-sha <sha>`.
+
 ## Not covered here
 
-CD from `main`/tags (T-092), rate limiting and security headers (T-048).
+Rate limiting and security headers (T-048).

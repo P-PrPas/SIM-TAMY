@@ -2,6 +2,7 @@
 
 import json
 from typing import Any
+from uuid import UUID
 
 from fastapi import Response
 from fastapi.responses import StreamingResponse
@@ -10,6 +11,7 @@ from fastapi.testclient import TestClient
 from app.api.deps import get_db, get_llm_factory, get_store, get_voice, learner_session
 from app.api.v1 import sessions as route
 from app.api.v1.schemas import Phase, Reply, TurnRequest, TurnResponse
+from app.db.models import LearnerSession
 from app.main import create_app
 from app.services.turns import Outcome
 
@@ -113,7 +115,9 @@ def test_http_stream_is_sse_and_never_starts_when_commit_fails(monkeypatch: Any)
     db = Db()
     app = create_app()
     app.dependency_overrides[get_db] = lambda: db
-    app.dependency_overrides[learner_session] = lambda: object()
+    app.dependency_overrides[learner_session] = lambda: LearnerSession(
+        id=UUID("00000000-0000-0000-0000-000000000001")
+    )
     app.dependency_overrides[get_store] = lambda: object()
     app.dependency_overrides[get_llm_factory] = lambda: object()
     app.dependency_overrides[get_voice] = lambda: None

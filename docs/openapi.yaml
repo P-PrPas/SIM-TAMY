@@ -1281,6 +1281,9 @@ components:
         llm_provider:
           type: string
           description: Provider name, for example `mock`. Never includes keys.
+        commit:
+          type: [string, "null"]
+          description: Git SHA of the running build (`GIT_COMMIT`, or Render's `RENDER_GIT_COMMIT`); null when unknown.
 
     # ---------- Cases ----------
     LearningObjective:
