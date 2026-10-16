@@ -69,7 +69,30 @@ staging and production. Its contract:
 - Checked from an empty database: `docker compose up --wait db api`, then `/health` is `ok` and
   `POST /v1/sessions` returns 201.
 
+## 8. Smoke test (T-094)
+
+`python scripts/smoke.py https://<service>.onrender.com [--wait 120]` plays one learner journey (health,
+case list, create session, one turn, decision, complete, report) and exits non-zero at the first broken
+step, naming it. Use `--wait` for a sleeping free instance. CI runs it against `docker compose` from an
+empty database on every PR. It creates one synthetic session named `smoke`; with a real LLM provider the
+turn makes a few real LLM calls. Run it after every production deploy and before sharing the link.
+
+## 9. Rollback (T-094)
+
+1. **Code:** Render dashboard -> `sim-tamy-api` -> Deploys -> **Rollback** on the last good deploy -> "Rollback
+   to this deploy". It reuses that deploy's build artifact, so it is fast. Limits from Render's docs:
+   it works only while that build artifact is still retained, and a dashboard rollback **turns autodeploy
+   off** for the service; turn it back on in Settings once the fix is on `main`. The docs do not say
+   whether free instances can roll back: if the button is missing, redeploy the previous tag instead
+   (re-run the release workflow's deploy for the old tag, or "Manual Deploy" -> a specific commit).
+2. **Check:** run the smoke test against the service.
+3. **Database:** a rollback does **not** undo migrations, and the free Postgres has no backups. So every
+   migration must be additive while a release is live (add nullable columns/tables; drop or rename only
+   in a later release), so the previous image still works on the newer schema. If a release shipped a
+   destructive migration, there is no automatic way back: restore from your own dump, or recreate the
+   database and re-run `alembic upgrade head` (sessions are lost; content is in the image).
+4. **After:** write down what broke and which tag is live. `/health` returns `version`.
+
 ## Not covered here
 
-CD from `main`/tags (T-092), rate limiting and security headers (T-048), production smoke test and
-rollback (T-094).
+CD from `main`/tags (T-092), rate limiting and security headers (T-048).
