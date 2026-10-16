@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     content_dir: Path = Path("./content")
     allow_draft_cases: bool = True
     glass_box_live: bool = False
-    log_retention_days: int = 30
+    log_retention_days: int = Field(default=30, ge=1)
     cors_origins: str = ""  # comma-separated
     cors_origin_regex: str | None = None  # e.g. Vercel previews; matched against the whole origin
 

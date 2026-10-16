@@ -70,6 +70,6 @@ stats:
 cost-report:
 	@echo "not implemented: LLM cost report (T-044)"; exit 1
 purge-old:
-	@echo "not implemented: retention purge"; exit 1
+	cd $(API) && ../../$(PY) -m app.purge_old
 demo:
 	@sh scripts/demo.sh

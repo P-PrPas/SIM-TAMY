@@ -10,10 +10,12 @@ import { readSession } from "@/lib/flow";
 import { t } from "@/lib/i18n";
 
 type CaseBrief = components["schemas"]["CaseBrief"];
+type Notice = components["schemas"]["Notice"];
 
 export default function BriefingPage() {
   const { replace } = useRouter();
   const [brief, setBrief] = useState<CaseBrief | null>(null);
+  const [notices, setNotices] = useState<Notice[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -21,6 +23,8 @@ export default function BriefingPage() {
       if (cancelled) return;
       if (!session) { replace("/"); return; }
       setBrief(session.brief); // the version this session was created with, not the latest case
+      setNotices((session.notices ?? []).filter((notice) =>
+        notice.code === "PRIVACY_LLM" || notice.code === "NO_REAL_PII"));
     });
     return () => { cancelled = true; };
   }, [replace]);
@@ -49,6 +53,7 @@ export default function BriefingPage() {
           </section>
         </div>
         <p role="note" className="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-4 font-semibold text-amber-950">{brief.disclaimer_th || t("banner.educationOnly")}</p>
+        {notices.map((notice) => <p key={notice.code} role="note" className="mt-3 rounded-xl border border-slate-300 bg-slate-50 p-4 text-slate-800">{notice.text_th}</p>)}
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <Link href="/chat" className="rounded-xl bg-teal-900 px-6 py-3 font-bold text-white hover:bg-teal-800">{t("briefing.begin")}</Link>
           <Link href="/" className="rounded-xl border border-slate-400 px-6 py-3 font-semibold text-slate-800">{t("briefing.back")}</Link>

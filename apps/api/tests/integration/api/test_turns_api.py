@@ -134,6 +134,25 @@ def test_turns_are_persisted_with_llm_calls(api: Api) -> None:
     assert [m["speaker"] for m in history.json()["history"]] == ["learner", "patient"]
 
 
+def test_learner_free_text_never_enters_general_app_logs(
+    api: Api, caplog: pytest.LogCaptureFixture
+) -> None:
+    marker = "synthetic-private-marker-9482"
+    created = api.create()
+    caplog.clear()
+
+    response = turn(api, created, marker)
+
+    assert response.status_code == 200
+    assert marker not in caplog.text
+    assert marker not in " ".join(record.getMessage() for record in caplog.records)
+    with api.db() as db:
+        saved = db.scalars(
+            select(Turn).where(Turn.session_id == uuid.UUID(created["session_id"]))
+        ).all()
+        assert any(row.speaker == "learner" and row.text == marker for row in saved)
+
+
 def test_a_repeated_action_is_logged_and_does_not_unlock_again(api: Api) -> None:
     created = setup_a03(api)
     turn(api, created, ASK_A03)

@@ -106,7 +106,10 @@ def _http(request: Request, exc: Exception) -> JSONResponse:
 
 
 def _unexpected(request: Request, exc: Exception) -> JSONResponse:
-    log.exception("unhandled error request_id=%s", request_id(request))
+    # Exception messages/tracebacks may contain learner free text (including SQL params).
+    log.error(
+        "unhandled error request_id=%s exception_type=%s", request_id(request), type(exc).__name__
+    )
     return envelope(request, "INTERNAL_ERROR", "unexpected server error")
 
 
