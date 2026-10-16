@@ -1,12 +1,21 @@
 """T-048: the window is one atomic step, so a burst of threads cannot all slip through."""
 
-import sys
 import threading
+import time
+from collections import deque
 from collections.abc import Iterator
 
 import pytest
 
 from app.core import ratelimit
+
+
+class SlowAppend(deque[float]):
+    """Widens the gap between 'is there room?' and 'take it', where an unlocked check races."""
+
+    def append(self, x: float) -> None:
+        time.sleep(0.005)
+        super().append(x)
 
 
 @pytest.fixture(autouse=True)
@@ -16,27 +25,22 @@ def _fresh() -> Iterator[None]:
     ratelimit._hits.clear()
 
 
-def test_concurrent_requests_never_exceed_the_limit() -> None:
-    old = sys.getswitchinterval()
-    sys.setswitchinterval(1e-6)  # switch threads between nearly every bytecode
-    try:
-        for round_ in range(60):
-            key = ("session", round_)
-            barrier = threading.Barrier(8)
-            allowed: list[bool] = []
+def test_concurrent_requests_never_exceed_the_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(ratelimit, "deque", SlowAppend)
+    barrier = threading.Barrier(8)
+    allowed: list[bool] = []
 
-            def worker(key: tuple[str, int] = key, barrier: threading.Barrier = barrier) -> None:
-                barrier.wait()
-                allowed.append(ratelimit.hit(key, 1)[0])
+    def worker() -> None:
+        barrier.wait()
+        allowed.append(ratelimit.hit("session", 1)[0])
 
-            threads = [threading.Thread(target=worker) for _ in range(8)]
-            for t in threads:
-                t.start()
-            for t in threads:
-                t.join()
-            assert allowed.count(True) == 1, f"round {round_}: {allowed.count(True)} allowed"
-    finally:
-        sys.setswitchinterval(old)
+    threads = [threading.Thread(target=worker) for _ in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert allowed.count(True) == 1
 
 
 def test_the_window_slides(monkeypatch: pytest.MonkeyPatch) -> None:
