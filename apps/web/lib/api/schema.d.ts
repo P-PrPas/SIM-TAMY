@@ -791,6 +791,9 @@ export interface components {
             effective: components["schemas"]["EffectiveScore"];
             disclaimers: string[];
         };
+        CreateClassRequest: {
+            name: string;
+        };
         ClassInfo: {
             /** Format: uuid */
             class_id: string;
@@ -799,12 +802,21 @@ export interface components {
             /** Format: date-time */
             created_at: string;
         };
+        ClassList: {
+            items: components["schemas"]["ClassInfo"][];
+        };
+        InstructorSessionList: {
+            items: components["schemas"]["SessionSummary"][];
+            next_cursor: string | null;
+        };
         SessionSummary: {
             /** Format: uuid */
             session_id: string;
             learner_name: string;
             case_id: string;
             case_version?: string;
+            case_status: components["schemas"]["CaseStatus"];
+            case_status_label_th: string;
             variant: components["schemas"]["Variant"];
             status: components["schemas"]["SessionStatus"];
             /** Format: date-time */
@@ -1721,9 +1733,7 @@ export interface operations {
                  *       "name": "ผดุงครรภ์ไทย ปี 3"
                  *     }
                  */
-                "application/json": {
-                    name: string;
-                };
+                "application/json": components["schemas"]["CreateClassRequest"];
             };
         };
         responses: {
@@ -1755,9 +1765,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        items: components["schemas"]["ClassInfo"][];
-                    };
+                    "application/json": components["schemas"]["ClassList"];
                 };
             };
             401: components["responses"]["Unauthorized"];
@@ -1788,10 +1796,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        items: components["schemas"]["SessionSummary"][];
-                        next_cursor: string | null;
-                    };
+                    "application/json": components["schemas"]["InstructorSessionList"];
                 };
             };
             401: components["responses"]["Unauthorized"];

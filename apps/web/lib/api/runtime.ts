@@ -7,3 +7,11 @@ export function api() {
     getToken: () => readSession()?.token,
   });
 }
+
+/** Never read the learner token or persist the instructor secret for S8. */
+export function instructorApi(secret: string) {
+  return createApi({
+    baseUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
+    getInstructorSecret: () => secret,
+  });
+}

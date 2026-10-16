@@ -46,8 +46,8 @@ def create_app() -> FastAPI:
     app.include_router(health.router)  # unversioned, per openapi.yaml
     app.include_router(cases.router)
     app.include_router(sessions.router)
-    app.include_router(replay.router)
     app.include_router(instructor.router)
+    app.include_router(replay.router)
     return app
 
 

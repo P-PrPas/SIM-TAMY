@@ -23,6 +23,8 @@ export type ClientOptions = {
   baseUrl: string;
   /** Session token (sessionStorage) or undefined for public endpoints. */
   getToken?: () => string | undefined;
+  /** Instructor secret is supplied interactively and held in memory only. */
+  getInstructorSecret?: () => string | undefined;
   fetchImpl?: typeof fetch;
   sleep?: (ms: number) => Promise<void>;
 };
@@ -46,12 +48,15 @@ async function toApiError(res: Response): Promise<ApiError> {
 export function createApi({
   baseUrl,
   getToken = () => undefined,
+  getInstructorSecret = () => undefined,
   fetchImpl = (...a) => fetch(...a),
   sleep = (ms) => new Promise((r) => setTimeout(r, ms)),
 }: ClientOptions) {
   const retryingFetch = async (req: Request): Promise<Response> => {
     const token = getToken();
     if (token) req.headers.set("Authorization", `Bearer ${token}`);
+    const instructorSecret = getInstructorSecret();
+    if (instructorSecret) req.headers.set("X-Instructor-Secret", instructorSecret);
     const replayable =
       req.method === "GET" || (await req.clone().text()).includes('"client_turn_id"');
 

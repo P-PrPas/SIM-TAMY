@@ -458,6 +458,95 @@ class ReportResponse(BaseModel):
     disclaimers: list[str]
 
 
+# ---------- Instructor (T-055/T-057) ----------
+
+
+class CreateClassRequest(BaseModel):
+    name: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80), Clean
+    ]
+
+
+class ClassInfo(BaseModel):
+    class_id: uuid.UUID
+    code: Annotated[str, StringConstraints(pattern=r"^[A-Z0-9]{6}$")]
+    name: str
+    created_at: datetime
+
+
+class ClassList(BaseModel):
+    items: list[ClassInfo]
+
+
+class SessionSummary(BaseModel):
+    session_id: uuid.UUID
+    learner_name: str
+    case_id: str
+    case_version: str
+    case_status: CaseStatus
+    case_status_label_th: str
+    variant: Variant
+    status: SessionStatus
+    started_at: datetime
+    ended_at: datetime | None = None
+    turns: int = 0
+    safety_status: SafetyStatus | None = None
+    total_score: float | None = None
+    competency_pct: dict[str, float] = {}
+
+
+class InstructorSessionList(BaseModel):
+    items: list[SessionSummary]
+    next_cursor: str | None
+
+
+class CompetencyAverage(BaseModel):
+    id: str
+    name_th: str
+    avg_pct: float
+
+
+class CriticalItemFailRate(BaseModel):
+    item_id: str
+    label_th: str
+    fail_rate: Annotated[float, Field(ge=0, le=1)]
+    n: int
+
+
+_COMPETENCY_AVG_SCHEMA = {
+    "type": "object",
+    "required": ["id", "name_th", "avg_pct"],
+    "properties": {
+        "id": {"type": "string"},
+        "name_th": {"type": "string"},
+        "avg_pct": {"type": "number"},
+    },
+}
+_CRITICAL_RATE_SCHEMA = {
+    "type": "object",
+    "required": ["item_id", "label_th", "fail_rate", "n"],
+    "properties": {
+        "item_id": {"type": "string"},
+        "label_th": {"type": "string"},
+        "fail_rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "n": {"type": "integer"},
+    },
+}
+
+
+class ClassAnalytics(BaseModel):
+    class_code: str
+    sessions_completed: int
+    sessions_active: int
+    avg_total_score: float | None = None
+    safety_not_met_rate: Annotated[float | None, Field(ge=0, le=1)] = None
+    avg_turns: float | None = None
+    competency_avg: list[Annotated[CompetencyAverage, WithJsonSchema(_COMPETENCY_AVG_SCHEMA)]]
+    critical_item_fail_rates: list[
+        Annotated[CriticalItemFailRate, WithJsonSchema(_CRITICAL_RATE_SCHEMA)]
+    ]
+
+
 # ---------- Offline Replay (T-073) ----------
 
 

@@ -806,13 +806,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required: [name]
-              properties:
-                name:
-                  type: string
-                  minLength: 1
-                  maxLength: 80
+              $ref: "#/components/schemas/CreateClassRequest"
             example:
               name: "ผดุงครรภ์ไทย ปี 3"
       responses:
@@ -842,13 +836,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required: [items]
-                properties:
-                  items:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/ClassInfo"
+                $ref: "#/components/schemas/ClassList"
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -902,15 +890,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required: [items, next_cursor]
-                properties:
-                  items:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/SessionSummary"
-                  next_cursor:
-                    type: [string, "null"]
+                $ref: "#/components/schemas/InstructorSessionList"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "422":
@@ -1917,6 +1897,14 @@ components:
             type: string
 
     # ---------- Instructor ----------
+    CreateClassRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
     ClassInfo:
       type: object
       required: [class_id, code, name, created_at]
@@ -1932,9 +1920,27 @@ components:
         created_at:
           type: string
           format: date-time
+    ClassList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClassInfo"
+    InstructorSessionList:
+      type: object
+      required: [items, next_cursor]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionSummary"
+        next_cursor:
+          type: [string, "null"]
     SessionSummary:
       type: object
-      required: [session_id, learner_name, case_id, variant, status, started_at]
+      required: [session_id, learner_name, case_id, case_status, case_status_label_th, variant, status, started_at]
       properties:
         session_id:
           type: string
@@ -1944,6 +1950,10 @@ components:
         case_id:
           type: string
         case_version:
+          type: string
+        case_status:
+          $ref: "#/components/schemas/CaseStatus"
+        case_status_label_th:
           type: string
         variant:
           $ref: "#/components/schemas/Variant"
