@@ -85,7 +85,7 @@ def test_the_image_migrates_on_start_and_does_not_run_as_root() -> None:
     cmd = dockerfile[dockerfile.rindex("CMD ") :]
     render = yaml.safe_load((root / "render.yaml").read_text())["services"][0]
 
-    assert "alembic upgrade head && exec uvicorn" in cmd and "${PORT:-8000}" in cmd
+    assert "python -m app.db.migrate && exec uvicorn" in cmd and "${PORT:-8000}" in cmd
     assert "\nUSER app\n" in dockerfile and "HEALTHCHECK" in dockerfile
     assert "dockerCommand" not in render  # one start command, the image's
     assert render["healthCheckPath"] == "/health" and render["autoDeployTrigger"] == "checksPass"
