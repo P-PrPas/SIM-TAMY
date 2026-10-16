@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate mock-api gen-api lint test test-coverage test-e2e validate-content leakcheck eval bench rescore stats cost-report purge-old demo
+.PHONY: help install up down migrate mock-api gen-api lint test test-coverage test-e2e validate-content leakcheck eval bench rescore stats cost-report purge-old seed-demo demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -75,5 +75,8 @@ cost-report:
 	cd $(API) && ../../$(PY) -m app.stats cost-report $(COST_ARGS)
 purge-old:
 	cd $(API) && ../../$(PY) -m app.purge_old
+# A demo class (DEMO01) with five completed, synthetic sessions, played through the real API (needs DATABASE_URL).
+seed-demo:
+	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.seed_demo
 demo:
 	@sh scripts/demo.sh

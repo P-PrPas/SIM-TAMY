@@ -16,6 +16,8 @@ if [ -x apps/api/.venv/Scripts/python ]; then
 else
   demo_python=.venv/bin/python
 fi
+# Instructor dashboard rows (T-081). Needs a reachable database; the Replay demo itself does not.
+(cd apps/api && CONTENT_DIR=../../content "$demo_python" -m app.seed_demo) || echo "No database reachable: skipping the demo class (Replay still works)." >&2
 (cd apps/api && "$demo_python" -m uvicorn app.main:app --host 127.0.0.1 --port 8000) &
 api_pid=$!
 trap 'kill "$api_pid" 2>/dev/null || true' EXIT INT TERM

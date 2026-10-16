@@ -89,3 +89,21 @@ def test_the_image_migrates_on_start_and_does_not_run_as_root() -> None:
     assert "\nUSER app\n" in dockerfile and "HEALTHCHECK" in dockerfile
     assert "dockerCommand" not in render  # one start command, the image's
     assert render["healthCheckPath"] == "/health" and render["autoDeployTrigger"] == "checksPass"
+
+
+def test_compose_forwards_every_llm_setting() -> None:
+    """GLM needs LLM_BASE_URL and LLM_REASONING_EFFORT; a line compose omits is silently ignored."""
+    import yaml
+
+    root = Path(__file__).resolve().parents[4]
+    compose = yaml.safe_load((root / "docker-compose.yml").read_text())
+    wanted = {name.upper() for name in Settings.model_fields if name.startswith("llm_")}
+
+    assert wanted <= set(compose["services"]["api"]["environment"])
+
+
+def test_env_example_has_no_trailing_comments() -> None:
+    """docker compose reads `KEY=value  # note` with the note as part of the value."""
+    root = Path(__file__).resolve().parents[4]
+    lines = (root / ".env.example").read_text().splitlines()
+    assert [ln for ln in lines if ln and not ln.startswith("#") and " #" in ln] == []

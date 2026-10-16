@@ -266,7 +266,11 @@ def score(
     if problems:  # validate-content may not have run: refuse to score, never mis-score
         raise InvalidRubric("; ".join(f"{path}: {msg}" for path, msg in problems))
     view = View.build(log, actions)
-    items = tuple(evaluate_item(it, view, variant) for it in rubric.items)
+    return aggregate(tuple(evaluate_item(it, view, variant) for it in rubric.items), rubric)
+
+
+def aggregate(items: tuple[ItemResult, ...], rubric: Rubric) -> Scoring:
+    """Item results to competencies, total and the safety gate. Shared with instructor overrides."""
     applicable = [r for r in items if r.result != "na"]
 
     active = [c for c in rubric.competencies if any(r.competency == c.id for r in applicable)]
