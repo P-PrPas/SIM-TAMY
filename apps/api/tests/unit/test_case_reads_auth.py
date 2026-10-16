@@ -32,7 +32,7 @@ def test_list_cases_exposes_status_but_no_hidden_content(client: TestClient) -> 
     assert response.status_code == 200
     item = next(x for x in response.json()["items"] if x["case_id"] == "DEV-001")
     assert item["status"] == "Draft" and item["status_label_th"]
-    assert item["variants_available"] == ["A"]
+    assert item["variants_available"] == ["A", "C"]
     assert not {"facts", "rubric", "branch_rules", "outcome_scripts"} & set(item)
 
 

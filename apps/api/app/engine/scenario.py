@@ -11,9 +11,10 @@ the phase has `mark_unsafe` and a critical hidden fact was already revealed.
 from collections.abc import Sequence
 from typing import NamedTuple, cast
 
-from app.domain.case import BranchRule, Case, HiddenFact, Phase, VariantId
+from app.core.limits import PRESSURE_MAX_TURNS
+from app.domain.case import BranchRule, Case, HiddenFact, Phase, PressureLine, VariantId
 from app.domain.events import Event
-from app.domain.state import AllowedFact, AllowedFacts, RiskState, SessionState
+from app.domain.state import AllowedFact, AllowedFacts, Pressure, RiskState, SessionState
 
 
 class EngineError(Exception):
@@ -36,12 +37,14 @@ class DecisionResult(NamedTuple):
     state: SessionState
     events: tuple[Event, ...]
     replayed: bool  # same option committed again: nothing changed
+    pressure_line: PressureLine | None = None  # first scripted line, Variant C
 
 
 class ApplyResult(NamedTuple):
     state: SessionState
     events: tuple[Event, ...]
     allowed: AllowedFacts  # what the Generator may say this turn
+    pressure_line: PressureLine | None = None  # scripted reply in PRESSURE (ADR-11), no LLM
 
 
 def _rules(case: Case, variant: VariantId, phase: Phase) -> list[BranchRule]:
@@ -125,6 +128,28 @@ def _unsafe(
     return state.model_copy(update={"flags": flags}), [event]
 
 
+def _pressure_turn(
+    state: SessionState, case: Case, variant: VariantId, idx: int, phase: Phase, hit: list[str]
+) -> tuple[Pressure, PressureLine | None, list[Event]]:
+    """One learner turn spent in PRESSURE (FR-ENG-05): resolved by the case's rule, else the next
+    scripted line, else closed unresolved after `PRESSURE_MAX_TURNS` (not counted as giving in)."""
+    started = state.pressure.started_at_idx
+    used = idx - (idx - 1 if started is None else started)
+    if phase != "PRESSURE":  # a branch rule moved the phase: C03/C04
+        resolved = Pressure(started_at_idx=started, resolved=True)
+        return resolved, None, [_resolved(idx, True, hit)]
+    if used >= PRESSURE_MAX_TURNS:
+        events = [_phase_changed(idx, "PRESSURE", "CLOSING", "pressure_timeout")]
+        unresolved = Pressure(started_at_idx=started, resolved=False)
+        return unresolved, None, [*events, _resolved(idx, False, [])]
+    script = case.variants[variant].pressure_script
+    return state.pressure, (script[used] if used < len(script) else None), []
+
+
+def _resolved(idx: int, resolved: bool, by: list[str]) -> Event:
+    return Event(type="PRESSURE_RESOLVED", turn_idx=idx, payload={"resolved": resolved, "by": by})
+
+
 def apply(
     state: SessionState, action_ids: Sequence[str], case: Case, variant: VariantId
 ) -> ApplyResult:
@@ -168,6 +193,13 @@ def apply(
         events.append(_phase_changed(idx, phase, target, "action"))
         phase = target
 
+    hit = [a for a in detected if step and step.on_action_any and a in step.on_action_any]
+    pressure, line = state.pressure, None
+    if state.phase == "PRESSURE":
+        pressure, line, pressure_events = _pressure_turn(state, case, variant, idx, phase, hit)
+        events += pressure_events
+        if pressure.resolved is not None:
+            phase = "CLOSING"
     new_state = state.model_copy(
         update={
             "turn_idx": idx,
@@ -175,12 +207,12 @@ def apply(
             "fired_action_ids": tuple(fired),
             "revealed_fact_ids": tuple(revealed),
             "risk_state": risk,
+            "pressure": pressure,
         }
     )
-    hit = [a for a in detected if step and step.on_action_any and a in step.on_action_any]
     new_state, unsafe_events = _unsafe(new_state, case, step, "action", hit, idx)
     allowed = _allowed_facts(case, revealed, asked, new_facts)
-    return ApplyResult(new_state, (*events, *unsafe_events), allowed)
+    return ApplyResult(new_state, (*events, *unsafe_events), allowed, line)
 
 
 def commit_decision(
@@ -213,16 +245,23 @@ def commit_decision(
     if rule is not None and rule.to is not None and rule.to != phase:
         events.append(_phase_changed(idx, phase, rule.to, "decision"))
         phase = rule.to
+    pressure, line = state.pressure, None
+    if phase == "PRESSURE":  # Variant C: the relative speaks first, from the case's script
+        pressure = Pressure(started_at_idx=idx)
+        events.append(Event(type="PRESSURE_STARTED", turn_idx=idx, payload={"line": 0}))
+        script = case.variants[variant].pressure_script
+        line = script[0] if script else None
     new_state = state.model_copy(
         update={
             "decision": option_id,
             "fired_action_ids": fired,
             "phase": phase,
             "risk_state": risk,
+            "pressure": pressure,
         }
     )
     new_state, unsafe_events = _unsafe(new_state, case, rule, "decision", [option_id], idx)
-    return DecisionResult(new_state, (*events, *unsafe_events), False)
+    return DecisionResult(new_state, (*events, *unsafe_events), False, line)
 
 
 def _allowed_facts(
