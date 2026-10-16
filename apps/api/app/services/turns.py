@@ -28,6 +28,7 @@ from app.db.repo import EventRepo, LlmCallRepo, SessionRepo, TurnRepo
 from app.domain.case import VariantId
 from app.domain.events import EventType
 from app.engine.scenario import apply
+from app.services.live import glassbox_after_turn, live_glassbox
 from app.services.patient_voice import Directive, Spoken, Voice, VoiceRequest, speak
 from app.services.sessions import ensure_alive, lock_session, pinned_case, public_phase, state_of
 
@@ -43,7 +44,9 @@ def _remaining(idx: int) -> int:
     return max(0, limits.MAX_TURNS - idx)
 
 
-def _replay(db: Session, row: LearnerSession, learner_turn_idx: int) -> TurnResponse:
+def _replay(
+    db: Session, store: ContentStore, row: LearnerSession, learner_turn_idx: int
+) -> TurnResponse:
     """Rebuild the stored answer of an earlier turn from turns + events (no new work)."""
     turns = [t for t in TurnRepo(db).list_for_session(row.id) if t.idx == learner_turn_idx]
     events = list(
@@ -77,10 +80,15 @@ def _replay(db: Session, row: LearnerSession, learner_turn_idx: int) -> TurnResp
         clarification=any(e.type == "CLARIFICATION_ASKED" for e in here),
         turns_remaining=_remaining(learner_turn_idx),
         degraded=any(e.type == "LLM_FALLBACK_USED" for e in here),
+        glassbox=glassbox_after_turn(db, pinned_case(store, row), row.id, learner_turn_idx)
+        if get_settings().glass_box_live
+        else None,
     )
 
 
-def _stored(db: Session, row: LearnerSession, req: TurnRequest) -> TurnResponse | None:
+def _stored(
+    db: Session, store: ContentStore, row: LearnerSession, req: TurnRequest
+) -> TurnResponse | None:
     if req.client_turn_id is None:
         return None
     earlier = TurnRepo(db).find_by_client_id(row.id, req.client_turn_id)
@@ -88,7 +96,7 @@ def _stored(db: Session, row: LearnerSession, req: TurnRequest) -> TurnResponse 
         return None
     if earlier.text != req.text:
         raise ApiError("IDEMPOTENCY_CONFLICT", "client_turn_id was used for a different message")
-    return _replay(db, row, earlier.idx)
+    return _replay(db, store, row, earlier.idx)
 
 
 def _history(db: Session, session_id: uuid.UUID) -> tuple[HistoryTurn, ...]:
@@ -103,10 +111,11 @@ def send_turn(
     authed: LearnerSession,
     req: TurnRequest,
 ) -> Outcome:
-    if (stored := _stored(db, authed, req)) is not None:
+    if (stored := _stored(db, store, authed, req)) is not None:
         return Outcome(stored, True)
     row = lock_session(db, authed.id)
-    if (stored := _stored(db, row, req)) is not None:  # finished while we waited for the lock
+    stored = _stored(db, store, row, req)  # it may have finished while we waited for the lock
+    if stored is not None:
         return Outcome(stored, True)
 
     if row.status == "completed":
@@ -245,6 +254,9 @@ def send_turn(
             clarification=decision.clarify,
             turns_remaining=_remaining(idx),
             degraded=degraded or spoken.fallback,
+            glassbox=live_glassbox(db, loaded, row.id, new_state)
+            if settings.glass_box_live
+            else None,
         ),
         False,
     )

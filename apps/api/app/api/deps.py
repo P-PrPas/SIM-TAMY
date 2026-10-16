@@ -118,3 +118,17 @@ def reader_session(
 
 
 Reader = Annotated[LearnerSession, Depends(reader_session)]
+
+
+def glassbox_caller(
+    session_id: uuid.UUID,
+    db: Db,
+    authorization: Annotated[str | None, Header()] = None,
+    x_instructor_secret: Annotated[str | None, Header(alias="X-Instructor-Secret")] = None,
+) -> tuple[LearnerSession, bool]:
+    """The session plus whether the caller is an instructor (the live Glass Box gate)."""
+    row = reader_session(session_id, db, authorization, x_instructor_secret)
+    return row, x_instructor_secret is not None
+
+
+GlassboxCaller = Annotated[tuple[LearnerSession, bool], Depends(glassbox_caller)]
