@@ -20,6 +20,7 @@ from app.ai.llm_client import (
 from app.ai.providers.mock import MockProvider
 from app.ai.providers.openai_like import OpenAILikeProvider
 from app.core.config import Settings, get_settings
+from app.services.patient_voice import canned
 
 FAKE_KEY = "FAKE-KEY-FOR-TESTS"
 
@@ -75,7 +76,7 @@ def test_llm_client_mock_script_first_match_wins_then_default() -> None:
 def test_llm_client_mock_text_purposes_get_plain_text() -> None:
     mock = MockProvider({"generator": [{"match_contains": "hi", "return": "scripted"}]})
     assert mock.complete(req("hi there", "generator", schema=False)).text == "scripted"
-    assert mock.complete(req("other", "generator", schema=False)).text == "mock reply"
+    assert mock.complete(req("other", "generator", schema=False)).text == canned("smalltalk")
 
 
 def test_llm_client_mock_structured_without_rule_is_a_clear_error() -> None:

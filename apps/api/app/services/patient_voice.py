@@ -8,7 +8,7 @@ The Generator only receives allowed facts: id + text (rule 4).
 """
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal, NamedTuple, Protocol
@@ -37,6 +37,9 @@ class VoiceRequest:
     directive: Directive
     learner_text: str
     history: tuple[HistoryTurn, ...] = ()
+    persona_minimization: str = "low"
+    persona_mood: str | None = None
+    rejection_rules: tuple[str, ...] = ()
 
 
 class Generator(Protocol):
@@ -121,9 +124,10 @@ def fallback_line(request: VoiceRequest, case: Case, revealed: Sequence[str], vo
 
 def speak(request: VoiceRequest, case: Case, revealed: Sequence[str], voice: Voice) -> Spoken:
     rejected: list[tuple[str, ...]] = []
+    current = request
     for attempt in range(1 + MAX_REGENERATIONS):
         try:
-            text = voice.generator.generate(request, attempt)
+            text = voice.generator.generate(current, attempt)
         except LLMError:
             line = fallback_line(request, case, revealed, voice)
             return Spoken(line, tuple(rejected), True, True)
@@ -131,4 +135,5 @@ def speak(request: VoiceRequest, case: Case, revealed: Sequence[str], voice: Voi
         if not failed:
             return Spoken(text, tuple(rejected), False, False)
         rejected.append(tuple(failed))
+        current = replace(request, rejection_rules=tuple(failed))
     return Spoken(fallback_line(request, case, revealed, voice), tuple(rejected), True, False)
