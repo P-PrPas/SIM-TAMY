@@ -29,6 +29,7 @@ export default function ChatPage() {
     const active = readSession();
     if (!active) { replace("/"); return; }
     let cancelled = false;
+    void Promise.resolve().then(() => { if (!cancelled) setBrief(active.brief); });
     void api().GET("/v1/sessions/{session_id}", { params: { path: { session_id: active.id } } })
       .then((sessionResult) => {
       if (cancelled) return;
@@ -86,6 +87,7 @@ export default function ChatPage() {
   }
 
   if (!brief || !session) return <main className="mx-auto max-w-5xl px-4 py-8">
+    {brief && <div className="mb-5"><StatusBadge status={brief.status} /></div>}
     {error ? <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p> : <p role="status">{t("chat.loading")}</p>}
   </main>;
 
