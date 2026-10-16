@@ -1,0 +1,19 @@
+# T01 Perfect Path: ask everything that matters, refer in time, communicate, write a note.
+id: T01
+case: DEV-001
+variant: A
+steps:
+  - {say: "ขอถามเรื่องเหตุผลที่มาหน่อยค่ะ", expect_actions_any: [A01]}
+  - {say: "ขอถามเรื่องข้อมูลทั่วไปค่ะ", expect_actions_any: [A02]}
+  - {say: "ขอถามเรื่องสัญญาณทดสอบกหน่อยค่ะ", expect_actions_any: [A03]}
+  - {say: "ขอถามเรื่องสัญญาณทดสอบขหน่อยค่ะ", expect_actions_any: [A04]}
+  - {say: "เข้าใจความรู้สึกนะคะ", expect_actions_any: [C01]}
+  - {say: "ขออธิบายขั้นตอนต่อไปนะคะ", expect_actions_any: [C02]}
+  - {decision: refer}
+  - {complete: true, note: "บันทึกทดสอบ: สรุปเหตุผลที่ส่งต่อและขั้นตอนถัดไปให้ผู้รับบริการ"}
+expect:
+  safety_status: SAFETY_MET
+  revealed: [H1, H2]
+  events_include: [DECISION_COMMITTED, SESSION_COMPLETED]
+  events_exclude: [UNSAFE_ACTION]
+  items: {R-RISK-01: pass, R-DEC-01: pass, R-ESC-01: pass, R-DEC-02: pass}

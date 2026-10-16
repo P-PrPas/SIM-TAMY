@@ -6,23 +6,23 @@ relies on (PRD 7.5): the accepted actions come before the engine's events of the
 """
 
 import uuid
-from collections.abc import Sequence
 from typing import Any, NamedTuple
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.ai.interpreter import DetectedAction, HistoryTurn, Interpretation, interpret
+from app.ai.interpreter import HistoryTurn, Interpretation, interpret
+from app.ai.lexical import match_actions
 from app.ai.llm_client import LLMCallRecord, LLMError
 from app.ai.policy import apply_policy
 from app.api.deps import LLMFactory
 from app.api.v1.schemas import Reply, TurnRequest, TurnResponse
 from app.content.loader import ContentStore
 from app.core import limits
+from app.core.config import get_settings
 from app.core.errors import ApiError
 from app.db.models import Event, LearnerSession
 from app.db.repo import EventRepo, LlmCallRepo, SessionRepo, TurnRepo
-from app.domain.action import Action
 from app.domain.case import VariantId
 from app.domain.events import EventType
 from app.engine.scenario import apply
@@ -35,11 +35,6 @@ OPEN_PHASES = {"INTRO", "INTERVIEW", "PRESSURE"}
 class Outcome(NamedTuple):
     response: TurnResponse
     replayed: bool
-
-
-def fallback_detect(text: str, actions: Sequence[Action]) -> tuple[DetectedAction, ...]:
-    """Lexical matcher when the LLM is down (FR-ACT-03). ponytail: T-032 implements it."""
-    return ()
 
 
 def _remaining(idx: int) -> int:
@@ -125,9 +120,14 @@ def send_turn(
         )
         source = "llm"
     except LLMError:
-        interp = Interpretation(actions=fallback_detect(req.text, loaded.actions))
+        interp = Interpretation(actions=match_actions(req.text, loaded.actions))
         source, degraded = "lexical", True
-    decision = apply_policy(interp)
+    settings = get_settings()
+    decision = apply_policy(
+        interp,
+        accept_threshold=settings.action_accept_threshold,
+        clarify_threshold=settings.action_clarify_threshold,
+    )
 
     # 2. Engine (pure)
     variant: VariantId = row.variant  # type: ignore[assignment]

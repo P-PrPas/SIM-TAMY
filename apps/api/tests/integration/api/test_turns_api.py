@@ -169,6 +169,29 @@ def test_confidence_policy_bands(api: Api, confidence: float, clarifies: bool) -
     assert bool(detected.payload["actions"]) is unlocked
 
 
+def test_configured_confidence_band_asks_without_unlocking_or_scoring(
+    api: Api, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.core.config import get_settings
+
+    monkeypatch.setenv("ACTION_ACCEPT_THRESHOLD", "0.9")
+    monkeypatch.setenv("ACTION_CLARIFY_THRESHOLD", "0.65")
+    get_settings.cache_clear()
+    api.llm.by_text[ASK_A03] = ask("A03", ASK_A03, 0.8)
+    created = api.create()
+
+    body = turn(api, created, ASK_A03).json()
+
+    assert body["clarification"] is True
+    assert body["replies"][0]["text"] == canned("clarify")
+    assert state_of(api, created)["revealed_fact_ids"] == []
+    events = events_of(api, created)
+    assert next(e for e in events if e.type == "ACTIONS_DETECTED").payload["actions"] == []
+    assert next(e for e in events if e.type == "CLARIFICATION_ASKED").payload == {
+        "candidates": ["A03"]
+    }
+
+
 def test_small_talk_gets_a_neutral_line_and_changes_nothing(api: Api) -> None:
     created = api.create()
 
@@ -195,6 +218,23 @@ def test_llm_outage_degrades_to_the_fallback_and_keeps_playing(api: Api) -> None
         calls = db.scalars(select(LlmCall)).all()
         assert len(calls) == 2 and not any(c.ok for c in calls)  # 2 attempts, both recorded
     assert turn(api, created, "สวัสดีค่ะ").json()["degraded"] is False
+
+
+@pytest.mark.parametrize("failure", ["down", "invalid structured output"])
+def test_llm_failure_uses_content_keyword_to_unlock_a_fact(api: Api, failure: str) -> None:
+    api.llm.by_text[ASK_A03] = failure
+    created = api.create()
+
+    response = turn(api, created, ASK_A03)
+
+    assert response.status_code == 200
+    assert response.json()["degraded"] is True
+    assert state_of(api, created)["revealed_fact_ids"] == ["H1"]
+    events = events_of(api, created)
+    detected = next(event for event in events if event.type == "ACTIONS_DETECTED")
+    assert detected.payload["source"] == "lexical"
+    assert [item["id"] for item in detected.payload["actions"]] == ["A03"]
+    assert any(event.type == "LLM_FALLBACK_USED" for event in events)
 
 
 class LeakyThenClean:

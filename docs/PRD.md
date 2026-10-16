@@ -363,6 +363,7 @@ sim-tamy/
 | `LLM_API_KEY` | — | **ห้ามมีฝั่ง frontend** |
 | `LLM_MODEL_INTERPRETER` / `LLM_MODEL_GENERATOR` / `LLM_MODEL_DEBRIEF` | — | แยกได้เพื่อใช้โมเดลถูก/เร็วกับ Interpreter |
 | `LLM_TIMEOUT_S` | 15 | ต่อ call |
+| `ACTION_ACCEPT_THRESHOLD` / `ACTION_CLARIFY_THRESHOLD` | `0.75` / `0.5` | เกณฑ์ deterministic ของ FR-ACT-02; ต้องอยู่ในช่วง 0–1 และ clarify < accept |
 | `LLM_BASE_URL` | `https://api.z.ai/api/paas/v4` | provider `openai_like` เท่านั้น (OpenAI-compatible `/chat/completions`) |
 | `LLM_REASONING_EFFORT` | `low` \| `high` \| `max` | ไม่ตั้ง = ไม่ส่ง; GLM-5.3 ใช้ค่านี้คุมความลึกของ thinking |
 | `MOCK_LLM_SCRIPT` | path ของ YAML | T-003 รองรับ `match_contains`/`return` และ `default` เท่านั้น; `when_directive`/`return_from_fact` ในภาคผนวก กเป็นงาน T-033 ที่ยังไม่รองรับ; ไม่ตั้ง = ค่าเริ่มต้นในโค้ด |
@@ -371,11 +372,12 @@ sim-tamy/
 | `ALLOW_DRAFT_CASES` | `true` (dev/แข่ง) | production ตั้ง `false` เมื่อมี Approved |
 | `GLASS_BOX_LIVE` | `false` | |
 | `LOG_RETENTION_DAYS` | 30 | |
-| `CORS_ORIGINS` | — | |
+| `CORS_ORIGINS` | — | origin ของเว็บ คั่นด้วย `,` |
+| `CORS_ORIGIN_REGEX` | — | origin ที่ตรงทั้งสตริง เช่น preview ของ Vercel; ใช้ร่วมกับ `CORS_ORIGINS` ได้ |
 
 ## 6.6 Deployment **[Proposed]**
 
-Docker Compose (api, web, db) สำหรับ dev/Demo; deploy บน VM หรือ container PaaS ตัวเดียวพอสำหรับ Hackathon; HTTPS บังคับ; ตั้ง health check `/health`; เตรียม **Demo Machine สำรอง** (รันด้วย `LLM_PROVIDER=mock` + Replay Mode)
+Docker Compose (api, web, db) สำหรับ dev/Demo; Hosting ตัดสินแล้วใน [ADR-14](adr/ADR-14-hosting-vercel-render.md) (เว็บบน Vercel, API + Postgres บน Render; ขั้นตอนใน `docs/RUNBOOK-deploy.md`); HTTPS บังคับ; ตั้ง health check `/health`; เตรียม **Demo Machine สำรอง** (รันด้วย `LLM_PROVIDER=mock` + Replay Mode)
 
 ---
 
@@ -954,6 +956,7 @@ def score(events, case, rubric, variant) -> Scoring:
 
 ```yaml
 id: T03
+case: DEV-001        # ผูกกับเคสหนึ่งเคส (PP-001 มาพร้อม T-095)
 variant: A
 steps:
   - {say: "...", expect_actions_any: [A03]}
@@ -967,6 +970,15 @@ expect:
 ```
 
 > Golden ที่ผูกกับ LLM จริงต้องรายงาน "ผ่านกี่ข้อ" ตามผลจริง ไม่ปรับ test ให้ผ่านโดยไม่แก้ระบบ
+
+**รันด้วย `make eval` (T-070)** — ตัวรันอยู่ที่ `apps/api/app/golden.py`; เล่นแต่ละไฟล์ผ่าน API จริงบน Postgres ชั่วคราว
+
+- `steps`: `say` (+ `expect_actions_any` / `expect_actions` / `expect_events`), `decision`, `complete` (+ `note`)
+- `expect`: `safety_status`, `events_include|exclude`, `items: {R-DEC-02: fail}`, `revealed`, `fact_reveals: {H1: 1}` (exact FACT_REVEALED count per fact), `replay_terminal_state`, `min_step_pass_rate`
+- `pending: [{blocked_by: T-064, expect: {...}}]` = ความคาดหวังที่ระบบยังทำไม่ได้ รายงานเป็น pending ไม่นับเป็นผ่าน; ถ้าเริ่มผ่านจะมี WARN ให้ลบออก
+- `blocked_by` ระดับไฟล์ (เช่น Variant C รอ T-023) = SKIP เฉพาะเมื่อระบบปฏิเสธด้วย `VARIANT_NOT_AVAILABLE`; ถ้ารันได้ก็นับตามจริง
+- ตรวจทุกไฟล์เสมอ: คำตอบไม่มี `leak_terms_th` ของ fact ที่ยังไม่เปิดหรือคำต้องห้าม, response ระหว่างเล่นไม่มี field ต้องห้าม, report ที่เก็บไว้ตรงกับการ re-score จาก Event Log
+- ผลลัพธ์: PASS / FAIL / SKIP + จำนวน pending; exit code 1 เมื่อมี FAIL. โหมด `mock` (ค่าเริ่มต้น) ตอบ Interpreter ด้วย lexical matcher จากวลีในเคส จึงพิสูจน์ "ท่อทำงาน" ไม่ใช่ความเข้าใจภาษา; `make eval PROVIDER=env` ใช้ LLM ตาม environment และรายงานตามที่วัดได้
 
 ## 12.3 Definition of Done (ระดับ Ticket)
 
@@ -1096,7 +1108,7 @@ expect:
 | # | ประเด็น | ตัวเลือก/ข้อเสนอ | ต้องตัดสินใจภายใน |
 |---|---|---|---|
 | OD-1 | LLM Provider และโมเดลสำหรับ Interpreter/Generator/Debrief | ตัดสินจากผล `model_bench` (9.5) | จบ Day 0 |
-| OD-2 | Hosting สำหรับ Demo | VM เดียว/Container PaaS | Day 1 |
+| OD-2 | Hosting สำหรับ Demo | **ตัดสินแล้ว:** Vercel (web) + Render (API, Postgres) — ADR-14 | Day 1 |
 | OD-3 | Glass Box ระหว่างเล่น (live) หรือหลังจบเท่านั้น | ค่าเริ่มต้น: หลังจบ; live เป็น flag สำหรับ Demo/อาจารย์ | Day 2 |
 | OD-4 | จำนวนสมาชิก/บทบาทจริงของทีม | ปรับ Owner ในหัวข้อ 13 | ก่อนเริ่ม |
 | OD-5 | เกณฑ์ `max_turns` ของ referral timeliness | ทีม Content กำหนด | Day 1 |

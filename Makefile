@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate mock-api gen-api lint test validate-content leakcheck eval bench rescore stats cost-report purge-old demo
+.PHONY: help install up down migrate mock-api gen-api lint test test-coverage test-e2e validate-content leakcheck eval bench rescore stats cost-report purge-old demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -43,6 +43,12 @@ test:
 	cd $(API) && ../../$(PY) -m pytest --cov=app && ../../$(PY) -m coverage report --include='app/engine/*' --fail-under=85
 	cd $(WEB) && npm test
 
+test-coverage:
+	cd $(WEB) && npm run test:coverage
+
+test-e2e:
+	cd $(WEB) && npm run test:e2e
+
 # STRICT=1 will also require `source` on clinical items (T-010).
 validate-content:
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.content.validator_cli $(if $(STRICT),--strict)
@@ -51,8 +57,10 @@ validate-content:
 leakcheck:
 	$(PY) scripts/leakcheck.py
 
+# Plays eval/golden/T*.yaml through the real API on a throwaway Postgres (DATABASE_URL). Mock LLM by default;
+# `make eval PROVIDER=env` uses the configured LLM and reports what it measures.
 eval:
-	@echo "not implemented: Golden Test Suite (T-070)"; exit 1
+	cd $(API) && CONTENT_DIR=../../content ../../$(PY) ../../eval/run_eval.py $(if $(PROVIDER),--provider $(PROVIDER))
 bench:
 	cd $(API) && ../../$(PY) ../../eval/model_bench.py $(BENCH_ARGS)
 # Rebuilds the score from the Event Log and diffs it with the stored report (needs DATABASE_URL).
