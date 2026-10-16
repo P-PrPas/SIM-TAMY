@@ -51,7 +51,8 @@ def as_api(row: ScoreOverride) -> Override:
 def create(
     db: Session, store: ContentStore, session_id: uuid.UUID, req: OverrideRequest
 ) -> Override:
-    row = SessionRepo(db).get(session_id)
+    # row lock until commit: purge_old skips locked sessions, and waits out ours (then 404s)
+    row = SessionRepo(db).get(session_id, for_update=True)
     if row is None:
         raise ApiError("NOT_FOUND", "session not found")
     report = db.get(Report, session_id)
