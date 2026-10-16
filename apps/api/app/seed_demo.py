@@ -14,7 +14,8 @@ from unittest import mock
 
 from alembic.config import Config
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
+from sqlalchemy import create_engine, func, select
+from sqlalchemy.exc import OperationalError
 
 from app.ai.llm_client import LLMClient
 from app.api.deps import get_llm_factory, get_store
@@ -36,6 +37,16 @@ def _name(n: int) -> str:
     return f"ตัวอย่าง {n} (สังเคราะห์)"
 
 
+def _reachable() -> None:
+    """Fail within seconds, not after a TCP timeout, when there is no database (`make demo`)."""
+    engine = create_engine(get_settings().database_url, connect_args={"connect_timeout": 5})
+    try:
+        with engine.connect():
+            pass
+    finally:
+        engine.dispose()
+
+
 def seed(golden_dir: Path | None = None) -> list[Outcome]:
     """Seed the database named by DATABASE_URL; [] when the class already has sessions."""
     golden_dir = golden_dir or REPO_DIR / "eval" / "golden"
@@ -46,9 +57,8 @@ def seed(golden_dir: Path | None = None) -> list[Outcome]:
         for cached in caches:
             cached.cache_clear()
         try:
-            migrate(
-                Config("alembic.ini")
-            )  # `make demo` may be the first thing run on a new database
+            _reachable()
+            migrate(Config("alembic.ini"))  # `make demo` may be the first run on a new database
             maker = get_sessionmaker()
             with maker.begin() as db:
                 room = db.scalar(select(ClassRoom).where(ClassRoom.code == CLASS_CODE))
@@ -85,7 +95,13 @@ def seed(golden_dir: Path | None = None) -> list[Outcome]:
 
 def main(argv: Sequence[str] | None = None) -> int:
     del argv
-    outcomes = seed()
+    try:
+        outcomes = seed()
+    except OperationalError:  # its message carries the connection string: print none of it
+        print(
+            "database not reachable (check DATABASE_URL and that Postgres is up)", file=sys.stderr
+        )
+        return 2
     if not outcomes:
         print(f"class {CLASS_CODE} already has sessions: nothing to seed")
         return 0

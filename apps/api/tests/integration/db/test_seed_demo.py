@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_store
 from app.db.models import ClassRoom, LearnerSession, Report
 from app.rescore import rescore
-from app.seed_demo import CLASS_CODE, SCENARIOS, seed
+from app.seed_demo import CLASS_CODE, SCENARIOS, main, seed
 
 
 def test_seed_creates_a_synthetic_class_and_is_idempotent(
@@ -43,3 +43,14 @@ def test_seed_creates_a_synthetic_class_and_is_idempotent(
                 )  # reports are genuine engine output
     finally:
         engine.dispose()
+
+
+def test_no_database_is_a_quiet_failure(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://sim:topsecret@127.0.0.1:1/simtamy")
+
+    assert main() == 2
+
+    err = capsys.readouterr().err
+    assert "not reachable" in err and "topsecret" not in err
