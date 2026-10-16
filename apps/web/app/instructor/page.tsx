@@ -29,6 +29,8 @@ export default function InstructorPage() {
   const [busy, setBusy] = useState(false);
   // bumped on every class switch / logout: a response that finds a newer value is stale and dropped
   const view = useRef(0);
+  // same idea for the open report: a newer pick, close, class switch or logout makes older replies stale
+  const shown = useRef(0);
 
   async function enter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,6 +51,7 @@ export default function InstructorPage() {
 
   async function selectClass(room: Room) {
     const mine = ++view.current;
+    shown.current++;
     setSelected(room); setReport(null); setReportError(""); setError(""); setBusy(true);
     setSessions([]); setAnalytics(null); setNextCursor(null);
     try {
@@ -97,21 +100,26 @@ export default function InstructorPage() {
   }
 
   async function openReport(sessionId: string) {
-    const mine = view.current;
+    const mine = ++shown.current;
     setReport(null); setReportError("");
     try {
       const { data } = await instructorApi(secret).GET("/v1/sessions/{session_id}/report", {
         params: { path: { session_id: sessionId } },
       });
-      if (mine !== view.current) return;
+      if (mine !== shown.current) return;
       if (!data || !data.case || !data.effective || !["SAFETY_MET", "SAFETY_NOT_MET"].includes(data.effective.safety_status))
         throw new Error("Invalid report");
       setReport(data);
-    } catch { if (mine === view.current) setReportError(t("instructor.reportError")); }
+    } catch { if (mine === shown.current) setReportError(t("instructor.reportError")); }
+  }
+
+  function closeReport() {
+    shown.current++;
+    setReport(null);
   }
 
   function logout() {
-    view.current++;
+    view.current++; shown.current++;
     setSecret(""); setDraftSecret(""); setClasses([]); setSelected(null);
     setSessions([]); setAnalytics(null); setReport(null); setNextCursor(null); setBusy(false);
   }
@@ -185,7 +193,7 @@ export default function InstructorPage() {
         <h3 className="mt-5 font-bold">{t("report.feedback")}</h3>
         <ul className="mt-2 space-y-2">{report.findings.map((item) => <li key={item.id} className="whitespace-pre-wrap">{item.text_th}</li>)}</ul>
         {report.disclaimers.map((note, index) => <p key={index} role="note" className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">{note}</p>)}
-        <button type="button" onClick={() => setReport(null)} className="mt-5 rounded-lg border border-slate-600 px-4 py-2">{t("instructor.closeReport")}</button>
+        <button type="button" onClick={closeReport} className="mt-5 rounded-lg border border-slate-600 px-4 py-2">{t("instructor.closeReport")}</button>
       </section>}
     </div>}
     {error && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p>}

@@ -126,4 +126,49 @@ describe("T-055/T-057 instructor dashboard", () => {
       expect(screen.queryByText("Learner of A")).toBeNull();
     });
   });
+
+  it("shows the report of the last learner picked, even if an older reply arrives later", async () => {
+    const second = { ...row, session_id: "session-2", learner_name: "Learner B" };
+    const reportOf = (title: string) => ({ ...report, case: { ...report.case, title_th: title } });
+    let answerA: (value: unknown) => void = () => {};
+    mocks.get.mockImplementation(async (path: string, init?: { params: { path?: { session_id: string } } }) => {
+      if (path === "/v1/instructor/classes") return { data: { items: [room] } };
+      if (path === "/v1/instructor/sessions") return { data: { items: [row, second], next_cursor: null } };
+      if (path === "/v1/instructor/analytics") return { data: analytics };
+      if (init?.params?.path?.session_id === "session-1") return new Promise((resolve) => { answerA = resolve; });
+      return { data: reportOf("Report of B") };
+    });
+    render(<InstructorPage />);
+    fireEvent.change(screen.getByLabelText(t("instructor.secret")), { target: { value: "synthetic-secret" } });
+    fireEvent.click(screen.getByRole("button", { name: t("instructor.enter") }));
+    fireEvent.click(await screen.findByRole("button", { name: /Synthetic class/ }));
+    await screen.findByText("Learner B");
+    const open = screen.getAllByRole("button", { name: t("instructor.openReport") });
+    fireEvent.click(open[0] as HTMLElement);
+    fireEvent.click(open[1] as HTMLElement);
+    expect(await screen.findByText("Report of B")).toBeTruthy();
+    answerA({ data: reportOf("Report of A") });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.queryByText("Report of A")).toBeNull();
+    expect(screen.getByText("Report of B")).toBeTruthy();
+  });
+
+  it("does not open a report whose reply arrives after logout", async () => {
+    let answer: (value: unknown) => void = () => {};
+    mocks.get.mockImplementation(async (path: string) => {
+      if (path === "/v1/instructor/classes") return { data: { items: [room] } };
+      if (path === "/v1/instructor/sessions") return { data: { items: [row], next_cursor: null } };
+      if (path === "/v1/instructor/analytics") return { data: analytics };
+      return new Promise((resolve) => { answer = resolve; });
+    });
+    render(<InstructorPage />);
+    fireEvent.change(screen.getByLabelText(t("instructor.secret")), { target: { value: "synthetic-secret" } });
+    fireEvent.click(screen.getByRole("button", { name: t("instructor.enter") }));
+    fireEvent.click(await screen.findByRole("button", { name: /Synthetic class/ }));
+    fireEvent.click(await screen.findByRole("button", { name: t("instructor.openReport") }));
+    fireEvent.click(screen.getByRole("button", { name: t("instructor.logout") }));
+    answer({ data: report });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.queryByText("Synthetic finding")).toBeNull();
+  });
 });
