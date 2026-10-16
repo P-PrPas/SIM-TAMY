@@ -74,4 +74,4 @@ cost-report:
 purge-old:
 	@echo "not implemented: retention purge"; exit 1
 demo:
-	@echo "not implemented: demo mode (T-073)"; exit 1
+	@sh scripts/demo.sh

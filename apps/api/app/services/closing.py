@@ -24,6 +24,7 @@ from app.api.v1.schemas import (
     EffectiveScore,
     ReportCase,
     ReportResponse,
+    SafetyStatus,
     Variant,
 )
 from app.content.loader import ContentStore, LoadedCase
@@ -46,7 +47,12 @@ log = logging.getLogger("app.closing")
 
 def logged_events(db: Session, session_id: Any) -> list[LoggedEvent]:
     rows = db.scalars(select(Event).where(Event.session_id == session_id).order_by(Event.id))
-    return [LoggedEvent(id=e.id, type=e.type, turn_idx=e.turn_idx, payload=e.payload) for e in rows]
+    return [
+        LoggedEvent.model_validate(
+            {"id": e.id, "type": e.type, "turn_idx": e.turn_idx, "payload": e.payload}
+        )
+        for e in rows
+    ]
 
 
 # ---------- decision ----------
@@ -222,7 +228,7 @@ def _assemble(
             "references": [r.model_dump() for r in case.references if r.id in cited],
             "overrides": [],
             "effective": EffectiveScore(
-                safety_status=scoring.safety_status, total_score=scoring.total_score
+                safety_status=SafetyStatus(scoring.safety_status), total_score=scoring.total_score
             ),
             "disclaimers": [disclaimer_th()],
         }

@@ -58,7 +58,11 @@ def _replay(db: Session, row: LearnerSession, learner_turn_idx: int) -> TurnResp
     ]
     return TurnResponse(
         turn_idx=learner_turn_idx,
-        replies=[Reply(speaker=t.speaker, text=t.text) for t in turns if t.speaker != "learner"],
+        replies=[
+            Reply.model_validate({"speaker": t.speaker, "text": t.text})
+            for t in turns
+            if t.speaker != "learner"
+        ],
         phase=public_phase(phases[-1] if phases else "INTERVIEW"),
         clarification=any(e.type == "CLARIFICATION_ASKED" for e in here),
         turns_remaining=_remaining(learner_turn_idx),

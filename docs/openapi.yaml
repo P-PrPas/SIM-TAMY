@@ -989,7 +989,7 @@ paths:
       tags: [Replay]
       operationId: listRecordings
       summary: List recorded sessions available for Replay Mode
-      description: Served from `recordings/`. Enabled when `ENABLE_REPLAY=true`; otherwise returns an empty list.
+      description: Served from `recordings/` only when `ENABLE_REPLAY=true`; otherwise returns NOT_FOUND.
       security: []
       x-priority: Must
       x-fr: [FR-OBS-02]
@@ -999,13 +999,9 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required: [items]
-                properties:
-                  items:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/RecordingSummary"
+                $ref: "#/components/schemas/RecordingList"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /v1/replay/recordings/{recording_id}:
     get:
@@ -2051,6 +2047,25 @@ components:
           format: date-time
 
     # ---------- Replay ----------
+    RecordingList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecordingListItem"
+    RecordingListItem:
+      description: A recording summary plus the case status of its snapshot (shown as a badge).
+      allOf:
+        - $ref: "#/components/schemas/RecordingSummary"
+        - type: object
+          required: [status, status_label_th]
+          properties:
+            status:
+              $ref: "#/components/schemas/CaseStatus"
+            status_label_th:
+              type: string
     RecordingSummary:
       type: object
       required: [recording_id, title_th, case_id, variant]
