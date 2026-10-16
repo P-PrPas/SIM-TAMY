@@ -86,11 +86,18 @@ turn makes a few real LLM calls. Run it after every production deploy and before
    whether free instances can roll back: if the button is missing, redeploy the previous tag instead
    (re-run the release workflow's deploy for the old tag, or "Manual Deploy" -> a specific commit).
 2. **Check:** run the smoke test against the service.
-3. **Database:** a rollback does **not** undo migrations, and the free Postgres has no backups. So every
-   migration must be additive while a release is live (add nullable columns/tables; drop or rename only
-   in a later release), so the previous image still works on the newer schema. If a release shipped a
-   destructive migration, there is no automatic way back: restore from your own dump, or recreate the
-   database and re-run `alembic upgrade head` (sessions are lost; content is in the image).
+3. **Database:** a rollback does **not** undo migrations, and the free Postgres has no backups. The
+   previous image does not contain the newer revision scripts, so plain `alembic upgrade head` would stop
+   with `Can't locate revision` before the API opened. The image therefore starts with
+   `python -m app.db.migrate` (`app/db/migrate.py`): if the database is at a revision the image does not
+   know, it logs `database is at revision X, newer than this image: serving without migrating (rollback)`
+   and serves. That is only safe while migrations stay **additive** while a release is live (add nullable
+   columns/tables; drop or rename only in a later release), so the old code still works on the newer
+   schema. Tested for real: a database migrated past the image's head (`tests/integration/db/
+   test_migrate_on_start.py`), and in Docker (database set to an unknown revision, image restarted, `/health`
+   ok, smoke test passes). If a release shipped a destructive migration there is no automatic way back:
+   restore from your own dump, or recreate the database and run `alembic upgrade head` (sessions are lost;
+   content is in the image).
 4. **After:** write down what broke and which tag is live. `/health` returns `version`.
 
 ## Not covered here
