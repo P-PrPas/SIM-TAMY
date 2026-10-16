@@ -1,0 +1,52 @@
+name: Release
+
+# Pushing a tag v* deploys that exact commit to production. Staging is Render's own deploy of main.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    env:
+      HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_PROD }}
+      PROD_API_URL: ${{ vars.PROD_API_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: the tag must point at a commit that is on main
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: deploy this commit to production
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::notice::production deploy skipped: secret RENDER_DEPLOY_HOOK_PROD is not set"
+            exit 0
+          fi
+          # the hook URL is a secret: no -v, no echo; `ref` pins the tagged commit, not main's head
+          case "$HOOK" in *\?*) sep='&' ;; *) sep='?' ;; esac
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "${HOOK}${sep}ref=${GITHUB_SHA}")
+          echo "deploy hook answered HTTP $code"
+          [ "$code" = 200 ] || [ "$code" = 202 ]
+      - name: smoke test production
+        run: |
+          if [ -z "$HOOK" ] || [ -z "$PROD_API_URL" ]; then
+            echo "::notice::smoke test skipped: needs RENDER_DEPLOY_HOOK_PROD and the PROD_API_URL variable"
+            exit 0
+          fi
+          # ponytail: the hook answers when the deploy starts, not when it ends, and Render offers no
+          # finished signal without an API key. Wait, then let smoke.py poll /health; use the Render
+          # API (deploy status) if this ever races.
+          sleep 120
+          python3 scripts/smoke.py "$PROD_API_URL" --wait 300

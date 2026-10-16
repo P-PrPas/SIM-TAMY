@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_call: # the release workflow runs the same gates before it deploys
   pull_request:
   push:
     branches: [main]

@@ -16,7 +16,7 @@ services:
     branch: main
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
-    autoDeploy: true # staging follows main; production deploys on a v* tag (docs/RUNBOOK-deploy.md)
+    autoDeployTrigger: checksPass # staging follows main once CI is green; production: v* tag (RUNBOOK-deploy.md)
     # the image CMD migrates, then serves (no preDeployCommand on the free plan)
     healthCheckPath: /health
     envVars:

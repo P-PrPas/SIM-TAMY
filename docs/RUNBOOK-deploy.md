@@ -93,6 +93,26 @@ turn makes a few real LLM calls. Run it after every production deploy and before
    database and re-run `alembic upgrade head` (sessions are lost; content is in the image).
 4. **After:** write down what broke and which tag is live. `/health` returns `version`.
 
+## 10. Releases: staging and production (T-092)
+
+- **Staging** is `sim-tamy-api` from the Blueprint. `autoDeployTrigger: checksPass` makes Render deploy
+  `main` only after its CI checks pass. (Render's older `autoDeploy` field is deprecated.)
+- **Production** deploys when you push a tag: `git tag v0.1.0 && git push origin v0.1.0`.
+  `.github/workflows/release.yml` runs the same CI gates, checks the tag's commit is on `main`, calls the
+  production service's Deploy Hook with `ref=<that commit>` (so it deploys the tag, not whatever `main`
+  is by then), waits two minutes, then runs the smoke test against `PROD_API_URL`.
+- **One-time setup (yours; nothing here creates it):**
+  1. Render -> New -> Web Service -> same repo, runtime Docker, Dockerfile `./apps/api/Dockerfile`, context
+     `.`, health check `/health`, **Auto-Deploy: Off**. Give production its own database and its own
+     `INSTRUCTOR_SECRET`, `CORS_ORIGINS`, `LLM_*` values (section 6).
+  2. Render -> that service -> Settings -> **Deploy Hook**: copy the URL (it is a secret; Regenerate Hook if it leaks).
+  3. GitHub -> Settings -> Secrets and variables -> Actions: secret `RENDER_DEPLOY_HOOK_PROD` = the hook URL;
+     variable `PROD_API_URL` = `https://<prod-service>.onrender.com`.
+- Until those exist the workflow still runs CI, then ends the deploy and smoke steps with an explicit
+  "skipped" notice instead of failing. A skipped deploy is not a deploy: check the notice.
+- To roll back, see section 9. The smoke test cannot tell the old instance from the new one during
+  Render's rollout; if it passes too early, run `scripts/smoke.py` again after the deploy shows Live.
+
 ## Not covered here
 
-CD from `main`/tags (T-092), rate limiting and security headers (T-048).
+Rate limiting and security headers (T-048).
