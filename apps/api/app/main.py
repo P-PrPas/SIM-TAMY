@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
-from app.api.v1 import cases, health, sessions
+from app.api.v1 import cases, health, replay, sessions
 from app.core import errors
 from app.core.config import get_settings
 from app.core.request_id import RequestIdMiddleware
@@ -42,6 +42,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)  # unversioned, per openapi.yaml
     app.include_router(cases.router)
     app.include_router(sessions.router)
+    app.include_router(replay.router)
     return app
 
 
