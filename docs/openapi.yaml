@@ -1281,6 +1281,9 @@ components:
         llm_provider:
           type: string
           description: Provider name, for example `mock`. Never includes keys.
+        commit:
+          type: [string, "null"]
+          description: Git SHA of the running build (`GIT_COMMIT`, or Render's `RENDER_GIT_COMMIT`); null when unknown.
 
     # ---------- Cases ----------
     LearningObjective:
@@ -2054,7 +2057,18 @@ components:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/RecordingSummary"
+            $ref: "#/components/schemas/RecordingListItem"
+    RecordingListItem:
+      description: A recording summary plus the case status of its snapshot (shown as a badge).
+      allOf:
+        - $ref: "#/components/schemas/RecordingSummary"
+        - type: object
+          required: [status, status_label_th]
+          properties:
+            status:
+              $ref: "#/components/schemas/CaseStatus"
+            status_label_th:
+              type: string
     RecordingSummary:
       type: object
       required: [recording_id, title_th, case_id, variant]

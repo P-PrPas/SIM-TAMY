@@ -159,6 +159,42 @@ describe("S1 Join and S2 Briefing", () => {
 });
 
 describe("S3 Chat", () => {
+  it("lets a learner inspect optional quick prompts and edit one before sending", async () => {
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
+    mocks.get.mockResolvedValue({ data: sessionView });
+    mocks.post.mockResolvedValue({ data: { turn_idx: 1, replies: [], phase: "INTERVIEW", clarification: false, turns_remaining: 39, degraded: false } });
+    render(<ChatPage />);
+    await screen.findByText("Opening patient information");
+
+    const disclosure = screen.getByText(t("chat.quickPromptsTitle")).closest("details");
+    expect(disclosure?.hasAttribute("open")).toBe(false);
+    fireEvent.click(screen.getByText(t("chat.quickPromptsTitle")));
+    expect(disclosure?.hasAttribute("open")).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: t("chat.quickPromptReason") }));
+
+    const input = screen.getByLabelText(t("chat.messageLabel")) as HTMLTextAreaElement;
+    expect(input.value).toBe(t("chat.quickPromptReason"));
+    expect(screen.getByRole("button", { name: t("chat.quickPromptWhen") }).hasAttribute("disabled")).toBe(true);
+    expect(document.activeElement).toBe(input);
+    expect(mocks.post).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: t("chat.send") }));
+    await waitFor(() => expect(mocks.post).toHaveBeenCalledTimes(1));
+    expect(mocks.post.mock.calls[0]?.[1].body.text).toBe(t("chat.quickPromptReason"));
+  });
+
+  it("disables quick prompts while a turn is in flight", async () => {
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
+    mocks.get.mockResolvedValue({ data: sessionView });
+    mocks.post.mockImplementation(() => new Promise(() => {}));
+    render(<ChatPage />);
+    await screen.findByText("Opening patient information");
+    fireEvent.click(screen.getByText(t("chat.quickPromptsTitle")));
+    fireEvent.change(screen.getByLabelText(t("chat.messageLabel")), { target: { value: "Question?" } });
+    fireEvent.click(screen.getByRole("button", { name: t("chat.send") }));
+
+    expect(screen.getByRole("button", { name: t("chat.quickPromptReason") }).hasAttribute("disabled")).toBe(true);
+  });
+
   it("shows optimistic text, typing, and retries a failed turn with the same ID", async () => {
     saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
     mocks.get.mockResolvedValue({ data: sessionView });
@@ -190,6 +226,14 @@ describe("S3 Chat", () => {
     fireEvent.click(screen.getByRole("button", { name: t("chat.send") }));
     expect(screen.getByText(t("chat.invalidMessage"))).toBeTruthy();
     expect(mocks.post).not.toHaveBeenCalled();
+  });
+
+  it("sends a completed session straight to its report instead of a dead chat", async () => {
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
+    mocks.get.mockResolvedValue({ data: { ...sessionView, phase: "COMPLETED", status: "completed" } });
+    render(<ChatPage />);
+    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/report"));
+    expect(screen.queryByLabelText(t("chat.messageLabel"))).toBeNull();
   });
 
   it("shows a safe loading error when session history cannot be fetched", async () => {

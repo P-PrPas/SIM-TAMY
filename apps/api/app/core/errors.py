@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.limits import MAX_TEXT_CHARS
+from app.core.security_headers import security_headers
 from app.engine.scenario import EngineError
 
 log = logging.getLogger("app.errors")
@@ -43,9 +44,16 @@ STATUS: dict[str, int] = {
 
 
 class ApiError(Exception):
-    def __init__(self, code: str, message: str, details: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        details: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
         super().__init__(f"{code}: {message}")
         self.code, self.message, self.details = code, message, details or {}
+        self.headers = headers or {}
 
 
 def request_id(request: Request) -> str:
@@ -53,7 +61,11 @@ def request_id(request: Request) -> str:
 
 
 def envelope(
-    request: Request, code: str, message: str, details: dict[str, Any] | None = None
+    request: Request,
+    code: str,
+    message: str,
+    details: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
 ) -> JSONResponse:
     body = {
         "error": {
@@ -65,13 +77,15 @@ def envelope(
     }
     # also set here: errors raised outside the request-id middleware (500) never pass through it
     return JSONResponse(
-        body, status_code=STATUS[code], headers={"X-Request-ID": request_id(request)}
+        body,
+        status_code=STATUS[code],
+        headers={**(headers or {}), "X-Request-ID": request_id(request)},
     )
 
 
 def _api_error(request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, ApiError)
-    return envelope(request, exc.code, exc.message, exc.details)
+    return envelope(request, exc.code, exc.message, exc.details, exc.headers)
 
 
 def _engine_error(request: Request, exc: Exception) -> JSONResponse:
@@ -110,7 +124,13 @@ def _unexpected(request: Request, exc: Exception) -> JSONResponse:
     log.error(
         "unhandled error request_id=%s exception_type=%s", request_id(request), type(exc).__name__
     )
-    return envelope(request, "INTERNAL_ERROR", "unexpected server error")
+    # this response is built by Starlette's outermost handler, so no middleware sees it
+    return envelope(
+        request,
+        "INTERNAL_ERROR",
+        "unexpected server error",
+        headers=security_headers(request.url.path),
+    )
 
 
 def install(app: FastAPI) -> None:

@@ -9,7 +9,7 @@ import type { components } from "@/lib/api/schema";
 import { t } from "@/lib/i18n";
 
 type Recording = components["schemas"]["Recording"];
-type Summary = components["schemas"]["RecordingSummary"];
+type Summary = components["schemas"]["RecordingListItem"];
 type Step = components["schemas"]["RecordingStep"];
 
 function stepLabel(step: Step, recording: Recording): string {
@@ -89,7 +89,10 @@ export default function ReplayPage() {
     {!recording && !loading && !error && items.length === 0 && <p className="mt-5">{t("replay.empty")}</p>}
     {!recording && <ul className="mt-6 space-y-3">
       {items.map((item) => <li key={item.recording_id} className="rounded-xl border border-slate-300 bg-white p-4">
-        <p className="font-semibold">{item.title_th}</p>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <p className="font-semibold">{item.title_th}</p>
+          <StatusBadge status={item.status} compact />
+        </div>
         {item.description_th && <p className="mt-1 text-slate-700">{item.description_th}</p>}
         <button type="button" onClick={() => void open(item.recording_id)} disabled={loading}
           className="mt-3 rounded-lg bg-teal-900 px-4 py-2 font-semibold text-white disabled:opacity-50">{t("replay.open")}</button>

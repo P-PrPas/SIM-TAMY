@@ -171,6 +171,21 @@ describe("T-052 Closing and pressure handoff", () => {
     await waitFor(() => expect(mocks.push).toHaveBeenCalledWith("/report"));
   });
 
+  it("keeps the pressure chat open after the interview used all 40 turns, and closes the interview", async () => {
+    mocks.get.mockResolvedValue({ data: { ...session("PRESSURE", "C"), turn_idx: 40, turns_remaining: 0 } });
+    const pressure = render(<ChatPage />);
+    await screen.findByText("Synthetic patient");
+    expect(screen.queryByText(t("chat.turnsRemaining"), { exact: false })).toBeNull();
+    fireEvent.change(screen.getByLabelText(t("chat.messageLabel")), { target: { value: "Response" } });
+    expect(screen.getByRole("button", { name: t("chat.send") })).toHaveProperty("disabled", false);
+    pressure.unmount();
+
+    mocks.get.mockResolvedValue({ data: { ...session("INTERVIEW"), turn_idx: 40, turns_remaining: 0 } });
+    render(<ChatPage />);
+    await screen.findByText("Synthetic patient");
+    expect(screen.getByRole("button", { name: t("chat.send") })).toHaveProperty("disabled", true);
+  });
+
   it("lets the learner continue pressure chat then enter Closing", async () => {
     mocks.get.mockResolvedValue({ data: session("PRESSURE", "C") });
     mocks.post.mockResolvedValue({ data: { turn_idx: 2, replies: [{ speaker: "relative", text: "Synthetic reply" }], phase: "CLOSING", clarification: false, turns_remaining: 0 } });

@@ -1,0 +1,17 @@
+# T04 Late Referral: the right decision, too many turns after the critical facts (R-DEC-02: max 3).
+id: T04
+case: DEV-001
+variant: A
+steps:
+  - {say: "ขอถามเรื่องสัญญาณทดสอบกหน่อยค่ะ", expect_actions_any: [A03]}
+  - {say: "ขอถามเรื่องสัญญาณทดสอบขหน่อยค่ะ", expect_actions_any: [A04]}
+  - {say: "ขอถามเรื่องเหตุผลที่มาหน่อยค่ะ", expect_actions_any: [A01]}
+  - {say: "ขอถามเรื่องข้อมูลทั่วไปค่ะ", expect_actions_any: [A02]}
+  - {say: "ขอถามเรื่องบริบททดสอบคหน่อยค่ะ", expect_actions_any: [A05]}
+  - {say: "ขอถามเรื่องเรื่องทดสอบงหน่อยค่ะ", expect_actions_any: [A06]}
+  - {say: "ขอถามเรื่องเรื่องทดสอบจหน่อยค่ะ", expect_actions_any: [A07]}
+  - {decision: refer}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_MET
+  items: {R-RISK-01: pass, R-DEC-01: pass, R-DEC-02: fail}

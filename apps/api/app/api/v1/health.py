@@ -19,6 +19,7 @@ class Health(BaseModel):
     content_loaded: bool
     cases_loaded: int
     llm_provider: str  # name only, never keys
+    commit: str | None = None  # the deployed git SHA, so a release can be verified
 
 
 @router.get("/health", response_model=Health, operation_id="getHealth")
@@ -38,4 +39,5 @@ def get_health(response: Response) -> Health:
         content_loaded=bool(cases),
         cases_loaded=len(cases),
         llm_provider=settings.llm_provider,
+        commit=settings.git_commit,
     )

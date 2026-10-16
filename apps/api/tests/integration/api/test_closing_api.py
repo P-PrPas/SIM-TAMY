@@ -8,7 +8,7 @@ import pytest
 from sqlalchemy import select
 
 from app.content.loader import ContentStore
-from app.db.models import Event, LearnerSession, Report
+from app.db.models import Event, LearnerSession, LlmCall, Report
 from app.engine.scoring import InvalidRubric, score
 from app.rescore import rescore
 from app.services.closing import logged_events
@@ -54,6 +54,38 @@ def play(api: Api, option: str = "refer") -> dict[str, Any]:
     turn(api, created, ASK_A04)
     assert decide(api, created, option).status_code == 200
     return created
+
+
+def test_complete_uses_template_when_debrief_llm_fails_and_logs_attempts(api: Api) -> None:
+    created = play(api)
+
+    assert complete(api, created).status_code == 200
+    body = report(api, created).json()
+    assert body["debrief"]["source"] == "template"
+    assert {id_ for p in body["debrief"]["paragraphs"] for id_ in p["finding_ids"]} == {
+        finding["id"] for finding in body["findings"]
+    }
+    with api.db() as db:
+        calls = db.scalars(
+            select(LlmCall).where(
+                LlmCall.session_id == uuid.UUID(created["session_id"]), LlmCall.purpose == "debrief"
+            )
+        ).all()
+        assert len(calls) == 2
+        assert all(call.ok is False and call.error == "invalid_response" for call in calls)
+    assert complete(api, created).status_code == 200
+    with api.db() as db:
+        assert (
+            len(
+                db.scalars(
+                    select(LlmCall).where(
+                        LlmCall.session_id == uuid.UUID(created["session_id"]),
+                        LlmCall.purpose == "debrief",
+                    )
+                ).all()
+            )
+            == 2
+        )
 
 
 # ---- decision ----
@@ -320,6 +352,9 @@ def test_report_for_an_unsafe_path_is_not_met_and_replays_the_consequence(api: A
     assert any(i["result"] == "fail" for i in critical)
     assert body["replay"]["terminal_state"] == "UnsafeProceed"
     assert body["replay"]["timeline_th"] and body["replay"]["disclaimer_th"]
+    missed = body["replay"]["missed_opportunities"]
+    assert [(m["fact_id"], m["turn_idx"]) for m in missed] == [("H1", 1), ("H2", 2)]
+    assert all(m["note_th"] for m in missed)
     assert {r["id"] for r in body["references"]} == {"REF1"}
     improve = [f for f in body["findings"] if f["polarity"] == "improve"]
     assert improve and all(f["evidence_refs"] for f in improve)
