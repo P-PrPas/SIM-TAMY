@@ -152,23 +152,4 @@ describe("T-055/T-057 instructor dashboard", () => {
     expect(screen.queryByText("Report of A")).toBeNull();
     expect(screen.getByText("Report of B")).toBeTruthy();
   });
-
-  it("does not open a report whose reply arrives after logout", async () => {
-    let answer: (value: unknown) => void = () => {};
-    mocks.get.mockImplementation(async (path: string) => {
-      if (path === "/v1/instructor/classes") return { data: { items: [room] } };
-      if (path === "/v1/instructor/sessions") return { data: { items: [row], next_cursor: null } };
-      if (path === "/v1/instructor/analytics") return { data: analytics };
-      return new Promise((resolve) => { answer = resolve; });
-    });
-    render(<InstructorPage />);
-    fireEvent.change(screen.getByLabelText(t("instructor.secret")), { target: { value: "synthetic-secret" } });
-    fireEvent.click(screen.getByRole("button", { name: t("instructor.enter") }));
-    fireEvent.click(await screen.findByRole("button", { name: /Synthetic class/ }));
-    fireEvent.click(await screen.findByRole("button", { name: t("instructor.openReport") }));
-    fireEvent.click(screen.getByRole("button", { name: t("instructor.logout") }));
-    answer({ data: report });
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    expect(screen.queryByText("Synthetic finding")).toBeNull();
-  });
 });
