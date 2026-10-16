@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e validate-content leakcheck eval bench rescore stats cost-report purge-old seed-demo demo
+.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e validate-content leakcheck eval eval-pp001 bench rescore stats cost-report purge-old seed-demo demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -68,6 +68,9 @@ leakcheck:
 # `make eval PROVIDER=env` uses the configured LLM and reports what it measures.
 eval:
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) ../../eval/run_eval.py $(if $(PROVIDER),--provider $(PROVIDER))
+# The PP-001 (draft) scenario through the same runner: eval/golden/pp001/T*.yaml.
+eval-pp001:
+	cd $(API) && CONTENT_DIR=../../content ../../$(PY) ../../eval/run_eval.py --golden-dir ../../eval/golden/pp001
 bench:
 	cd $(API) && ../../$(PY) ../../eval/model_bench.py $(BENCH_ARGS)
 # Rebuilds the score from the Event Log and diffs it with the stored report (needs DATABASE_URL).

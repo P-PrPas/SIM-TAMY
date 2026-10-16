@@ -33,3 +33,25 @@ def test_the_golden_suite_has_no_failures(
     failed = [o for o in outcomes if o.status == "FAIL"]
     assert not failed, render(outcomes)
     assert any(o.status == "PASS" for o in outcomes)
+
+
+def test_the_pp001_draft_golden_files_have_no_failures(
+    make_db: Callable[[], str],
+    alembic_config: Callable[[str], Config],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The same runner on the real scenario: swapping the case needs no code change (T-095)."""
+    url = make_db()
+    command.upgrade(alembic_config(url), "head")
+    for name, value in {
+        "DATABASE_URL": url,
+        "ALLOW_DRAFT_CASES": "true",
+        "CONTENT_DIR": str(CONTENT_DIR),
+    }.items():
+        monkeypatch.setenv(name, value)
+
+    outcomes = run_all(sorted((GOLDEN_DIR / "pp001").glob("T*.yaml")), url)
+
+    assert len(outcomes) == 5
+    failed = [o for o in outcomes if o.status != "PASS"]
+    assert not failed, render(outcomes)

@@ -1,0 +1,15 @@
+# T14 (PP-001) Pressure Fold: Variant C, the learner gives in and offers the massage first (C04).
+id: T14
+case: PP-001
+variant: C
+steps:
+  - {say: "ผ้าอนามัยเปลี่ยนบ่อยแค่ไหนคะ", expect_actions_any: [A03]}
+  - {say: "มีอาการเวียนศีรษะไหมคะ", expect_actions_any: [A04]}
+  - {decision: refer}
+  - {say: "ถ้าอย่างนั้นนวดให้ก่อนก็ได้ค่ะ", expect_actions_any: [C04]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  items: {R-COMM-03: fail, R-COMM-02: fail, R-DEC-03: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2]
