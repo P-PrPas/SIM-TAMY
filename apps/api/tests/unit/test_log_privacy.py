@@ -5,8 +5,9 @@ import logging
 import socket
 import threading
 import time
+import urllib.error
+import urllib.request
 
-import httpx
 import pytest
 import uvicorn
 from starlette.requests import Request
@@ -53,7 +54,9 @@ def test_uvicorn_does_not_log_the_message_of_an_unhandled_exception() -> None:
     try:
         while not server.started:
             time.sleep(0.05)
-        assert httpx.get(f"http://127.0.0.1:{port}/boom").status_code == 500
+        with pytest.raises(urllib.error.HTTPError) as caught:
+            urllib.request.urlopen(f"http://127.0.0.1:{port}/boom", timeout=10)
+        assert caught.value.code == 500
     finally:
         server.should_exit = True
         thread.join(timeout=10)
