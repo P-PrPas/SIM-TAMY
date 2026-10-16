@@ -9,6 +9,7 @@ import pytest
 from sqlalchemy import select
 
 from app.ai.llm_client import LLMTimeout
+from app.api.deps import get_voice
 from app.db.models import Event, LearnerSession, LlmCall, Turn
 from app.domain.case import Case
 from app.domain.events import LoggedEvent
@@ -75,6 +76,28 @@ def test_a_turn_unlocks_a_fact_and_answers_from_it(api: Api) -> None:
         "INTERVIEW",
     )
     assert state["_version"] == 1
+
+
+def test_production_voice_rejects_leak_and_logs_generator_calls(api: Api) -> None:
+    created = setup_a03(api)
+    api.llm.generator_reply = LEAK_H2
+    api.client.app.dependency_overrides.pop(get_voice)  # type: ignore[attr-defined]
+
+    response = turn(api, created, ASK_A03)
+
+    assert response.status_code == 200
+    assert response.json()["replies"] == [{"speaker": "patient", "text": H1_FALLBACK}]
+    assert response.json()["degraded"] is True
+    assert [e.type for e in events_of(api, created)].count("VALIDATOR_REJECTED") == 3
+    with api.db() as db:
+        sid = uuid.UUID(created["session_id"])
+        calls = db.scalars(select(LlmCall).where(LlmCall.session_id == sid)).all()
+    assert [call.purpose for call in calls] == [
+        "interpreter",
+        "generator",
+        "generator",
+        "generator",
+    ]
 
 
 def test_events_follow_the_scoring_contract_in_order(api: Api) -> None:

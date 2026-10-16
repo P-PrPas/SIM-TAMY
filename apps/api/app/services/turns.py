@@ -11,10 +11,12 @@ from typing import Any, NamedTuple
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.ai.generator import PatientGenerator
 from app.ai.interpreter import HistoryTurn, Interpretation, interpret
 from app.ai.lexical import match_actions
 from app.ai.llm_client import LLMCallRecord, LLMError
 from app.ai.policy import apply_policy
+from app.ai.validator import PatientValidator
 from app.api.deps import LLMFactory
 from app.api.v1.schemas import Reply, TurnRequest, TurnResponse
 from app.content.loader import ContentStore
@@ -89,7 +91,7 @@ def send_turn(
     db: Session,
     store: ContentStore,
     llm: LLMFactory,
-    voice: Voice,
+    voice: Voice | None,
     authed: LearnerSession,
     req: TurnRequest,
 ) -> Outcome:
@@ -154,7 +156,11 @@ def send_turn(
         directive=directive,
         learner_text=req.text,
         history=history,
+        persona_minimization=loaded.case.variants[variant].persona.minimization,
+        persona_mood=new_state.last_directive.mood,
     )
+    if voice is None:
+        voice = Voice(PatientGenerator(llm("generator", calls.append)), PatientValidator(request))
     spoken = speak(request, loaded.case, new_state.revealed_fact_ids, voice)
 
     # 4. Persist: events in contract order, turns, llm_calls, state (CAS), all in this transaction
