@@ -100,6 +100,20 @@ def test_validator_allows_only_numbers_present_in_allowed_facts() -> None:
     assert validator.check("43 units", CASE, []) == ["unsupported_number"]
 
 
+@pytest.mark.parametrize("text", ["x43 units", "dose43 units", "ใช้ยา43 หน่วย", "x๔๓ units"])
+def test_a_number_glued_to_letters_never_reaches_the_learner(text: str) -> None:
+    class Fixed:
+        def generate(self, request: VoiceRequest, attempt: int) -> str:
+            return text
+
+    request = voice_request()
+
+    spoken = speak(request, CASE, ["H1"], Voice(Fixed(), PatientValidator(request)))
+
+    assert spoken.fallback and spoken.text == H1.fallback_utterances_th[0]
+    assert PatientValidator(request).check(text, CASE, ["H1"]) == ["unsupported_number"]
+
+
 def test_clarification_does_not_require_new_fact() -> None:
     assert PatientValidator(voice_request(directive="clarify")).check("safe reply", CASE, []) == []
 

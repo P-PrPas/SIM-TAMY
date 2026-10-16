@@ -13,7 +13,7 @@ from app.services.patient_voice import MAX_CHARS, VoiceRequest
 
 _RULES = Path(__file__).resolve().parent / "prompts" / "validator_rules.yaml"
 _SENTENCE = re.compile(r"[.!?。！？\n]+")
-_NUMBER = re.compile(r"(?<![A-Za-z0-9๐-๙])(?:[0-9๐-๙]+(?:[.,][0-9๐-๙]+)?)(?:\s*[A-Za-zก-๙%]+)?")
+_NUMBER = re.compile(r"(?<![0-9๐-๙])(?:[0-9๐-๙]+(?:[.,][0-9๐-๙]+)?)(?:\s*[A-Za-zก-๙%]+)?")
 
 
 @lru_cache
