@@ -7,11 +7,12 @@ from collections.abc import Callable, Iterator
 from functools import lru_cache
 from typing import Annotated
 
-from fastapi import Depends, Header
+from fastapi import Depends, Header, Request
 from sqlalchemy.orm import Session
 
 from app.ai.llm_client import LLMClient, OnCall, Purpose, get_llm_client
 from app.content.loader import ContentStore
+from app.core import ratelimit
 from app.core.config import get_settings
 from app.core.errors import ApiError
 from app.core.security import hash_token
@@ -83,6 +84,22 @@ def learner_session(
 
 
 Learner = Annotated[LearnerSession, Depends(learner_session)]
+
+
+def turn_rate_limit(request: Request, row: Learner) -> None:
+    """10 turns a minute per session (API_DESIGN 8); HardeningMiddleware adds the headers."""
+    limit = get_settings().rate_limit_per_min
+    if not limit:
+        return
+    allowed, remaining, retry_after = ratelimit.hit(row.id, limit)
+    request.state.rate_limit = (limit, remaining)
+    if not allowed:
+        raise ApiError(
+            "RATE_LIMITED",
+            "too many requests",
+            {"retry_after_s": retry_after},
+            {"Retry-After": str(retry_after)},
+        )
 
 
 def require_instructor_secret(

@@ -110,6 +110,9 @@ def api(
     monkeypatch.setattr("app.api.deps.get_sessionmaker", lambda: maker)
     monkeypatch.setenv("CONTENT_DIR", str(CONTENT_DIR))
     monkeypatch.setenv("ALLOW_DRAFT_CASES", "true")
+    monkeypatch.setenv(
+        "RATE_LIMIT_PER_MIN", "0"
+    )  # tests play many turns; test_security_api turns it on
     get_settings.cache_clear()
     get_store.cache_clear()
     app = create_app()
