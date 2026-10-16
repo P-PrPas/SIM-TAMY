@@ -8,6 +8,7 @@ from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_store
+from app.core.config import get_settings
 from app.db.models import ClassRoom, LearnerSession, Report
 from app.rescore import rescore
 from app.seed_demo import CLASS_CODE, SCENARIOS, main, seed
@@ -18,6 +19,9 @@ def test_seed_creates_a_synthetic_class_and_is_idempotent(
 ) -> None:
     url = make_db()
     monkeypatch.setenv("DATABASE_URL", url)
+    monkeypatch.setenv("CONTENT_DIR", str(Path(__file__).resolve().parents[5] / "content"))
+    get_settings.cache_clear()
+    get_store.cache_clear()
     monkeypatch.chdir(Path(__file__).resolve().parents[3])  # where alembic.ini is
 
     first = seed()
