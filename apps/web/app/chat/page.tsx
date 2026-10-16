@@ -87,7 +87,8 @@ export default function ChatPage() {
     {error ? <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p> : <p role="status">{t("chat.loading")}</p>}
   </main>;
 
-  const canSend = (session.phase === "INTERVIEW" || session.phase === "PRESSURE") && session.turns_remaining > 0;
+  // The 40-turn budget is the interview's; the server owns the pressure scene's own budget and moves the phase on
+  const canSend = session.phase === "PRESSURE" || (session.phase === "INTERVIEW" && session.turns_remaining > 0);
   return <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
     <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div>
@@ -100,9 +101,9 @@ export default function ChatPage() {
     </header>
     <div className="grid gap-5 lg:grid-cols-[1fr_18rem]">
       <section aria-label={t("chat.title")} className="flex min-h-[60vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 font-semibold text-slate-800">
+        {session.phase !== "PRESSURE" && <div className="border-b border-slate-200 bg-slate-50 px-5 py-3 font-semibold text-slate-800">
           {t("chat.turnsRemaining")}: {session.turns_remaining}
-        </div>
+        </div>}
         <ol aria-live="polite" aria-relevant="additions" className="flex-1 space-y-4 p-4 sm:p-6">
           {messages.map((message) => <li key={message.id} className={`max-w-[90%] rounded-2xl p-4 shadow-sm ${message.speaker === "learner" ? "ml-auto bg-teal-900 text-white" : "border border-slate-200 bg-slate-50 text-slate-950"}`}>
             <p className="mb-1 text-sm font-bold">{t(`chat.${message.speaker}`)}</p>
