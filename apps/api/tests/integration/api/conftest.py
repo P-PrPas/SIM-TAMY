@@ -19,7 +19,7 @@ from app.api.deps import get_llm_factory, get_store, get_voice
 from app.content.loader import LoadedCase, load_case
 from app.core.config import get_settings
 from app.main import create_app
-from app.services.patient_voice import Voice
+from app.services.patient_voice import CannedGenerator, FloorValidator, Voice
 
 CONTENT_DIR = Path(__file__).resolve().parents[5] / "content"
 
@@ -44,10 +44,13 @@ class ScriptedProvider:
 
     def __init__(self) -> None:
         self.by_text: dict[str, Any] = {}
+        self.generator_reply: str | None = None
         self.calls = 0
 
     def complete(self, request: LLMRequest) -> LLMResponse:
         self.calls += 1
+        if request.purpose == "generator" and self.generator_reply is not None:
+            return LLMResponse(self.generator_reply, prompt_tokens=1, completion_tokens=1)
         text = request.prompt.split("<learner_text>" + chr(10))[-1].split(
             chr(10) + "</learner_text>"
         )[0]
@@ -117,6 +120,9 @@ def api(
             provider, model="scripted-model", timeout_s=1, on_call=on_call
         )
     )
+    # Existing API contract tests use a deterministic canned voice. Tests of the production
+    # LLM/validator path explicitly remove this override.
+    app.dependency_overrides[get_voice] = lambda: Voice(CannedGenerator(), FloorValidator())
     yield Api(client, lambda: maker.begin(), load_case(CONTENT_DIR / "cases" / "DEV-001"), provider)
     get_settings.cache_clear()
     get_store.cache_clear()

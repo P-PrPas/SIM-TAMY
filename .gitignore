@@ -20,6 +20,7 @@ node_modules/
 out/
 next-env.d.ts
 *.tsbuildinfo
+eval/results/
 test-results/
 playwright-report/
 coverage/

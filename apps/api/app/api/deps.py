@@ -18,7 +18,7 @@ from app.core.security import hash_token
 from app.db.models import LearnerSession
 from app.db.repo import SessionRepo
 from app.db.session import get_sessionmaker
-from app.services.patient_voice import CannedGenerator, FloorValidator, Voice
+from app.services.patient_voice import Voice
 
 _CASE_ID = re.compile(r"^[A-Za-z0-9_-]+$")
 
@@ -54,15 +54,15 @@ def get_llm_factory() -> LLMFactory:
     return lambda purpose, on_call: get_llm_client(purpose, on_call=on_call)
 
 
-def get_voice() -> Voice:
-    """T-033/T-034 swap in the LLM generator and the full validator here."""
-    return Voice(CannedGenerator(), FloorValidator())
+def get_voice() -> Voice | None:
+    """None selects the production generator once the turn's LLM call sink is available."""
+    return None
 
 
 Db = Annotated[Session, Depends(get_db)]
 Store = Annotated[ContentStore, Depends(get_store)]
 Llm = Annotated[LLMFactory, Depends(get_llm_factory)]
-VoiceDep = Annotated[Voice, Depends(get_voice)]
+VoiceDep = Annotated[Voice | None, Depends(get_voice)]
 
 
 def learner_session(
@@ -85,23 +85,50 @@ def learner_session(
 Learner = Annotated[LearnerSession, Depends(learner_session)]
 
 
+def require_instructor_secret(
+    x_instructor_secret: Annotated[str | None, Header(alias="X-Instructor-Secret")] = None,
+) -> None:
+    """Shared instructor secret is server-side only; never echo it in errors or logs."""
+    configured = get_settings().instructor_secret
+    if configured is None or not x_instructor_secret:
+        raise ApiError("UNAUTHORIZED", "instructor secret required")
+    if not hmac.compare_digest(
+        x_instructor_secret.encode(), configured.get_secret_value().encode()
+    ):
+        raise ApiError("FORBIDDEN", "invalid instructor secret")
+
+
+Instructor = Annotated[None, Depends(require_instructor_secret)]
+
+
+def reader_session(
+    session_id: uuid.UUID,
+    db: Db,
+    authorization: Annotated[str | None, Header()] = None,
+    x_instructor_secret: Annotated[str | None, Header(alias="X-Instructor-Secret")] = None,
+) -> LearnerSession:
+    """Read-only session routes allow its learner or a valid instructor (API_DESIGN 3)."""
+    if x_instructor_secret is None:
+        return learner_session(session_id, db, authorization)
+    require_instructor_secret(x_instructor_secret)
+    row = SessionRepo(db).get(session_id)
+    if row is None:
+        raise ApiError("NOT_FOUND", "session not found")
+    return row
+
+
+Reader = Annotated[LearnerSession, Depends(reader_session)]
+
+
 def glassbox_caller(
     session_id: uuid.UUID,
     db: Db,
     authorization: Annotated[str | None, Header()] = None,
-    x_instructor_secret: Annotated[str | None, Header()] = None,
+    x_instructor_secret: Annotated[str | None, Header(alias="X-Instructor-Secret")] = None,
 ) -> tuple[LearnerSession, bool]:
-    """The session plus whether the caller is an instructor (shared secret, API_DESIGN 3)."""
-    if x_instructor_secret is None:
-        return learner_session(session_id, db, authorization), False
-    secret = get_settings().instructor_secret
-    given = x_instructor_secret.encode()
-    if secret is None or not hmac.compare_digest(given, secret.get_secret_value().encode()):
-        raise ApiError("UNAUTHORIZED", "missing or invalid token")
-    row = SessionRepo(db).get(session_id)
-    if row is None:
-        raise ApiError("NOT_FOUND", "session not found")
-    return row, True
+    """The session plus whether the caller is an instructor (the live Glass Box gate)."""
+    row = reader_session(session_id, db, authorization, x_instructor_secret)
+    return row, x_instructor_secret is not None
 
 
 GlassboxCaller = Annotated[tuple[LearnerSession, bool], Depends(glassbox_caller)]

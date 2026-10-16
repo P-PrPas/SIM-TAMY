@@ -12,6 +12,7 @@ RUN pip install .
 COPY apps/api/alembic.ini ./
 COPY apps/api/migrations ./migrations
 COPY content /srv/content
+COPY recordings /recordings
 
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=3s --retries=5 \

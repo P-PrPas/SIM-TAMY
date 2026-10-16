@@ -71,12 +71,12 @@ def test_an_instructor_sees_it_without_the_flag(api: Api, instructor: None) -> N
 
 
 @pytest.mark.parametrize("secret", ["wrong", SECRET + "x", SECRET[:-1]])
-def test_a_wrong_instructor_secret_is_unauthorized(api: Api, instructor: None, secret: str) -> None:
+def test_a_wrong_instructor_secret_is_forbidden(api: Api, instructor: None, secret: str) -> None:
     created = setup_a03(api)
 
     r = live(api, created, **{"X-Instructor-Secret": secret})
 
-    assert r.status_code == 401 and r.json()["error"]["code"] == "UNAUTHORIZED"
+    assert r.status_code == 403 and r.json()["error"]["code"] == "FORBIDDEN"
 
 
 def test_no_instructor_secret_configured_means_no_instructor(api: Api) -> None:
