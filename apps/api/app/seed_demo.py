@@ -1,0 +1,129 @@
+"""`make seed-demo`: a demo class with a few completed, clearly synthetic sessions (T-081).
+
+The sessions are not hand-written rows: five golden conversations are played through the real API
+(offline lexical Interpreter, no LLM), so every report is a genuine engine result that
+`make rescore` reproduces. Re-running is a no-op once the class has sessions. The static recorded
+session for Replay Mode is `recordings/dev001-engineering.json` (T-073); it needs no database.
+"""
+
+import os
+import sys
+from collections.abc import Sequence
+from pathlib import Path
+from unittest import mock
+
+import yaml
+from alembic.config import Config
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
+from sqlalchemy.exc import OperationalError
+
+from app.ai.llm_client import LLMClient
+from app.api.deps import get_llm_factory, get_store
+from app.content.loader import load_case
+from app.core.config import get_settings
+from app.db.migrate import migrate
+from app.db.models import ClassRoom, LearnerSession
+from app.db.session import get_engine, get_sessionmaker
+from app.golden import REPO_DIR, Env, LexicalProvider, Outcome, load_golden, run_golden
+from app.main import create_app
+
+CLASS_CODE = "DEMO01"
+# a safe referral, two unsafe/late paths and both Variant C outcomes: a dashboard with variety
+SCENARIOS = ("T01", "T02", "T03", "T05", "T06")
+
+
+def _labels() -> dict[str, str]:
+    """The Thai display text lives with the content, not in code (AGENTS.md)."""
+    path = get_settings().content_dir / "demo" / "demo_class_th.yaml"
+    return dict(yaml.safe_load(path.read_text(encoding="utf-8")))
+
+
+def _reachable() -> None:
+    """Fail within seconds, not after a TCP timeout, when there is no database (`make demo`)."""
+    engine = create_engine(get_settings().database_url, connect_args={"connect_timeout": 5})
+    try:
+        with engine.connect():
+            pass
+    finally:
+        engine.dispose()
+
+
+def seed(golden_dir: Path | None = None) -> list[Outcome]:
+    """Seed the database named by DATABASE_URL; the outcomes of the sessions it added.
+
+    Each scenario is tracked by its own name, so a run that stopped midway is completed by the next
+    (a session left unfinished is skipped over, not reused or deleted); a full class adds nothing.
+    """
+    golden_dir = golden_dir or REPO_DIR / "eval" / "golden"
+    caches = (get_settings, get_engine, get_sessionmaker, get_store)
+    env_patch = {"ALLOW_DRAFT_CASES": "true", "RATE_LIMIT_PER_MIN": "0"}
+    with mock.patch.dict(os.environ, env_patch):
+        os.environ.setdefault("CONTENT_DIR", str(REPO_DIR / "content"))
+        for cached in caches:
+            cached.cache_clear()
+        try:
+            _reachable()
+            migrate(Config("alembic.ini"))  # `make demo` may be the first run on a new database
+            maker = get_sessionmaker()
+            labels = _labels()
+            names = [
+                labels["learner_name_template_th"].format(n=n) for n in range(1, 1 + len(SCENARIOS))
+            ]
+            with maker.begin() as db:
+                room = db.scalar(select(ClassRoom).where(ClassRoom.code == CLASS_CODE))
+                if room is None:
+                    room = ClassRoom(code=CLASS_CODE, name=labels["class_name_th"])
+                    db.add(room)
+                    db.flush()
+                done = set(
+                    db.scalars(
+                        select(LearnerSession.learner_name).where(
+                            LearnerSession.class_id == room.id, LearnerSession.status == "completed"
+                        )
+                    )
+                )
+            todo = [(n, s) for n, s in enumerate(SCENARIOS) if names[n] not in done]
+            if not todo:
+                return []
+            app = create_app()
+            env = Env(TestClient(app, raise_server_exceptions=False), maker, "mock")
+            outcomes: list[Outcome] = []
+            for n, scenario in todo:
+                g = load_golden(golden_dir / f"{scenario}.yaml")
+                provider = LexicalProvider(load_case(get_settings().content_dir / "cases" / g.case))
+                app.dependency_overrides[get_llm_factory] = lambda p=provider: (
+                    lambda purpose, on_call: LLMClient(
+                        p, model="seed", timeout_s=1, on_call=on_call
+                    )
+                )
+                outcomes.append(
+                    run_golden(g, env, {"learner_name": names[n], "class_code": CLASS_CODE})
+                )
+            return outcomes
+        finally:
+            for cached in caches:
+                cached.cache_clear()
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    del argv
+    try:
+        outcomes = seed()
+    except OperationalError:  # its message carries the connection string: print none of it
+        print(
+            "database not reachable (check DATABASE_URL and that Postgres is up)", file=sys.stderr
+        )
+        return 2
+    if not outcomes:
+        print(f"class {CLASS_CODE} already has all {len(SCENARIOS)} sessions: nothing to seed")
+        return 0
+    for o in outcomes:
+        print(f"{o.id}: {o.status}" + ("" if o.status == "PASS" else f" {'; '.join(o.details)}"))
+    failed = [o for o in outcomes if o.status != "PASS"]
+    print(f"seeded class {CLASS_CODE} with {len(outcomes) - len(failed)} synthetic sessions")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
