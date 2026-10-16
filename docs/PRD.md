@@ -372,6 +372,7 @@ sim-tamy/
 | `ALLOW_DRAFT_CASES` | `true` (dev/แข่ง) | production ตั้ง `false` เมื่อมี Approved |
 | `GLASS_BOX_LIVE` | `false` | |
 | `LOG_RETENTION_DAYS` | 30 | |
+| `RATE_LIMIT_PER_MIN` | 10 | จำนวน `sendTurn` ต่อนาทีต่อ session; เกิน → `429 RATE_LIMITED`; `0` = ปิด (ใช้กับ eval/golden) |
 | `CORS_ORIGINS` | — | origin ของเว็บ คั่นด้วย `,` |
 | `CORS_ORIGIN_REGEX` | — | origin ที่ตรงทั้งสตริง เช่น preview ของ Vercel; ใช้ร่วมกับ `CORS_ORIGINS` ได้ |
 

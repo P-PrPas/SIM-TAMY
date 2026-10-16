@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     git_commit: str | None = Field(
         default=None, validation_alias=AliasChoices("GIT_COMMIT", "RENDER_GIT_COMMIT")
     )
+    rate_limit_per_min: int = Field(default=10, ge=0)  # sendTurn per session; 0 = off (eval bots)
     cors_origins: str = ""  # comma-separated
     cors_origin_regex: str | None = None  # e.g. Vercel previews; matched against the whole origin
 

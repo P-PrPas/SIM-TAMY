@@ -365,6 +365,7 @@ def temp_database(server_url: str) -> Iterator[str]:
 def run_all(files: Sequence[Path], database_url: str, *, mock: bool = True) -> list[Outcome]:
     os.environ["DATABASE_URL"] = database_url
     os.environ["ALLOW_DRAFT_CASES"] = "true"
+    os.environ["RATE_LIMIT_PER_MIN"] = "0"  # a golden file plays up to 40 turns back to back
     os.environ.setdefault("CONTENT_DIR", str(REPO_DIR / "content"))
     for cached in (get_settings, get_engine, get_sessionmaker, get_store):
         cached.cache_clear()

@@ -3,10 +3,19 @@ import unicodedata
 from collections.abc import Iterator
 from typing import Annotated
 
-from fastapi import APIRouter, Header, Response
+from fastapi import APIRouter, Depends, Header, Response
 from fastapi.responses import StreamingResponse
 
-from app.api.deps import Db, GlassboxCaller, Learner, Llm, Reader, Store, VoiceDep
+from app.api.deps import (
+    Db,
+    GlassboxCaller,
+    Learner,
+    Llm,
+    Reader,
+    Store,
+    VoiceDep,
+    turn_rate_limit,
+)
 from app.api.v1.schemas import (
     CompleteRequest,
     CompleteResponse,
@@ -73,7 +82,12 @@ def get_session(row: Reader, db: Db, store: Store) -> SessionView:
     return sessions.view_session(db, store, row)
 
 
-@router.post("/sessions/{session_id}/turns", response_model=TurnResponse, operation_id="sendTurn")
+@router.post(
+    "/sessions/{session_id}/turns",
+    response_model=TurnResponse,
+    operation_id="sendTurn",
+    dependencies=[Depends(turn_rate_limit)],
+)
 def send_turn(
     body: TurnRequest,
     response: Response,

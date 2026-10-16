@@ -67,10 +67,12 @@ bench:
 rescore:
 	@test -n "$(SESSION)" || { echo "usage: make rescore SESSION=<id>"; exit 2; }
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.rescore $(SESSION)
+# Measured from llm_calls / events (needs DATABASE_URL). Prices are never assumed:
+# `make cost-report COST_ARGS='--price openai_like:MODEL=INPUT_USD_PER_M,OUTPUT_USD_PER_M'`.
 stats:
-	@echo "not implemented: latency stats (T-044)"; exit 1
+	cd $(API) && ../../$(PY) -m app.stats stats
 cost-report:
-	@echo "not implemented: LLM cost report (T-044)"; exit 1
+	cd $(API) && ../../$(PY) -m app.stats cost-report $(COST_ARGS)
 purge-old:
 	@echo "not implemented: retention purge"; exit 1
 demo:
