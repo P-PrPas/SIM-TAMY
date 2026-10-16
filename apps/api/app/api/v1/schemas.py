@@ -434,3 +434,34 @@ class ReportResponse(BaseModel):
     overrides: list[Override]
     effective: EffectiveScore
     disclaimers: list[str]
+
+
+# ---------- Offline Replay (T-073) ----------
+
+
+class RecordingSummary(BaseModel):
+    recording_id: str
+    title_th: str
+    case_id: str
+    variant: Variant
+    description_th: str | None = None
+    steps_count: int | None = None
+
+
+class RecordingStep(BaseModel):
+    t_ms: Annotated[int, Field(ge=0)]
+    type: Literal["learner", "reply", "decision", "phase_change", "complete"]
+    speaker: Speaker | None = None
+    text: str | None = None
+    option_id: str | None = None
+    phase: Phase | None = None
+
+
+class Recording(RecordingSummary):
+    case: CaseBrief
+    steps: list[RecordingStep]
+    report: ReportResponse
+
+
+class RecordingList(BaseModel):
+    items: list[RecordingSummary]
