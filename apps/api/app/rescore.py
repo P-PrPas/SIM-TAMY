@@ -77,7 +77,9 @@ def rescore(db: Session, store: ContentStore, session_id: uuid.UUID) -> Rescored
         )
     try:
         log = [
-            LoggedEvent(id=e.id, type=e.type, turn_idx=e.turn_idx, payload=e.payload)
+            LoggedEvent.model_validate(
+                {"id": e.id, "type": e.type, "turn_idx": e.turn_idx, "payload": e.payload}
+            )
             for e in EventRepo(db).list_for_session(session_id)
         ]
     except ValidationError as exc:

@@ -1,9 +1,11 @@
 """T-023: the Variant C pressure scene through the API (FR-ENG-05, ADR-11)."""
 
+import json
 from typing import Any
 
 import pytest
 
+from app.services.patient_voice import FloorValidator, Voice, VoiceRequest
 from tests.integration.api.conftest import Api, ask
 from tests.integration.api.test_closing_api import complete, decide, report
 from tests.integration.api.test_turns_api import (
@@ -75,6 +77,31 @@ def test_holding_the_referral_resolves_the_pressure_and_passes_the_comm_items(ap
     assert complete(api, created).status_code == 200
     results = item_results(api, created)
     assert (results["R-COMM-02"], results["R-COMM-03"]) == ("pass", "pass")
+
+
+class NoGenerator:
+    def generate(self, request: VoiceRequest, attempt: int) -> str:
+        raise AssertionError("the pressure scene is scripted: the Generator is never called")
+
+
+def test_a_pressure_turn_streams_the_scripted_line_without_the_generator(api: Api) -> None:
+    created = at_pressure(api)
+    decide(api, created)
+    api.use_voice(Voice(NoGenerator(), FloorValidator()))
+
+    r = api.client.post(
+        f"/v1/sessions/{created['session_id']}/turns?stream=true",
+        json={"text": CHAT},
+        headers=api.headers(created),
+    )
+
+    assert r.status_code == 200
+    frames = [f for f in r.text.split("\n\n") if f]
+    deltas = [json.loads(f.split("data: ", 1)[1]) for f in frames[:-1]]
+    done = json.loads(frames[-1].split("data: ", 1)[1])
+    assert {d["speaker"] for d in deltas} == {"relative"}
+    assert "".join(d["text"] for d in deltas) == script(api)[1] == done["replies"][0]["text"]
+    api.assert_no_leak(done)
 
 
 def test_giving_in_is_unsafe_and_fails_the_pressure_items(api: Api) -> None:

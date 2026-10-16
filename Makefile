@@ -62,7 +62,7 @@ leakcheck:
 eval:
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) ../../eval/run_eval.py $(if $(PROVIDER),--provider $(PROVIDER))
 bench:
-	@echo "not implemented: model bench (T-005)"; exit 1
+	cd $(API) && ../../$(PY) ../../eval/model_bench.py $(BENCH_ARGS)
 # Rebuilds the score from the Event Log and diffs it with the stored report (needs DATABASE_URL).
 rescore:
 	@test -n "$(SESSION)" || { echo "usage: make rescore SESSION=<id>"; exit 2; }
@@ -74,4 +74,4 @@ cost-report:
 purge-old:
 	@echo "not implemented: retention purge"; exit 1
 demo:
-	@echo "not implemented: demo mode (T-073)"; exit 1
+	@sh scripts/demo.sh

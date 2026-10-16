@@ -11,10 +11,12 @@ from typing import Any, NamedTuple
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.ai.generator import PatientGenerator
 from app.ai.interpreter import HistoryTurn, Interpretation, interpret
 from app.ai.lexical import match_actions
 from app.ai.llm_client import LLMCallRecord, LLMError
 from app.ai.policy import apply_policy
+from app.ai.validator import PatientValidator
 from app.api.deps import LLMFactory
 from app.api.v1.schemas import Reply, TurnRequest, TurnResponse
 from app.content.loader import ContentStore
@@ -55,7 +57,7 @@ def _replay(db: Session, row: LearnerSession, learner_turn_idx: int) -> TurnResp
     # the relative's opening line is stored at the decision's index: it answers the decision
     opened_at = {e.turn_idx for e in events if e.type == "PRESSURE_STARTED"}
     replies = [
-        Reply(speaker=t.speaker, text=t.text)
+        Reply.model_validate({"speaker": t.speaker, "text": t.text})
         for t in turns
         if t.speaker != "learner" and not (t.speaker == "relative" and t.idx in opened_at)
     ]
@@ -97,7 +99,7 @@ def send_turn(
     db: Session,
     store: ContentStore,
     llm: LLMFactory,
-    voice: Voice,
+    voice: Voice | None,
     authed: LearnerSession,
     req: TurnRequest,
 ) -> Outcome:
@@ -174,7 +176,13 @@ def send_turn(
             directive=directive,
             learner_text=req.text,
             history=history,
+            persona_minimization=loaded.case.variants[variant].persona.minimization,
+            persona_mood=new_state.last_directive.mood,
         )
+        if voice is None:
+            voice = Voice(
+                PatientGenerator(llm("generator", calls.append)), PatientValidator(request)
+            )
         spoken = speak(request, loaded.case, new_state.revealed_fact_ids, voice)
 
     # 4. Persist: events in contract order, turns, llm_calls, state (CAS), all in this transaction

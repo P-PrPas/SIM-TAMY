@@ -24,6 +24,7 @@ _BUILTIN: dict[str, list[dict[str, Any]]] = {
     ],
 }
 _FALLBACK_TEXT = "mock reply"
+_CANNED = Path(__file__).resolve().parents[1] / "prompts" / "canned_th.yaml"
 
 
 class MockProvider:
@@ -50,6 +51,9 @@ class MockProvider:
                 return _reply(rule["return"])
         if request.json_schema is not None:
             raise LLMProviderError("mock_no_rule", retryable=False)
+        if request.purpose == "generator":
+            lines = yaml.safe_load(_CANNED.read_text(encoding="utf-8"))
+            return _reply(lines["smalltalk"])
         return LLMResponse(text=_FALLBACK_TEXT, prompt_tokens=0, completion_tokens=0)
 
 
