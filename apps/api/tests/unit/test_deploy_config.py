@@ -74,3 +74,16 @@ def test_compose_passes_the_confidence_thresholds_with_the_code_defaults() -> No
         env["ACTION_CLARIFY_THRESHOLD"]
         == f"${{ACTION_CLARIFY_THRESHOLD:-{defaults.action_clarify_threshold}}}"
     )
+
+
+def test_compose_and_render_forward_every_llm_setting() -> None:
+    """GLM needs LLM_BASE_URL and LLM_REASONING_EFFORT; a missing line is silently ignored."""
+    import yaml
+
+    root = Path(__file__).resolve().parents[4]
+    compose = yaml.safe_load((root / "docker-compose.yml").read_text())
+    render = yaml.safe_load((root / "render.yaml").read_text())
+    wanted = {name.upper() for name in Settings.model_fields if name.startswith("llm_")}
+
+    assert wanted <= set(compose["services"]["api"]["environment"])
+    assert wanted <= {v["key"] for v in render["services"][0]["envVars"]}

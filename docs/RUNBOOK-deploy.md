@@ -54,8 +54,15 @@ redirect HTTP to HTTPS. Secrets are only in the Render dashboard.
 
 ## 6. Switching to a real LLM later
 
-Add `LLM_API_KEY` (and `LLM_PROVIDER`, `LLM_MODEL_*`, `LLM_BASE_URL`) in the Render dashboard; never in
-`render.yaml`. Set `LLM_PROVIDER` back to `mock` to fall back to the deterministic provider.
+`render.yaml` already carries the GLM-5.3 settings (`LLM_BASE_URL`, `LLM_MODEL_*`, `LLM_REASONING_EFFORT`,
+`LLM_TIMEOUT_S`) with `LLM_PROVIDER=mock`. To go live, in the Render dashboard type the `LLM_API_KEY` value
+and change `LLM_PROVIDER` to `openai_like`; the key is never put in `render.yaml`. Set `LLM_PROVIDER` back to
+`mock` to fall back to the deterministic provider.
+
+Use a key from the standard Z.ai API, not a GLM Coding Plan key: the Coding Plan is limited to Z.ai's
+supported coding tools and its keys are not interchangeable (docs.z.ai/devpack/quick-start), so the base
+URL is `https://api.z.ai/api/paas/v4`, not `/api/coding/paas/v4`. Locally: `cp .env.glm.example .env`, then
+fill `LLM_API_KEY`.
 
 ## Not covered here
 

@@ -24,8 +24,22 @@ services:
         fromDatabase:
           name: sim-tamy-db
           property: connectionString
-      - key: LLM_PROVIDER
+      - key: LLM_PROVIDER # staging stays offline; set openai_like in the dashboard to use GLM
         value: mock
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_BASE_URL # Z.ai general API, not the Coding Plan endpoint
+        value: https://api.z.ai/api/paas/v4
+      - key: LLM_MODEL_INTERPRETER
+        value: glm-5.3
+      - key: LLM_MODEL_GENERATOR
+        value: glm-5.3
+      - key: LLM_MODEL_DEBRIEF
+        value: glm-5.3
+      - key: LLM_REASONING_EFFORT
+        value: low
+      - key: LLM_TIMEOUT_S
+        value: "30"
       - key: ALLOW_DRAFT_CASES
         value: "true"
       - key: INSTRUCTOR_SECRET
