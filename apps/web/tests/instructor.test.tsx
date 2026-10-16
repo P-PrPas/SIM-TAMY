@@ -111,7 +111,7 @@ describe("T-055/T-057 instructor dashboard", () => {
       fireEvent.click(screen.getByRole("button", { name: /Synthetic class/ }));
       fireEvent.click(screen.getByRole("button", { name: /Second class/ }));
       expect(await screen.findByText("Learner of B")).toBeTruthy();
-      pending.ABC123({ data: { items: [rowA], next_cursor: null } });
+      pending.ABC123?.({ data: { items: [rowA], next_cursor: null } });
       await new Promise((resolve) => setTimeout(resolve, 20));
       expect(screen.queryByText("Learner of A")).toBeNull();
       expect(screen.getByText("Learner of B")).toBeTruthy();
