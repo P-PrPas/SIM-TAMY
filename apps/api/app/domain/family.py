@@ -14,6 +14,7 @@ class FamilyChoice(Model):
     id: NonBlank
     text_th: NonBlank
     reply_th: NonBlank
+    reply_alternatives_th: list[NonBlank] = []
     feedback_th: NonBlank
     skills: list[FamilySkill] = []
     safe: bool = True
@@ -45,6 +46,7 @@ class FamilyStory(Model):
     version: NonBlank
     status: Literal["Draft", "In Review", "Approved"]
     mode: Literal["coop", "solo"] = "coop"
+    voice_style_th: NonBlank | None = None
     title_th: NonBlank
     description_th: NonBlank
     roles: dict[FamilyRole, NonBlank]

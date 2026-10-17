@@ -2,12 +2,16 @@
 
 import hmac
 import uuid
+from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from typing import cast
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.ai.family_voice import reply
+from app.ai.llm_client import LLMCallRecord
+from app.api.deps import LLMFactory
 from app.api.v1.family_schemas import (
     FamilyCompetency,
     FamilyDecision,
@@ -22,6 +26,7 @@ from app.core.config import get_settings
 from app.core.errors import ApiError
 from app.core.security import hash_token
 from app.db.family import FamilyEvent, FamilyRoom
+from app.db.repo import LlmCallRepo
 from app.domain.family import FamilyRole, FamilyStory
 from app.engine.family import assess, choose, prompt, selections
 
@@ -58,7 +63,8 @@ def events(db: Session, row: FamilyRoom) -> list[FamilyEvent]:
 
 def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
     story = FamilyStory.model_validate(row.story)
-    choices = [event.choice_id for event in events(db, row)]
+    saved = events(db, row)
+    choices = [event.choice_id for event in saved]
     chosen = selections(story, choices)
     transcript = [
         FamilyExchange(
@@ -67,7 +73,7 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
             speaker_th=step.speaker_th,
             prompt_th=prompt(story, choices[:i]),
             text_th=choice.text_th,
-            reply_th=choice.reply_th,
+            reply_th=saved[i].reply_th or choice.reply_th,
         )
         for i, (step, choice) in enumerate(zip(story.steps, chosen, strict=False))
     ]
@@ -124,7 +130,9 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
     )
 
 
-def decide(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyDecision) -> FamilyView:
+def decide(
+    db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyDecision, *, llm: LLMFactory
+) -> FamilyView:
     saved = events(db, row)
     prior = next((event for event in saved if event.client_turn_id == body.client_turn_id), None)
     if prior:
@@ -140,12 +148,25 @@ def decide(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyDecision)
         choose(story, [event.choice_id for event in saved], role, body.choice_id)
     except ValueError as exc:
         raise ApiError("DECISION_OPTION_INVALID", str(exc)) from exc
+    choice = selections(story, [event.choice_id for event in saved] + [body.choice_id])[-1]
+    spoken = choice.reply_th
+    if story.voice_style_th:
+        calls: list[LLMCallRecord] = []
+        spoken = reply(
+            llm("generator", calls.append),
+            persona=story.voice_style_th,
+            learner_text=choice.text_th,
+            allowed=[choice.reply_th, *choice.reply_alternatives_th],
+        )
+        for call in calls:
+            LlmCallRepo(db).record(session_id=row.id, turn_idx=len(saved) + 1, **asdict(call))
     db.add(
         FamilyEvent(
             room_id=row.id,
             idx=len(saved),
             role=role,
             choice_id=body.choice_id,
+            reply_th=spoken,
             client_turn_id=body.client_turn_id,
         )
     )

@@ -76,17 +76,25 @@ def main() -> None:
         with db.begin():
             count = purge_expired(db, retention_days=days, now=datetime.now(UTC))
             cutoff = datetime.now(UTC) - timedelta(days=days)
-            family_count = len(
-                list(
-                    db.scalars(
-                        delete(FamilyRoom)
-                        .where(FamilyRoom.created_at < cutoff)
-                        .returning(FamilyRoom.id)
-                    )
-                )
-            )
+            family_count = purge_family(db, cutoff=cutoff)
     print(f"Purged sessions: {count}")
     print(f"Purged family rooms: {family_count}")
+
+
+def purge_family(db: Session, *, cutoff: datetime) -> int:
+    """Retention deletes the parent and unlinked LLM metadata, never individual live events."""
+    ids = list(
+        db.scalars(
+            select(FamilyRoom.id)
+            .where(FamilyRoom.created_at < cutoff)
+            .with_for_update(skip_locked=True)
+        )
+    )
+    if not ids:
+        return 0
+    db.execute(delete(LlmCall).where(LlmCall.session_id.in_(ids)))
+    db.execute(delete(FamilyRoom).where(FamilyRoom.id.in_(ids)))
+    return len(ids)
 
 
 if __name__ == "__main__":

@@ -60,3 +60,29 @@ test("a parent resumes a three-chapter story and reaches its evidence report", a
   await expect(page.getByRole("heading", { name: t("family.sources") })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test("all four grandmother topics finish with cited evidence and bounded dialogue", async ({ page, request }) => {
+  for (const topic of ["fire", "compress", "food", "herbs"]) {
+    await page.goto(`/bridge?topic=${topic}`);
+    await page.getByRole("button", { name: t("family.startSolo"), exact: true }).click();
+    await expect(page.getByText(t("family.private"), { exact: true })).toBeVisible();
+    const saved = await page.evaluate((id) => JSON.parse(sessionStorage.getItem(`sim-tamy-family:${id}`)!) as { room_id: string; token: string }, `bridge-${topic}`);
+    const url = `http://127.0.0.1:8000/v1/family/rooms/${saved.room_id}`;
+    const headers = { Authorization: `Bearer ${saved.token}` };
+    for (let i = 0; i < 3; i++) {
+      const view = await (await request.get(url, { headers })).json() as components["schemas"]["FamilyView"];
+      expect(view.report).toBeNull();
+      await page.getByRole("button", { name: view.scene!.choices[0]!.text_th, exact: true }).click();
+      await expect.poll(async () => (await (await request.get(url, { headers })).json()).state_version).toBe(i + 1);
+    }
+    await expect(page.getByRole("heading", { name: t("family.sources") })).toBeVisible();
+    await expect(page.locator('a[href^="https://"]')).not.toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  }
+  await page.addScriptTag({ path: require.resolve("axe-core/axe.min.js") });
+  const violations = await page.evaluate(async () => {
+    const axe = (globalThis as unknown as { axe: { run: () => Promise<{ violations: Array<{ id: string; impact: string | null }> }> } }).axe;
+    return (await axe.run()).violations.filter((v) => v.impact === "critical" || v.impact === "serious").map((v) => v.id);
+  });
+  expect(violations).toEqual([]);
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 
 import { createApi, ApiError } from "@/lib/api/client";
@@ -12,7 +12,7 @@ type Role = View["role"];
 type Credentials = { room_id: string; token: string; invite?: string };
 type Decision = components["schemas"]["FamilyDecision"];
 
-export function FamilySimulator({ storyId }: { storyId: string }) {
+export function FamilySimulator({ storyId, children }: { storyId: string; children?: ReactNode }) {
   const storageKey = `sim-tamy-family:${storyId}`;
   const [credentials, setCredentials] = useState<Credentials | null>(null);
   const [view, setView] = useState<View | null>(null);
@@ -25,7 +25,7 @@ export function FamilySimulator({ storyId }: { storyId: string }) {
   const [card, setCard] = useState<components["schemas"]["FamilyStoryCard"] | null>(null);
   const requestInFlight = useRef(false);
   const inviteLink = ready && credentials?.invite
-    ? `${window.location.origin}${window.location.pathname}#room=${credentials.room_id}&invite=${credentials.invite}` : "";
+    ? `${window.location.origin}${window.location.pathname}${window.location.search}#room=${credentials.room_id}&invite=${credentials.invite}` : "";
   const client = (saved = credentials) => createApi({
     baseUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
     getToken: () => saved?.token,
@@ -130,7 +130,9 @@ export function FamilySimulator({ storyId }: { storyId: string }) {
     <nav aria-label={t("family.courses")} className="my-6 flex flex-wrap gap-3">
       <Link href="/family" className="button-text" aria-current={storyId === "first-night" ? "page" : undefined}>{t("family.link")}</Link>
       <Link href="/parenthood" className="button-text" aria-current={storyId === "parenthood" ? "page" : undefined}>{t("family.journey")}</Link>
+      <Link href="/bridge" className="button-text" aria-current={storyId.startsWith("bridge-") ? "page" : undefined}>{t("family.bridge")}</Link>
     </nav>
+    {children}
     {card && card.chapters_th.length > 1 && <ol aria-label={t("family.chapters")} className="my-6 grid gap-3 sm:grid-cols-3">
       {card.chapters_th.map((chapter) => <li key={chapter} aria-current={view?.scene?.chapter_th === chapter ? "step" : undefined} className={`rounded-2xl border p-4 ${view?.scene?.chapter_th === chapter ? "border-amber-600 bg-amber-50 font-semibold" : "border-stone-300"}`}>{chapter}</li>)}
     </ol>}
@@ -150,7 +152,7 @@ export function FamilySimulator({ storyId }: { storyId: string }) {
         <input id="family-invite" type="url" value={invitation} onChange={(e) => setInvitation(e.target.value)} className="w-full rounded-xl border border-stone-400 bg-white p-3" />
         <button disabled={busy || !invitation} onClick={() => void start(true)} className="button-primary mt-5 w-full">{t("family.join")}</button>
       </section>}
-    </div> : !view ? <p className="mt-8" role="status">{t("family.loading")}</p> : <>
+    </div> : !view ? <div className="mt-8"><p role="status">{t("family.loading")}</p><button onClick={leave} className="button-text mt-4">{t("family.leave")}</button></div> : <>
       <div className="my-7 flex flex-wrap items-center justify-between gap-4">
         <span className="rounded-full bg-amber-100 px-4 py-2 font-semibold">{t(`family.${view.role}`)}</span>
         <span>{view.state_version} / {view.total_steps} {t("family.decisions")}</span>
@@ -162,7 +164,7 @@ export function FamilySimulator({ storyId }: { storyId: string }) {
         <label htmlFor="family-share" className="sr-only">{t("family.invitation")}</label>
         <input id="family-share" readOnly value={inviteLink} onFocus={(e) => e.target.select()} className="w-full rounded-xl border border-stone-400 p-3" />
       </section>}
-      <section aria-label={t("family.conversation")} className="space-y-4">
+      <section role="log" aria-live="polite" aria-relevant="additions" aria-label={t("family.conversation")} className="space-y-4">
         {view.transcript.map((turn) => <article key={turn.idx} className="rounded-2xl border border-stone-200 bg-white p-5">
           <p className="font-semibold">{turn.speaker_th}</p><p className="mt-2">{turn.prompt_th}</p>
           <p className="mb-2 mt-4 font-semibold text-brand-800">{t(`family.${turn.role}`)}</p><p>{turn.text_th}</p>
@@ -179,7 +181,7 @@ export function FamilySimulator({ storyId }: { storyId: string }) {
       {view.report && <section className="mt-8 rounded-3xl border border-stone-300 bg-white p-6">
         <h2 className="text-2xl font-bold">{t("family.report")}</h2><p className="my-4">{t(view.report.safety_status === "SAFETY_NOT_MET" ? "family.safetyReview" : "family.safetyObserved")}</p>
         <p className="mb-5 text-stone-600">{t("family.reportNote")}</p>
-        <div className="grid gap-3 sm:grid-cols-2">{view.report.competencies.map((item) => <div key={item.skill} className="rounded-xl bg-amber-50 p-4"><h3 className="font-semibold">{t(`family.skills.${item.skill}`)}</h3><p className="mt-2">{item.observed} / {item.opportunities} {t("family.observed")}</p></div>)}</div>
+        <div className="grid gap-3 sm:grid-cols-2">{view.report.competencies.map((item) => <div key={item.skill} className="rounded-xl bg-amber-50 p-4"><h3 className="font-semibold">{t(`family.skills.${item.skill}`)}</h3><p className="mt-2">{item.opportunities ? <>{item.observed} / {item.opportunities} {t("family.observed")}</> : t("family.noOpportunity")}</p></div>)}</div>
         <ol className="my-6 space-y-4">{view.report.evidence.map((item) => <li key={item.idx} className="border-b border-stone-200 pb-4"><blockquote className="font-semibold">“{item.text_th}”</blockquote><p className="my-2">{item.feedback_th}</p>{item.source_ids.map((id) => <a className="mr-4 underline" key={id} href={`#source-${id}`}>{view.report?.sources.find((source) => source.id === id)?.title_th}</a>)}</li>)}</ol>
         <h3 className="text-xl font-bold">{t("family.sources")}</h3><ul className="mt-4 space-y-4">{view.report.sources.map((source) => <li key={source.id} id={`source-${source.id}`} className="scroll-mt-24"><p className="text-sm font-semibold">{t(`family.categories.${source.category}`)}</p><a href={source.url} target="_blank" rel="noreferrer" className="underline">{source.title_th}</a><p className="mt-2">{source.summary_th}</p></li>)}</ul>
       </section>}

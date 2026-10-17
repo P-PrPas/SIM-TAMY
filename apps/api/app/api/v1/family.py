@@ -6,7 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Header
 
-from app.api.deps import Db
+from app.api.deps import Db, Llm
 from app.api.v1.family_schemas import (
     FamilyCreate,
     FamilyCreated,
@@ -87,7 +87,7 @@ def get(room_id: uuid.UUID, db: Db, authorization: Auth = None) -> FamilyView:
     "/rooms/{room_id}/decisions", operation_id="decideFamilyRoom", response_model=FamilyView
 )
 def decide(
-    room_id: uuid.UUID, body: FamilyDecision, db: Db, authorization: Auth = None
+    room_id: uuid.UUID, body: FamilyDecision, db: Db, llm: Llm, authorization: Auth = None
 ) -> FamilyView:
     row = family.room(db, room_id, lock=True)
-    return family.decide(db, row, family.role_of(row, authorization), body)
+    return family.decide(db, row, family.role_of(row, authorization), body, llm=llm)
