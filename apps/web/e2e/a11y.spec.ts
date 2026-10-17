@@ -45,7 +45,8 @@ async function expectNoSeriousViolations(page: Page) {
 
 // What each screen shows once its data has loaded; the loading and error states also render <main>.
 const ready: Record<string, (page: Page) => Locator> = {
-  "/": (page) => page.getByRole("heading", { name: t("join.title") }),
+  // the heading also shows while the cases load or fail; the enabled select means a case is chosen
+  "/": (page) => page.locator("#case:enabled"),
   "/briefing": (page) => page.getByRole("link", { name: t("briefing.begin") }),
   "/chat": (page) => page.getByRole("textbox", { name: t("chat.messageLabel") }),
   "/decision": (page) => page.locator('input[name="decision"]').first(),
@@ -61,6 +62,10 @@ for (const [name, path, phase] of [
     if (path !== "/") await seed(page, phase);
     await page.goto(path);
     await expect(ready[path]!(page)).toBeVisible();
+    if (path === "/") {
+      await expect(page.locator("#case option").first()).toBeAttached();
+      await expect(page.getByText(new RegExp(["draft", "inReview", "approved"].map((key) => t(`status.${key}`)).join("|"))).first()).toBeVisible();
+    }
     if (phase === "PRESSURE") await expect(page.getByText(t("chat.pressure"))).toBeVisible();
     await expectNoSeriousViolations(page);
   });
