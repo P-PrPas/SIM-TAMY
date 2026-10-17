@@ -10,9 +10,18 @@ The public replay API is disabled in application defaults. Compose, `.env.exampl
 and the Render Blueprint explicitly enable it with `ENABLE_REPLAY=true`.
 An existing deployment with an explicit false override must set `ENABLE_REPLAY=true`.
 
-The six `*-example.json` files are synthetic learning examples built by
-`make build-course-replays` from the existing content-owned golden conversations.
-Patient lines pass through the same Generator/Validator/fallback path using the canned
-generator; reports are computed by the real deterministic engine. No live learner text,
-real patient data, or live LLM calls are used. Case status remains Draft in their data;
-these examples do not assert expert approval. The learner gallery excludes DEV-001.
+The six `*-example.json` files use authored dialogue from
+`content/examples/dialogues_th.yaml` (58 learner/patient exchanges). Run
+`make build-course-replays` to rebuild them without a database or LLM. Playback also
+only reads static JSON; it never invokes a model.
+
+The compiler checks each question against the existing golden action sequence,
+case version, allowed fact references, newly revealed facts and hard patient Validator.
+It fails on invalid dialogue rather than replacing it with generic canned replies.
+Measurements are displayed as system observations using the exact newly allowed fact,
+not phrased as something the patient says. Reports still come from the deterministic
+engine; all six reports and their metadata are unchanged by this dialogue revision.
+
+No live learner text or real patient data is used. Case status remains Draft in their
+data; authored wording does not assert expert approval. DEV-001 remains excluded from
+the learner gallery and its engineering snapshot is unchanged.
