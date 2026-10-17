@@ -60,7 +60,9 @@ def get_voice() -> Voice | None:
     return None
 
 
-Db = Annotated[Session, Depends(get_db)]
+# scope="function": commit before the response is sent. The default (request scope) runs the code
+# after `yield` once the client already has the response, so a follow-up request could miss it.
+Db = Annotated[Session, Depends(get_db, scope="function")]
 Store = Annotated[ContentStore, Depends(get_store)]
 Llm = Annotated[LLMFactory, Depends(get_llm_factory)]
 VoiceDep = Annotated[Voice | None, Depends(get_voice)]
