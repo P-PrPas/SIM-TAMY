@@ -115,6 +115,7 @@ def test_course_scripted_relative_lines_do_not_state_a_hidden_fact(case_id: str)
 # Partial replies a model could produce before the fact is asked; the Validator must reject each.
 PARTIAL_REPLIES = {
     "MOM-001": ["ปวดศีรษะมากไม่ยอมหาย กินยาแล้วก็ไม่ดีขึ้น"],
+    "MOM-002": ["มีไข้ตั้งแต่เมื่อวาน", "แผลยังไม่หายสนิท", "น้ำคาวปลาเหม็น", "ยาต้มที่คุณยายให้"],
     "DAD-002": ["มีไข้ตั้งแต่เมื่อวาน", "ปวดศีรษะไม่หาย", "น้ำคาวปลาเหม็น", "ร้องไห้มาหลายวัน"],
 }
 
