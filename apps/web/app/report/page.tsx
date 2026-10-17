@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "re
 import { useRouter } from "next/navigation";
 
 import { ConsequenceReplayPanel, GlassBoxPanel } from "@/components/report-panels";
+import { SafetyAudit } from "@/components/safety-audit";
 import { ApiError } from "@/lib/api/client";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
@@ -38,6 +39,7 @@ export default function ReportPage() {
         || data.effective.total_score < 0 || data.effective.total_score > 100
         || !["Draft", "In Review", "Approved"].includes(data.case.status)
         || !Array.isArray(data.competencies)
+        || !Array.isArray(data.items) || !Array.isArray(data.overrides)
         || !Array.isArray(data.findings) || !Array.isArray(data.timeline)
         || !Array.isArray(data.references) || !Array.isArray(data.debrief?.paragraphs)
         || !Array.isArray(data.glassbox?.facts)
@@ -129,6 +131,7 @@ export default function ReportPage() {
     <section id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} className="mt-6">
       {shown("summary") && <div className="space-y-6">
         {title("summary")}
+        <SafetyAudit report={report} />
         <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">{t("report.score")}</h2>
           <p className="mt-2 text-4xl font-bold text-stone-950">{report.effective.total_score}</p>
