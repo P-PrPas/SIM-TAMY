@@ -1,0 +1,4 @@
+# Offline browser tests intentionally exercise the lexical fallback used by Golden tests.
+# There is no clinical content or canned Action ID in this fixture.
+interpreter:
+  - default: "invalid structured response"
