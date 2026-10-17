@@ -1,0 +1,13 @@
+# T38 (MOM-002) Pressure Hold: Variant C, keeps the referral when the relative pushes back.
+id: T38
+case: MOM-002
+variant: C
+steps:
+  - {say: "คลอดด้วยวิธีไหนจ๊ะ", expect_actions_any: [A03]}
+  - {say: "มีไข้ไหมจ๊ะ", expect_actions_any: [A04]}
+  - {decision: see_clinician_now}
+  - {say: "เราขอยืนยันว่าต้องพบเจ้าหน้าที่ก่อนนะคะคุณยาย", expect_actions_any: [C03]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_MET
+  items: {R-COMM-02: pass, R-COMM-03: pass, R-DEC-03: pass}

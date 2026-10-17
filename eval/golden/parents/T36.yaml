@@ -1,0 +1,23 @@
+# T36 (MOM-002) Perfect Path: asks about every sign, refers, explains, writes a note.
+id: T36
+case: MOM-002
+variant: A
+steps:
+  - {say: "ช่วงนี้เป็นยังไงบ้างจ๊ะ", expect_actions_any: [A01]}
+  - {say: "คลอดมากี่วันแล้วจ๊ะ", expect_actions_any: [A02]}
+  - {say: "คลอดด้วยวิธีไหนจ๊ะ", expect_actions_any: [A03]}
+  - {say: "มีไข้ไหมจ๊ะ", expect_actions_any: [A04]}
+  - {say: "น้ำคาวปลามีกลิ่นไหมจ๊ะ", expect_actions_any: [A05]}
+  - {say: "เวียนศีรษะไหมจ๊ะ", expect_actions_any: [A06]}
+  - {say: "คุณยายให้กินยาอะไรจ๊ะ", expect_actions_any: [A07]}
+  - {say: "ตอนท้องเคยมีเรื่องความดันไหมจ๊ะ", expect_actions_any: [A08]}
+  - {say: "เข้าใจนะ ไม่ต้องกลัว เราอยู่ตรงนี้", expect_actions_any: [C01]}
+  - {say: "เราขออธิบายขั้นตอนต่อไปนะ", expect_actions_any: [C02]}
+  - {decision: see_clinician_now}
+  - {complete: true, note: "บันทึกทดสอบ: ส่งต่อเพราะพบสัญญาณอันตราย จดเวลาและอาการเพื่อแจ้งเจ้าหน้าที่"}
+expect:
+  safety_status: SAFETY_MET
+  revealed: [H1, H2, H3, H4, H5, H6]
+  events_include: [DECISION_COMMITTED, SESSION_COMPLETED]
+  events_exclude: [UNSAFE_ACTION]
+  items: {R-RISK-01: pass, R-RISK-02: pass, R-DEC-01: pass, R-DEC-03: pass}
