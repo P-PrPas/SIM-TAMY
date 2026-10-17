@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { EvidenceReview } from "@/components/evidence-review";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
 import { t } from "@/lib/i18n";
+import { EvidenceReview } from "@/components/evidence-review";
 
 type Report = components["schemas"]["ReportResponse"];
 type Message = components["schemas"]["Message"];
