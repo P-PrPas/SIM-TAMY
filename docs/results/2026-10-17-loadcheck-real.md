@@ -1,0 +1,16 @@
+# Latency and concurrency check (T-074)
+
+- Measured: 2026-10-17T09:57:15+00:00
+- Concurrent learners: 20, turns each: 6, requests: 200, wall clock: 60.3 s
+- Server: provider `openai_like`, version `0.1.0`, commit `unknown`
+- Errors (non-2xx or no answer): 1 of 200 (0.5%); status codes: 200: 179, 201: 20, 409: 1
+- Turn p95 9387 ms against the PRD 1.3 target of 8 s: NOT met
+- Latency is client wall clock, including network. Per-LLM-call numbers: `make stats`.
+
+| Step | Requests | Errors | p50 ms | p95 ms | max ms |
+|---|---:|---:|---:|---:|---:|
+| create session | 20 | 0 | 1645 | 1724 | 1727 |
+| turn | 120 | 0 | 6038 | 9387 | 26746 |
+| decision | 20 | 0 | 765 | 1613 | 1741 |
+| complete | 20 | 0 | 3967 | 4959 | 5109 |
+| report | 20 | 1 | 41 | 673 | 1722 |
