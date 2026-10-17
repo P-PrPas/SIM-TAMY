@@ -30,6 +30,12 @@ class Variant(StrEnum):
     C = "C"
 
 
+class Audience(StrEnum):
+    DAD = "dad"
+    MOM = "mom"
+    STAFF = "staff"
+
+
 class CaseStatus(StrEnum):
     DRAFT = "Draft"
     IN_REVIEW = "In Review"
@@ -72,6 +78,7 @@ class CaseSummary(BaseModel):
     title_th: str
     status: CaseStatus
     status_label_th: str
+    audience: Audience | None = None
     variants_available: list[Variant]
 
 

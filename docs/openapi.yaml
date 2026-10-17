@@ -1285,6 +1285,9 @@ components:
           examples: [refer]
         label_th:
           type: string
+    Audience:
+      type: string
+      enum: [dad, mom, staff]
     CaseSummary:
       type: object
       required: [case_id, version, title_th, status, status_label_th, variants_available]
@@ -1299,6 +1302,11 @@ components:
           $ref: "#/components/schemas/CaseStatus"
         status_label_th:
           type: string
+        audience:
+          description: Who the course is for; groups the case list. Null for a case that does not say.
+          anyOf:
+            - $ref: "#/components/schemas/Audience"
+            - type: "null"
         variants_available:
           type: array
           items:

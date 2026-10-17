@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
@@ -34,6 +35,25 @@ def test_list_cases_exposes_status_but_no_hidden_content(client: TestClient) -> 
     assert item["status"] == "Draft" and item["status_label_th"]
     assert item["variants_available"] == ["A", "C"]
     assert not {"facts", "rubric", "branch_rules", "outcome_scripts"} & set(item)
+
+
+def test_list_cases_carries_the_audience_a_case_declares(client: TestClient) -> None:
+    items = {x["case_id"]: x for x in client.get("/v1/cases").json()["items"]}
+
+    assert items["PP-001"]["audience"] == "staff"
+    assert items["DEV-001"]["audience"] is None  # the fixture declares none: listed ungrouped
+
+
+def test_an_unknown_audience_is_a_validation_error() -> None:
+    from pydantic import ValidationError
+
+    from app.domain.case import Case
+
+    raw = (CONTENT / "cases" / "DEV-001" / "case.yaml").read_text(encoding="utf-8")
+    data = yaml.safe_load(raw)
+    data["audience"] = "doctor"
+    with pytest.raises(ValidationError, match="audience"):
+        Case.model_validate(data)
 
 
 def test_get_case_is_only_a_brief_and_rejects_unknown_id(client: TestClient) -> None:
