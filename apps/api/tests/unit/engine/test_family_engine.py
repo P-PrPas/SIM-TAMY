@@ -40,6 +40,13 @@ def test_partial_invalid_and_out_of_turn_decisions_are_rejected():
         selections(STORY, ["unknown"] * (len(STORY.steps) + 1))
 
 
+def test_each_parent_can_respond_to_the_other_parents_actual_decision():
+    shared = ["ask-rest", "share-load"]
+    unshared = ["ask-rest", "wait-for-orders"]
+    assert prompt(STORY, shared) != prompt(STORY, unshared)
+    assert prompt(STORY, unshared) == STORY.steps[2].prompt_if["unshared-plan"]
+
+
 @pytest.mark.parametrize("field", ["source_ids", "prompt_if", "id"])
 def test_broken_content_references_fail_closed(field):
     raw = STORY.model_dump()

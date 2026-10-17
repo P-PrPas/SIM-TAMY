@@ -128,7 +128,7 @@ def decide(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyDecision)
     saved = events(db, row)
     prior = next((event for event in saved if event.client_turn_id == body.client_turn_id), None)
     if prior:
-        if (prior.role, prior.choice_id, prior.idx) != (role, body.choice_id, body.state_version):
+        if (prior.role, prior.choice_id, prior.idx) != (role, body.choice_id, body.state_version + 1):
             raise ApiError("IDEMPOTENCY_CONFLICT", "decision ID reused")
         return view(db, row, role)
     if not row.partner_hash:
@@ -143,7 +143,7 @@ def decide(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyDecision)
     db.add(
         FamilyEvent(
             room_id=row.id,
-            idx=len(saved),
+            idx=len(saved) + 1,
             role=role,
             choice_id=body.choice_id,
             client_turn_id=body.client_turn_id,

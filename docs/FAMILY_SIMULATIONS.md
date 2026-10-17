@@ -15,7 +15,8 @@ The API polls every three seconds. This is asynchronous turn-taking, not a live
 chat service. A database row lock serializes joining and decisions. Optimistic
 `state_version` prevents stale decisions; `client_turn_id` prevents duplicate
 events. Decisions are inserted only, never edited. Neither role can submit a
-decision for the other role. Each response contains only its caller's private
+decision for the other role. Event `idx` starts at 1; `state_version` starts at 0.
+Each response contains only its caller's private
 brief, the current scene and shared past exchanges. Feedback, source references
 and competency counts are returned only once the story is complete.
 

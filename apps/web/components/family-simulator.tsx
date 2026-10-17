@@ -143,7 +143,7 @@ export function FamilySimulator({ storyId }: { storyId: string }) {
         <input id="family-invite" type="url" value={invitation} onChange={(e) => setInvitation(e.target.value)} className="w-full rounded-xl border border-stone-400 bg-white p-3" />
         <button disabled={busy || !invitation} onClick={() => void start(true)} className="button-primary mt-5 w-full">{t("family.join")}</button>
       </section>
-    </div> : !view ? <p className="mt-8" role="status">{t("family.loading")}</p> : <>
+    </div> : !view ? <div className="mt-8"><p role="status">{t("family.loading")}</p><button onClick={leave} className="button-text mt-4">{t("family.leave")}</button></div> : <>
       <div className="my-7 flex flex-wrap items-center justify-between gap-4">
         <span className="rounded-full bg-amber-100 px-4 py-2 font-semibold">{t(`family.${view.role}`)}</span>
         <span>{view.state_version} / {view.total_steps} {t("family.decisions")}</span>
@@ -155,7 +155,7 @@ export function FamilySimulator({ storyId }: { storyId: string }) {
         <label htmlFor="family-share" className="sr-only">{t("family.invitation")}</label>
         <input id="family-share" readOnly value={inviteLink} onFocus={(e) => e.target.select()} className="w-full rounded-xl border border-stone-400 p-3" />
       </section>}
-      <section aria-label={t("family.conversation")} className="space-y-4">
+      <section role="log" aria-live="polite" aria-relevant="additions" aria-label={t("family.conversation")} className="space-y-4">
         {view.transcript.map((turn) => <article key={turn.idx} className="rounded-2xl border border-stone-200 bg-white p-5">
           <p className="font-semibold">{turn.speaker_th}</p><p className="mt-2">{turn.prompt_th}</p>
           <p className="mb-2 mt-4 font-semibold text-brand-800">{t(`family.${turn.role}`)}</p><p>{turn.text_th}</p>
