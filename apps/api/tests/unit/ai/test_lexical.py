@@ -84,11 +84,24 @@ def test_a_negated_stance_is_not_read_as_the_stance_itself() -> None:
     only_c03 = [a for a in _stance_actions() if a.id != "C04"]
 
     assert [d.id for d in match_actions("ต้องส่งต่อก่อนนะ", only_c03)] == ["C03"]
-    # "ไม่ต้องส่งต่อ" used to fire C03 (confidence 1.0) and pass the safety gate
-    assert match_actions("ไม่ต้องส่งต่อ", only_c03) == ()
-    assert match_actions("ผมว่าไม่ ต้องส่งต่อ", only_c03) == ()
-    assert match_actions("ห้ามส่งต่อ", only_c03) == ()
-    assert [d.id for d in match_actions("ห้ามรอ ต้องส่งต่อ", only_c03)] == ["C03"]
+    # these used to fire C03 (confidence 1.0) and pass the safety gate
+    for refusal in (
+        "ไม่ต้องส่งต่อ",
+        "ไม่จำเป็นต้องส่งต่อ",
+        "ไม่ควรต้องส่งต่อหรอก",
+        "ผมว่าไม่น่าต้องส่งต่อ",
+        "ต้องส่งต่อก็ไม่ได้",
+        "ห้ามส่งต่อ",
+        "อย่าส่งต่อเลย",
+    ):
+        assert match_actions(refusal, only_c03) == (), refusal
+
+
+def test_a_negation_in_another_clause_does_not_cancel_the_stance() -> None:
+    only_c03 = [a for a in _stance_actions() if a.id != "C04"]
+
+    for text in ("ผมไม่ยอมนะ ต้องส่งต่อก่อน", "ไม่ต้องห่วง, ต้องส่งต่อก่อนนะ", "ห้ามรอ ต้องส่งต่อ"):
+        assert [d.id for d in match_actions(text, only_c03)] == ["C03"], text
 
 
 def test_a_refusal_the_content_names_is_read_as_that_refusal() -> None:

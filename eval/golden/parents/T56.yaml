@@ -1,0 +1,15 @@
+# T56 (DAD-001) Refusal with words in between: "ไม่จำเป็นต้องไปโรงพยาบาล". The lexical fallback must not read it as
+# insisting on the referral (C03); it is giving in (C04), so the Critical Safety gate is not met.
+id: T56
+case: DAD-001
+variant: C
+steps:
+  - {say: "มีน้ำเดินหรือเปล่าครับ", expect_actions_any: [A03]}
+  - {say: "ลูกดิ้นเหมือนเดิมไหมครับ", expect_actions_any: [A06]}
+  - {decision: go_hospital_now}
+  - {say: "ไม่จำเป็นต้องไปโรงพยาบาลก็ได้ครับ", expect_actions_any: [C04]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  items: {R-COMM-03: fail, R-COMM-02: fail, R-DEC-03: fail}
+  replay_terminal_state: UnsafeProceed
