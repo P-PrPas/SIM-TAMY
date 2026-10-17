@@ -47,6 +47,16 @@ describe("S1 Join and S2 Briefing", () => {
     expect(readSession()?.brief).toEqual(caseBrief);
   });
 
+  it("groups the case list by audience and keeps a case with none in a last group", async () => {
+    const mk = (case_id: string, audience?: "dad" | "mom" | "staff") => ({ ...caseSummary, case_id, title_th: `Case ${case_id}`, audience });
+    mocks.get.mockResolvedValue({ data: { items: [mk("FIX-001"), mk("STF-001", "staff"), mk("DAD-001", "dad")] } });
+    render(<JoinPage />);
+    await screen.findByText(caseSummary.status_label_th);
+    const groups = Array.from(document.querySelectorAll("#case optgroup"));
+    expect(groups.map((g) => g.getAttribute("label"))).toEqual([t("audience.dad"), t("audience.staff"), t("audience.other")]);
+    expect(groups[0]?.textContent).toBe("Case DAD-001");
+  });
+
   it("shows case briefing and its draft status", async () => {
     saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
     render(<BriefingPage />);

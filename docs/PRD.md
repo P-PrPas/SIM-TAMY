@@ -393,6 +393,7 @@ case_id: PP-001
 version: "0.1"            # semver ของเนื้อหา
 status: Draft             # Draft | In Review | Approved
 title_th: "..."
+audience: staff            # optional: dad | mom | staff. จัดกลุ่มรายการเคสในหน้า Join เท่านั้น ไม่มีผลต่อคะแนนหรือ engine
 learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
 
 patient_profile:           # แสดงต่อผู้เรียนตอนเริ่ม
