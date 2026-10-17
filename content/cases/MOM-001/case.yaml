@@ -1,0 +1,133 @@
+# MOM-001 = "เพื่อนท้องแก่ส่งไลน์มาปรึกษา: ลูกดิ้นน้อยลงแต่บอกว่าไม่เป็นไร" (course PAR-M01, audience mom, Variants A and C).
+# DRAFT written by Engineering from docs/research/2026-10-17-parent-and-staff-content.md (section 8, PAR-M01). Every hidden
+# fact is worded from the official source named on it. NOT reviewed by the Content team or an expert.
+# The learner is a mother who has been through pregnancy and is helping a pregnant friend by chat. The engine reveals a fact
+# only when the learner asks, and a mother playing her own patient would already know every fact, so the AI character is
+# the friend. The debrief is where the learner is invited to compare the signs with her own situation.
+# TODO(content): fetal-movement counting is a source conflict (research section 3, C1): Anamai teaches counting from a given
+# week, RCOG/NHS do not recommend routine counting. The critical point all sources share, "fewer movements: go now, do not
+# wait until tomorrow", is the only rule scored. The counting method is left out until a specialist chooses.
+# TODO(content): the benign fact set (movements normal, only mild discomfort) needs Variant B, which has no scene yet.
+case_id: MOM-001
+version: "0.1"
+status: Draft
+audience: mom
+title_th: "MOM-001 เพื่อนท้องแก่ส่งไลน์มาปรึกษา (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
+
+patient_profile:
+  display_th: "เพื่อนสนิทของคุณตั้งครรภ์ใกล้ครบกำหนด ส่งไลน์มาว่าไม่ค่อยสบายแต่บอกว่าไม่เป็นไร ลองถามเพื่อนให้รู้ว่าควรไปโรงพยาบาลตอนนี้หรือดูแลตัวเองที่บ้านแล้วไปตามนัด"
+  known_facts: [K1]
+
+facts:
+  - id: K1
+    kind: known
+    text_th: "ตั้งครรภ์ใกล้ครบกำหนด ไม่ค่อยสบายและบอกว่าไม่เป็นไร"
+    source: "[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-M01]"
+  - id: H1
+    kind: hidden
+    text_th: "ลูกดิ้นน้อยลงกว่าปกติตั้งแต่เมื่อคืน"
+    unlock_on: [A03]
+    keywords_th: ["ดิ้นน้อยลง"]
+    leak_terms_th: ["ดิ้นน้อยลง"]
+    fallback_utterances_th: ["ลูกดิ้นน้อยลงกว่าปกติตั้งแต่เมื่อคืนเลยค่ะ"]
+    risk_relevance: critical
+    source: "[S06 และ S07 กรมอนามัย; S05 กรมอนามัย คู่มือการฝากครรภ์ 2565 หน้า 13-14; S01 DTAM 2569 หน้า 57; S18 RCOG; S20 NHS]"
+    status: Draft
+  - id: H2
+    kind: hidden
+    text_th: "ปวดศีรษะมากไม่ยอมหาย กินยาแล้วก็ไม่ดีขึ้น และตาพร่ามัว"
+    unlock_on: [A04]
+    keywords_th: ["ตาพร่า"]
+    leak_terms_th: ["ตาพร่า"]
+    fallback_utterances_th: ["ปวดศีรษะมากไม่ยอมหายค่ะ กินยาแล้วก็ไม่ดีขึ้น แล้วก็ตาพร่ามัวด้วย"]
+    risk_relevance: critical
+    source: "[S15 CDC Hear Her; S13 ราชวิทยาลัยสูตินรีแพทย์ฯ OB 63-021; S05 หน้า 13-14]"
+    status: Draft
+  - id: H3
+    kind: hidden
+    text_th: "หน้าและมือบวมมากกว่าปกติ ใส่แหวนไม่ได้เลย"
+    unlock_on: [A05]
+    keywords_th: ["บวมมาก", "ใส่แหวนไม่ได้"]
+    leak_terms_th: ["บวมมาก", "ใส่แหวนไม่ได้"]
+    fallback_utterances_th: ["หน้าแล้วก็มือบวมมากค่ะ ใส่แหวนไม่ได้เลย"]
+    risk_relevance: critical
+    source: "[S15 CDC Hear Her; S05 หน้า 13-14]"
+    status: Draft
+  - id: H4
+    kind: hidden
+    text_th: "มีเลือดออกทางช่องคลอด"
+    unlock_on: [A06]
+    keywords_th: ["เลือดออกทางช่องคลอด"]
+    leak_terms_th: ["เลือดออกทางช่องคลอด"]
+    fallback_utterances_th: ["มีเลือดออกทางช่องคลอดค่ะ"]
+    risk_relevance: critical
+    source: "[S15 CDC Hear Her; S05 หน้า 13-14; S09 กรมอนามัย; S01 DTAM 2569 หน้า 56-57]"
+    status: Draft
+  - id: H5
+    kind: hidden
+    text_th: "ปวดท้องรุนแรงไม่หาย และจุกแน่นใต้ชายโครงด้านขวา"
+    unlock_on: [A07]
+    keywords_th: ["ปวดท้องรุนแรง", "จุกแน่น"]
+    leak_terms_th: ["ปวดท้องรุนแรง", "จุกแน่น"]
+    fallback_utterances_th: ["ปวดท้องรุนแรงไม่หายค่ะ แล้วก็จุกแน่นใต้ชายโครงด้านขวา"]
+    risk_relevance: critical
+    source: "[S15 CDC Hear Her; S05 หน้า 13-14; S13 OB 63-021]"
+    status: Draft
+  - id: H6
+    kind: hidden
+    text_th: "มีนัดฝากครรภ์ที่โรงพยาบาลพรุ่งนี้อยู่แล้ว"
+    unlock_on: [A08]
+    keywords_th: ["นัดฝากครรภ์"]
+    leak_terms_th: ["นัดฝากครรภ์"]
+    fallback_utterances_th: ["มีนัดฝากครรภ์พรุ่งนี้อยู่แล้วค่ะ"]
+    risk_relevance: contextual
+    source: "[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-M01]"
+    status: Draft
+
+variants:
+  A:
+    # TODO(content): persona wording is a placeholder; the research defines no persona text.
+    persona: {minimization: low, family_pressure: false, style_th: "คุยแบบเพื่อนสนิท ตอบตามที่ถาม"}
+    fact_set: default
+  C:
+    persona: {minimization: high, family_pressure: true, style_th: "ลดความสำคัญของอาการ กลัวเสียเวลา มีญาติอยู่ด้วย"}
+    fact_set: default
+    pressure_script:
+      # scripted, not LLM-generated (AGENTS.md); opened once the learner decides to go
+      - {speaker: relative, text_th: "พรุ่งนี้ก็มีนัดอยู่แล้ว ไม่ต้องไปตอนนี้หรอก"}
+
+# TODO(content): diagnosis words the friend must never say; the list below is minimal.
+forbidden_terms_th: ["ครรภ์เป็นพิษ", "รกลอกตัว", "ความดันสูง"]
+
+decision_options:
+  - {id: go_hospital_now, label_th: "ชวนเพื่อนไปโรงพยาบาลตอนนี้", maps_to_actions: [B01, B02]}
+  - {id: self_care_and_keep_appointment, label_th: "ให้ดูแลตัวเองที่บ้านแล้วไปตามนัด", maps_to_actions: [B03]}
+
+branch_rules:
+  - {from: INTERVIEW, on_action_any: [A03, A04, A05, A06, A07], set_risk_state: recognized}
+  - {from: INTERVIEW, on_decision: go_hospital_now, to: PRESSURE, if_variant: [C]}
+  - {from: INTERVIEW, on_decision: go_hospital_now, to: CLOSING, if_variant: [A]}
+  - {from: INTERVIEW, on_decision: self_care_and_keep_appointment, to: CLOSING, mark_unsafe: true}
+  - {from: PRESSURE, on_action_any: [C03], to: CLOSING}
+  - {from: PRESSURE, on_action_any: [C04], to: CLOSING, mark_unsafe: true}
+
+critical_facts_for_replay: [H1, H2, H3, H4, H5]
+
+# Each line is the learner's decision or a next step she should take, never something that happened.
+# TODO(content): clinical consequences are for the experts to write.
+outcome_scripts:
+  Referral:
+    timeline_th:
+      - "ผู้เรียนเลือกชวนเพื่อนไปโรงพยาบาลตอนนี้"
+      - "ขั้นตอนที่ควรทำต่อ: ไม่รอถึงวันรุ่งขึ้น พกสมุดบันทึกสุขภาพแม่และเด็กไปด้วย และบอกเจ้าหน้าที่ว่าลูกดิ้นน้อยลงตั้งแต่เมื่อไหร่"
+    disclaimer_th: "ฉบับร่าง ผลลัพธ์หลังไปโรงพยาบาลรอผู้เชี่ยวชาญกำหนด เพื่อการศึกษาเท่านั้น"
+  UnsafeProceed:
+    timeline_th:
+      - "ผู้เรียนเลือกให้เพื่อนดูแลตัวเองที่บ้านแล้วไปตามนัด ทั้งที่เพื่อนมีอาการที่สามารถถามได้"
+      - "เคสเข้าสู่การทบทวน (debrief) เพื่อดูว่าควรไปโรงพยาบาลเมื่อใด"
+    disclaimer_th: "ฉบับร่าง ผลลัพธ์ทางคลินิกรอผู้เชี่ยวชาญกำหนด เพื่อการศึกษาเท่านั้น"
+
+references:
+  - {id: REF1, title_th: "กรมอนามัย: อนามัยมีเดีย การนับลูกดิ้น (29 พ.ย. 2566)", locator: "https://multimedia.anamai.moph.go.th/infographics/info611_pregnant_14/"}
+  - {id: REF2, title_th: "งานวิจัยแหล่งอ้างอิงของโครงการ (ยังไม่ผ่านผู้เชี่ยวชาญ)", locator: "docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-M01"}

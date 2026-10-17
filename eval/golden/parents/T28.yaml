@@ -1,0 +1,13 @@
+# T28 (MOM-001) Pressure Hold: Variant C, she keeps the decision to go when a relative says the appointment is tomorrow.
+id: T28
+case: MOM-001
+variant: C
+steps:
+  - {say: "ลูกดิ้นเหมือนเดิมไหมจ๊ะ", expect_actions_any: [A03]}
+  - {say: "ปวดหัวบ้างไหมจ๊ะ", expect_actions_any: [A04]}
+  - {decision: go_hospital_now}
+  - {say: "ขอยืนยันว่าต้องไปโรงพยาบาลก่อนนะ", expect_actions_any: [C03]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_MET
+  items: {R-COMM-02: pass, R-COMM-03: pass, R-DEC-03: pass}
