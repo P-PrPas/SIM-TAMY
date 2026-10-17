@@ -179,7 +179,11 @@ describe("S1 Join and S2 Briefing", () => {
   });
 
   it("renders localized badges for every review status", () => {
-    const view = render(<StatusBadge status="In Review" />);
+    const view = render(<StatusBadge status="Draft" />);
+    expect(screen.getByText(t("status.draftFull"))).toBeTruthy();
+    view.rerender(<StatusBadge status="Draft" compact />);
+    expect(screen.getByText(t("status.draft"))).toBeTruthy();
+    view.rerender(<StatusBadge status="In Review" />);
     expect(screen.getByText(t("status.inReview"))).toBeTruthy();
     view.rerender(<StatusBadge status="Approved" />);
     expect(screen.getByText(t("status.approved"))).toBeTruthy();

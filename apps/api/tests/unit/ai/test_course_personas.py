@@ -45,7 +45,18 @@ def test_patient_does_not_assign_an_unverified_medical_title(audience):
         assert PatientValidator(request).check(title, case, []) == ["learner_role"]
 
 
-def test_mentioning_a_doctor_is_not_the_same_as_addressing_the_learner():
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("ปวดท้องค่ะ คุณหมอ", ["learner_role"]),
+        ("ปวดมากเลย คุณหมอ", ["learner_role"]),
+        ("ปวดหลัง หมอคะ", ["learner_role"]),
+        ("ไม่แน่ใจเหมือนกัน พี่หมอ ช่วยดูหน่อย", ["learner_role"]),
+        ("เมื่อวานไปหาคุณหมอมา", []),
+        ("เมื่อวานไปหา คุณหมอมา", []),
+    ],
+)
+def test_whitespace_vocatives_preserve_third_person_mentions(text, expected):
     request = VoiceRequest(
         persona_style_th="style",
         allowed=AllowedFacts(),
@@ -53,9 +64,5 @@ def test_mentioning_a_doctor_is_not_the_same_as_addressing_the_learner():
         learner_text="question",
         learner_audience="dad",
     )
-    rules = yaml.safe_load(
-        (ROOT / "apps/api/app/ai/prompts/validator_rules.yaml").read_text("utf-8")
-    )
-    title = rules["unverified_medical_titles"][1]
     case = load_case(ROOT / "content/cases/DEV-001").case
-    assert PatientValidator(request).check(f"I mentioned {title}", case, []) == []
+    assert PatientValidator(request).check(text, case, []) == expected

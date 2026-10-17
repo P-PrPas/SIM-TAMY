@@ -4,7 +4,7 @@ import { t } from "@/lib/i18n";
 
 type CaseStatus = components["schemas"]["CaseStatus"];
 
-export function StatusBadge({ status, compact = true }: { status: CaseStatus; compact?: boolean }) {
+export function StatusBadge({ status, compact = false }: { status: CaseStatus; compact?: boolean }) {
   const classes: Record<CaseStatus, string> = {
     Draft: "border-amber-300 bg-amber-50 text-amber-950",
     "In Review": "border-sky-300 bg-sky-50 text-sky-950",

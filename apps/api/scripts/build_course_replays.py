@@ -1,6 +1,7 @@
 """Build synthetic examples from content-owned golden conversations; no DB or LLM."""
 
 import json
+import uuid
 
 from app.ai.lexical import match_actions
 from app.ai.validator import PatientValidator
@@ -61,7 +62,14 @@ def build(source: str) -> Recording:
                 play.note(len(step.note.strip()))
             play.complete()
             steps.append(RecordingStep(t_ms=800, type="complete"))
-    recording = assemble(loaded, play, steps, f"{golden.case.lower()}-example")
+    recording_id = f"{golden.case.lower()}-example"
+    recording = assemble(
+        loaded,
+        play,
+        steps,
+        recording_id,
+        session_id=uuid.uuid5(uuid.NAMESPACE_URL, f"sim-tamy:recording:{recording_id}"),
+    )
     assert recording.report.effective.safety_status == golden.expect.safety_status
     return recording
 

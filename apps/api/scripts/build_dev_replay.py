@@ -49,11 +49,24 @@ def build() -> Recording:
     play.decide("refer").note(30).complete()
     steps.append(RecordingStep(t_ms=450, type="decision", option_id="refer"))
     steps.append(RecordingStep(t_ms=350, type="complete"))
-    return assemble(LOADED, play, steps, RECORDING_ID)
+    return assemble(
+        LOADED,
+        play,
+        steps,
+        RECORDING_ID,
+        session_id=uuid.UUID("00000000-0000-0000-0000-000000000073"),
+        description_th=disclaimer_th(),
+    )
 
 
 def assemble(
-    loaded: LoadedCase, play: Play, steps: list[RecordingStep], recording_id: str
+    loaded: LoadedCase,
+    play: Play,
+    steps: list[RecordingStep],
+    recording_id: str,
+    *,
+    session_id: uuid.UUID,
+    description_th: str | None = None,
 ) -> Recording:
     scoring = score(play.events, loaded.rubric, loaded.actions, play.variant)
     findings = build_findings(scoring.items, loaded.rubric)
@@ -66,17 +79,12 @@ def assemble(
             mode="json"
         ),
     )
-    session_id = (
-        uuid.UUID("00000000-0000-0000-0000-000000000073")
-        if recording_id == RECORDING_ID
-        else uuid.uuid5(uuid.NAMESPACE_URL, f"sim-tamy:recording:{recording_id}")
-    )
     row = SimpleNamespace(id=session_id, variant=play.variant)
     report = _assemble(row, loaded, saved, scoring, findings, play.events)
     return Recording(
         recording_id=recording_id,
         title_th=loaded.case.title_th,
-        description_th=disclaimer_th() if recording_id == RECORDING_ID else None,
+        description_th=description_th,
         case_id=loaded.case.case_id,
         variant=play.variant,
         steps_count=len(steps),

@@ -93,9 +93,17 @@ def test_replay_disabled_is_not_found_for_both_endpoints(client, monkeypatch):
         assert response.json()["error"]["code"] == "NOT_FOUND"
 
 
-def test_learning_examples_ship_and_are_available_by_default(client, monkeypatch):
+def test_replay_is_disabled_without_explicit_configuration(client, monkeypatch):
     http, _ = client
     monkeypatch.delenv("ENABLE_REPLAY", raising=False)
+    get_settings.cache_clear()
+    for path in ("/v1/replay/recordings", "/v1/replay/recordings/dev001-engineering"):
+        assert http.get(path).status_code == 404
+
+
+def test_learning_examples_ship_and_are_available_when_enabled(client, monkeypatch):
+    http, _ = client
+    monkeypatch.setenv("ENABLE_REPLAY", "true")
     monkeypatch.setenv("RECORDINGS_DIR", str(Path(__file__).resolve().parents[4] / "recordings"))
     get_settings.cache_clear()
     listing = http.get("/v1/replay/recordings")

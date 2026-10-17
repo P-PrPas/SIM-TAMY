@@ -137,7 +137,6 @@ export default function JoinPage() {
             <span className="preview-mark" aria-hidden="true">↗</span>
             <p className="preview-label">{t("join.previewLabel")}</p>
             <p className="preview-title" aria-live="polite">{selectedCase?.title_th ?? (loading ? t("join.loading") : t("join.empty"))}</p>
-
             <p className="preview-note">{t("join.previewNote")}</p>
           </div>
           <div className="mt-8">

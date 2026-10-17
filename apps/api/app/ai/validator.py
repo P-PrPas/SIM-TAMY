@@ -32,7 +32,11 @@ def _unverified_medical_titles() -> tuple[str, ...]:
 def _learner_address_pattern() -> re.Pattern[str]:
     loaded = yaml.safe_load(_RULES.read_text(encoding="utf-8"))
     titles = "|".join(re.escape(title) for title in _unverified_medical_titles())
-    return re.compile(str(loaded["learner_address_boundary"]) + f"(?:{titles})")
+    return re.compile(
+        str(loaded["learner_address_boundary"])
+        + f"(?:{titles})|"
+        + str(loaded["learner_whitespace_address"])
+    )
 
 
 class PatientValidator:

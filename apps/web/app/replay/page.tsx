@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
-import { t } from "@/lib/i18n";
+import { patientLabel, t } from "@/lib/i18n";
 
 type Recording = components["schemas"]["Recording"];
 type Summary = components["schemas"]["RecordingListItem"];
@@ -74,7 +74,6 @@ export default function ReplayPage() {
   const done = recording && (recording.steps.length === 0 || index === recording.steps.length - 1);
   const report = done ? recording.report : null;
   const safetyNotMet = report?.effective.safety_status === "SAFETY_NOT_MET";
-  const patientLabel = t(recording?.case.audience === "dad" ? "chat.wife" : recording?.case.audience === "mom" ? "chat.friend" : "chat.patient");
 
   return <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
     <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -94,7 +93,6 @@ export default function ReplayPage() {
       {items.map((item) => <li key={item.recording_id} className="rounded-xl border border-stone-300 bg-white p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <p className="font-semibold">{item.title_th}</p>
-
         </div>
         {item.description_th && <p className="mt-1 text-stone-700">{item.description_th}</p>}
         <button type="button" onClick={() => void open(item.recording_id)} disabled={loading}
@@ -112,7 +110,7 @@ export default function ReplayPage() {
       <ol aria-live="polite" className="mt-5 space-y-3">
         {recording.steps.slice(0, index + 1).map((step, position) => <li key={position}
           className="rounded-xl border border-stone-300 bg-white p-4">
-          <p className="text-sm font-semibold text-brand-800">{step.speaker === "patient" ? patientLabel : step.speaker ? t(`chat.${step.speaker}`) : t(`replay.${step.type}`)}</p>
+          <p className="text-sm font-semibold text-brand-800">{step.speaker === "patient" ? patientLabel(recording.case.audience) : step.speaker ? t(`chat.${step.speaker}`) : t(`replay.${step.type}`)}</p>
           <p className="mt-1 whitespace-pre-wrap break-words">{stepLabel(step, recording)}</p>
         </li>)}
       </ol>

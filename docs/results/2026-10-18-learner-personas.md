@@ -41,14 +41,17 @@ These display changes do not approve draft content or change scoring semantics.
 - Six static examples are reproducibly generated from existing golden conversations with
   the lexical matcher, real engine, canned Generator, and real Validator. No live LLM,
   patient data, or learner transcript was used. Snapshot reports are engine-produced.
-- Replay is enabled by default, with an explicit false kill switch. Existing deployments
-  that set `ENABLE_REPLAY=false` must change that setting to true. Transient gallery failures
+- Replay is explicitly enabled in deployment configuration; application defaults remain
+  disabled. Existing deployments that set `ENABLE_REPLAY=false` must change that setting
+  to true. Transient gallery failures
   now have a retry action.
 - Learner screens omit status badges and disclaimers; instructor tools and exports retain
   actual status. Course-title review suffixes were removed. PRD and AGENTS document this
   explicit owner decision.
+- `brand.scope` was removed. `banner.educationOnly` is intentionally retained solely as
+  the exact wording used by negative UI regression checks; no learner component renders it.
 
-## Validation
+## Initial validation
 
 - Backend pytest: 527 passed, 172 database-dependent tests skipped; engine coverage 99%.
 - Ruff lint/format and mypy: passed.
@@ -67,6 +70,28 @@ These display changes do not approve draft content or change scoring semantics.
 - Real-provider conversation quality and deployment are unverified. Restart training after
   deployment to use the new version; open sessions remain pinned to their previous content,
   and an old pinned version may be unavailable after an API restart.
+
+## Senior review follow-up
+
+- Addressed review items 2–8; the owner explicitly excluded the content-approval objection.
+  No case content or snapshots changed in this follow-up.
+- Reproduced three missed whitespace vocatives before fixing the shared Validator rule.
+  The regression table covers all five reviewer examples and a spaced third-person mention.
+  Neutral title matching requires a word ending after whitespace to preserve doctor mentions
+  embedded in a sentence; direct vocatives also match after whitespace.
+- Restored replay's disabled application default and full instructor Draft badges, with
+  regression coverage. Deployment flags remain explicitly enabled.
+- Replay assembly now receives its session ID and description from callers. Course snapshot
+  equality tests confirm that deterministic recording output is unchanged.
+- Shared the patient speaker label helper, removed six JSX gaps and unused `brand.scope`,
+  and documented the retained negative-test banner wording above.
+- Backend: 533 passed, 172 PostgreSQL-dependent skips; engine coverage 99%. Focused persona,
+  Validator, course recording, and replay API tests: 56 passed.
+- Frontend: 89 unit tests passed; TypeScript passed; ESLint has the same existing warning.
+- Browser suite: 22 passed against Prism/mocked data, including accessibility and examples.
+- Ruff lint/format, mypy, strict validation of seven cases, schema drift, and leakcheck passed.
+- Local mock golden evaluation was attempted again; the local PostgreSQL test account still
+  fails authentication. Real-provider conversations remain unverified.
 
 ## Local artifacts
 

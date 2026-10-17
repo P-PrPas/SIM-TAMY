@@ -6,8 +6,8 @@ from the deterministic engine. It is **not** a clinical case and must never be u
 real product demo. It is retained for engineering tests and excluded from the learner
 gallery. Do not export real patient data or unreviewed learner free text.
 
-The public replay API is enabled by default; `ENABLE_REPLAY=false` remains an explicit
-operator kill switch. Compose, `.env.example`, and the Render Blueprint enable it.
+The public replay API is disabled in application defaults. Compose, `.env.example`,
+and the Render Blueprint explicitly enable it with `ENABLE_REPLAY=true`.
 An existing deployment with an explicit false override must set `ENABLE_REPLAY=true`.
 
 The six `*-example.json` files are synthetic learning examples built by

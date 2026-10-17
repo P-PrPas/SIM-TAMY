@@ -74,7 +74,6 @@ export default function DecisionPage() {
   }
 
   if (!session) return <main className="mx-auto max-w-3xl px-4 py-8">
-
     {error ? <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p> : <p role="status">{t("decision.loading")}</p>}
   </main>;
 

@@ -7,6 +7,7 @@ unverified_medical_titles:
   - "คุณแพทย์"
   - "คุณพยาบาล"
 learner_address_boundary: '(?:^|[.!?\n]|(?:ค่ะ|คะ|ครับ|นะ)[\s,]*)\s*'
+learner_whitespace_address: '\s+(?:พี่หมอ|หมอคะ|หมอค่ะ|คุณหมอ(?=\s|$|[.!?,]))'
 
 role_break_phrases:
   - "as an ai"
