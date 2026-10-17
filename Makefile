@@ -104,3 +104,7 @@ demo:
 .PHONY: build-course-replays
 build-course-replays:
 	cd $(API) && ../../$(PY) -m scripts.build_course_replays
+
+.PHONY: build-validation-report
+build-validation-report:
+	cd $(API) && ../../$(PY) -m scripts.build_validation_report

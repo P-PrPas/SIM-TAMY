@@ -223,6 +223,7 @@ Session ──1 Report          (scoring + debrief + glass box + replay)
 | FR-AUTH-01 | Learner เข้าแบบไม่ระบุตัวตน (nickname + class_code optional) ได้ opaque session token (Bearer) | M | token ใช้ได้เฉพาะ session ของตน |
 | FR-AUTH-02 | Instructor ใช้ secret ใน env (`INSTRUCTOR_SECRET`) ผ่าน header | S | ไม่มี secret → 401 |
 | FR-OBS-01 | บันทึก Event Log (append-only) และ `llm_calls` (provider, model, tokens, latency, ok/error) ทุกครั้ง | M | ตรวจใน DB หลัง E2E |
+| FR-OBS-03 | Validation Dashboard แสดงผลทดสอบออฟไลน์ที่วัดจริง พร้อมเวลา เวอร์ชัน และข้อมูลดาวน์โหลด แยกผ่าน/ไม่ผ่าน/ข้ามอย่างชัดเจน | S | ผลที่ข้ามหรือ runner ล้มเหลวไม่แสดงเป็นผ่าน; ระบุว่าเป็น snapshot ไม่ใช่ผลจากโมเดลจริง |
 | FR-OBS-02 | **Mock LLM** (`LLM_PROVIDER=mock`) ตอบแบบกำหนดล่วงหน้า และ **Replay Mode**: เล่นซ้ำ session ที่บันทึกไว้ (JSON) โดยไม่เรียก LLM | M | ปิดอินเทอร์เน็ตแล้ว Demo ยังวิ่งครบ |
 | FR-I18N-01 | UI และข้อความระบบภาษาไทยเป็นหลัก (ไฟล์ข้อความรวมศูนย์ เผื่อเพิ่มภาษา) | M | ไม่มี string ไทย hard-code กระจายในคอมโพเนนต์ |
 | FR-EXP-01 | Export รายงานเป็น JSON และหน้า print-friendly | C | — |
