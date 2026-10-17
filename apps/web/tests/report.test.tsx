@@ -47,6 +47,27 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("T-053 Report", () => {
+  it("supports arrow keys, Home and End in the report tablist", async () => {
+    mocks.get.mockResolvedValue({ data: report });
+    render(<ReportPage />);
+    const summary = await screen.findByRole("tab", { name: t("report.summary") });
+    const timeline = screen.getByRole("tab", { name: t("report.timeline") });
+    const review = screen.getByRole("tab", { name: t("report.review") });
+    summary.focus();
+    fireEvent.keyDown(summary, { key: "ArrowRight" });
+    expect(timeline.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(timeline);
+    expect(summary.getAttribute("tabindex")).toBe("-1");
+    fireEvent.keyDown(timeline, { key: "End" });
+    expect(review.getAttribute("aria-selected")).toBe("true");
+    fireEvent.keyDown(review, { key: "ArrowRight" });
+    expect(summary.getAttribute("aria-selected")).toBe("true");
+    fireEvent.keyDown(summary, { key: "ArrowLeft" });
+    expect(review.getAttribute("aria-selected")).toBe("true");
+    fireEvent.keyDown(review, { key: "Home" });
+    expect(summary.getAttribute("aria-selected")).toBe("true");
+  });
+
   it("puts effective safety-not-met before the effective score and never shows met language", async () => {
     mocks.get.mockResolvedValue({ data: report });
     render(<ReportPage />);

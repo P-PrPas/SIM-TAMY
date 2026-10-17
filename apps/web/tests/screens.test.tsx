@@ -159,6 +159,14 @@ describe("S1 Join and S2 Briefing", () => {
 });
 
 describe("S3 Chat", () => {
+  it("keeps the case-status badge visible while a saved chat reloads", async () => {
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
+    mocks.get.mockImplementation(() => new Promise(() => undefined));
+    render(<ChatPage />);
+    expect(await screen.findByText(t("status.draftFull"))).toBeTruthy();
+    expect(screen.getByText(t("chat.loading"))).toBeTruthy();
+  });
+
   it("lets a learner inspect optional quick prompts and edit one before sending", async () => {
     saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
     mocks.get.mockResolvedValue({ data: sessionView });
