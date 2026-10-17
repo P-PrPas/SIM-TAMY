@@ -19,14 +19,30 @@ class _Match(NamedTuple):
         return self.end - self.start
 
 
-def _hits(text: str, action_id: str, phrase: str, *, is_example: bool) -> list[_Match]:
+# A communication stance ("ต้องส่งต่อ") flips when it follows one of these ("ไม่ต้องส่งต่อ"). Without
+# this the fallback read a refusal as the learner insisting on the referral and the gate passed.
+_NEGATORS = ("ไม่ต้อง", "ไม่", "ห้าม", "อย่า")
+# ponytail: only stances; a question in negative form ("ไม่ปวดท้องใช่ไหม") still asks
+_STANCE_CATEGORIES = ("COM",)
+
+
+def _negated(text: str, start: int, needle: str) -> bool:
+    if needle.startswith(_NEGATORS):  # the phrase carries its own negation ("ไม่รอ")
+        return False
+    return text[:start].rstrip().endswith(_NEGATORS)
+
+
+def _hits(
+    text: str, action_id: str, phrase: str, *, is_example: bool, stance: bool = False
+) -> list[_Match]:
     needle = normalize_th(phrase)
     if not needle:
         return []
     found: list[_Match] = []
     start = text.find(needle)
     while start != -1:
-        found.append(_Match(action_id, start, start + len(needle), is_example))
+        if not (stance and _negated(text, start, needle)):
+            found.append(_Match(action_id, start, start + len(needle), is_example))
         start = text.find(needle, start + 1)
     return found
 
@@ -50,7 +66,13 @@ def match_actions(text: str, actions: Sequence[Action]) -> tuple[DetectedAction,
             *((example, True) for example in action.examples_th),
             *((keyword, False) for keyword in action.keywords_th),
         )
-        for hit in _hits(normalized, action.id, phrase, is_example=is_example)
+        for hit in _hits(
+            normalized,
+            action.id,
+            phrase,
+            is_example=is_example,
+            stance=action.category in _STANCE_CATEGORIES,
+        )
     ]
     unambiguous = [
         match
