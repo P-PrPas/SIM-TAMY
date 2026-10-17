@@ -11,7 +11,14 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, BeforeValidator, Field, StringConstraints, WithJsonSchema
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    WithJsonSchema,
+)
 
 
 def _no_controls(value: object) -> object:
@@ -22,6 +29,29 @@ def _no_controls(value: object) -> object:
 
 
 Clean = BeforeValidator(_no_controls)
+
+
+class PilotFeedbackRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    role: Literal["learner", "instructor", "practitioner"]
+    usefulness: Annotated[int, Field(strict=True, ge=1, le=5)]
+    realism: Annotated[int, Field(strict=True, ge=1, le=5)]
+    comment: Annotated[str, StringConstraints(strip_whitespace=True, max_length=500), Clean] = ""
+    consent: Literal[True]
+
+
+class PilotFeedback(PilotFeedbackRequest):
+    model_config = ConfigDict(from_attributes=True)
+    session_id: uuid.UUID
+    created_at: datetime
+    consent: Literal[True] = True
+
+
+class ClassPilotFeedback(BaseModel):
+    total: int
+    usefulness_avg: float | None
+    realism_avg: float | None
+    items: list[PilotFeedback]
 
 
 class Variant(StrEnum):

@@ -11,6 +11,7 @@ import type { components } from "@/lib/api/schema";
 import { readSession } from "@/lib/flow";
 import { t } from "@/lib/i18n";
 import { downloadReportJson } from "@/lib/report-export";
+import { PilotFeedbackForm } from "@/components/pilot-feedback";
 
 type Report = components["schemas"]["ReportResponse"];
 type Tab = "summary" | "timeline" | "glassBox" | "consequenceReplay" | "review";
@@ -179,6 +180,7 @@ export default function ReportPage() {
         </ul>}
       </section>}
     </section>
+    <PilotFeedbackForm key={report.session_id} sessionId={report.session_id} />
     {loading && <p role="status" className="mt-4">{t("report.loading")}</p>}
   </main>;
 }

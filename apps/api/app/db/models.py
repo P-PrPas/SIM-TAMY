@@ -76,6 +76,23 @@ class LearnerSession(Base):
 Index("ix_sessions_class_id_started_at", LearnerSession.class_id, LearnerSession.started_at.desc())
 
 
+class PilotFeedback(Base):
+    __tablename__ = "pilot_feedback"
+    __table_args__ = (
+        CheckConstraint("role IN ('learner','instructor','practitioner')", name="role"),
+        CheckConstraint("usefulness BETWEEN 1 AND 5", name="usefulness"),
+        CheckConstraint("realism BETWEEN 1 AND 5", name="realism"),
+    )
+    session_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("sessions.id", ondelete="CASCADE"), primary_key=True
+    )
+    role: Mapped[str] = mapped_column(Text)
+    usefulness: Mapped[int] = mapped_column(Integer)
+    realism: Mapped[int] = mapped_column(Integer)
+    comment: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = _ts()
+
+
 class Turn(Base):
     __tablename__ = "turns"
     __table_args__ = (

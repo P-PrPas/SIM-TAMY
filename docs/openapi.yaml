@@ -1009,6 +1009,97 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /v1/sessions/{session_id}/feedback:
+    post:
+      tags:
+      - Instructor
+      summary: Submit Feedback
+      operationId: submitPilotFeedback
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Session Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PilotFeedbackRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PilotFeedback'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: Session not completed, or feedback already submitted with different values.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - SessionToken: []
+      x-fr:
+      - FR-INS-05
+  /v1/instructor/feedback:
+    get:
+      tags:
+      - Instructor
+      summary: Class Feedback
+      operationId: getClassPilotFeedback
+      parameters:
+      - name: class_code
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Z0-9]{6}$
+          title: Class Code
+      - name: X-Instructor-Secret
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Instructor-Secret
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassPilotFeedback'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      security:
+      - InstructorSecret: []
+      x-fr:
+      - FR-INS-05
+
 components:
   securitySchemes:
     SessionToken:
@@ -1150,6 +1241,115 @@ components:
             $ref: "#/components/schemas/Error"
 
   schemas:
+    ClassPilotFeedback:
+      properties:
+        total:
+          type: integer
+          title: Total
+        usefulness_avg:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Usefulness Avg
+        realism_avg:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Realism Avg
+        items:
+          items:
+            $ref: '#/components/schemas/PilotFeedback'
+          type: array
+          title: Items
+      type: object
+      required:
+      - total
+      - usefulness_avg
+      - realism_avg
+      - items
+      title: ClassPilotFeedback
+    PilotFeedback:
+      properties:
+        role:
+          type: string
+          enum:
+          - learner
+          - instructor
+          - practitioner
+          title: Role
+        usefulness:
+          type: integer
+          maximum: 5.0
+          minimum: 1.0
+          title: Usefulness
+        realism:
+          type: integer
+          maximum: 5.0
+          minimum: 1.0
+          title: Realism
+        comment:
+          type: string
+          maxLength: 500
+          title: Comment
+          default: ''
+        consent:
+          type: boolean
+          const: true
+          title: Consent
+          default: true
+        session_id:
+          type: string
+          format: uuid
+          title: Session Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      additionalProperties: false
+      type: object
+      required:
+      - role
+      - usefulness
+      - realism
+      - session_id
+      - created_at
+      title: PilotFeedback
+    PilotFeedbackRequest:
+      properties:
+        role:
+          type: string
+          enum:
+          - learner
+          - instructor
+          - practitioner
+          title: Role
+        usefulness:
+          type: integer
+          maximum: 5.0
+          minimum: 1.0
+          title: Usefulness
+        realism:
+          type: integer
+          maximum: 5.0
+          minimum: 1.0
+          title: Realism
+        comment:
+          type: string
+          maxLength: 500
+          title: Comment
+          default: ''
+        consent:
+          type: boolean
+          const: true
+          title: Consent
+      additionalProperties: false
+      type: object
+      required:
+      - role
+      - usefulness
+      - realism
+      - consent
+      title: PilotFeedbackRequest
     # ---------- Common ----------
     ErrorCode:
       type: string

@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 from alembic.util.exc import CommandError
 from sqlalchemy import create_engine, inspect, text
 
@@ -19,7 +20,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "0099"
-down_revision = "0001"
+down_revision = "{parent}"
 branch_labels = None
 depends_on = None
 
@@ -54,12 +55,15 @@ def test_a_database_ahead_of_the_image_is_served_not_migrated(
 ) -> None:
     url = make_db()
     old = config(API_DIR / "migrations", url)
+    head = ScriptDirectory.from_config(old).get_current_head()
     newer_dir = tmp_path / "migrations"
     shutil.copytree(API_DIR / "migrations", newer_dir, ignore=shutil.ignore_patterns("__pycache__"))
-    (newer_dir / "versions" / "0099_future.py").write_text(FUTURE, encoding="utf-8")
+    (newer_dir / "versions" / "0099_future.py").write_text(
+        FUTURE.format(parent=head), encoding="utf-8"
+    )
     newer = config(newer_dir, url)
 
-    assert migrate(old) == "upgraded" and revision_of(url) == "0001"  # empty database, old image
+    assert migrate(old) == "upgraded" and revision_of(url) == head  # empty database, old image
     assert migrate(newer) == "upgraded" and revision_of(url) == "0099"  # the newer release
 
     with pytest.raises(CommandError, match="Can't locate revision"):
@@ -80,4 +84,17 @@ def test_an_older_database_is_still_upgraded(make_db: Callable[[], str]) -> None
 
     assert migrate(cfg) == "upgraded"
     assert migrate(cfg) == "upgraded"  # idempotent: a restart is safe
-    assert revision_of(url) == "0001"
+    assert revision_of(url) == ScriptDirectory.from_config(cfg).get_current_head()
+
+
+def test_future_fixture_extends_the_current_image_head(tmp_path: Path) -> None:
+    old = config(API_DIR / "migrations", "postgresql://unused")
+    head = ScriptDirectory.from_config(old).get_current_head()
+    newer_dir = tmp_path / "migrations"
+    shutil.copytree(API_DIR / "migrations", newer_dir, ignore=shutil.ignore_patterns("__pycache__"))
+    (newer_dir / "versions" / "0099_future.py").write_text(
+        FUTURE.format(parent=head), encoding="utf-8"
+    )
+    assert ScriptDirectory.from_config(config(newer_dir, "postgresql://unused")).get_heads() == [
+        "0099"
+    ]

@@ -16,6 +16,7 @@ EXPECTED_TABLES = {
     "llm_calls",
     "reports",
     "score_overrides",
+    "pilot_feedback",
 }
 
 
