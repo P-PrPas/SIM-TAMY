@@ -19,6 +19,9 @@ def test_family_catalogue_respects_draft_visibility(monkeypatch):
         get_settings.cache_clear()
         cards = client.get("/v1/family/stories").json()
         assert cards
-        assert all(set(card) == {"id", "title_th", "description_th"} for card in cards)
+        assert all(
+            set(card) == {"id", "title_th", "description_th", "mode", "chapters_th"}
+            for card in cards
+        )
     finally:
         get_settings.cache_clear()

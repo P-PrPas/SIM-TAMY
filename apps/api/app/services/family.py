@@ -63,7 +63,7 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
     transcript = [
         FamilyExchange(
             idx=i + 1,
-            role=step.role,
+            role=role if story.mode == "solo" else step.role,
             speaker_th=step.speaker_th,
             prompt_th=prompt(story, choices[:i]),
             text_th=choice.text_th,
@@ -102,11 +102,11 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
         scene = FamilyScene(
             id=step.id,
             chapter_th=step.chapter_th,
-            role=step.role,
+            role=role if story.mode == "solo" else step.role,
             speaker_th=step.speaker_th,
             prompt_th=prompt(story, choices),
             choices=[FamilyOption(id=c.id, text_th=c.text_th) for c in step.choices]
-            if step.role == role
+            if story.mode == "solo" or step.role == role
             else [],
         )
     return FamilyView(
@@ -115,7 +115,7 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
         title_th=story.title_th,
         role=role,
         private_brief_th=story.roles[role],
-        partner_joined=bool(row.partner_hash),
+        partner_joined=story.mode == "solo" or bool(row.partner_hash),
         state_version=len(chosen),
         total_steps=len(story.steps),
         scene=scene,
@@ -131,11 +131,11 @@ def decide(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyDecision)
         if (prior.role, prior.choice_id, prior.idx) != (role, body.choice_id, body.state_version):
             raise ApiError("IDEMPOTENCY_CONFLICT", "decision ID reused")
         return view(db, row, role)
-    if not row.partner_hash:
+    story = FamilyStory.model_validate(row.story)
+    if story.mode == "coop" and not row.partner_hash:
         raise ApiError("INVALID_PHASE", "waiting for partner")
     if body.state_version != len(saved):
         raise ApiError("TURN_IN_PROGRESS", "room changed; refresh before deciding")
-    story = FamilyStory.model_validate(row.story)
     try:
         choose(story, [event.choice_id for event in saved], role, body.choice_id)
     except ValueError as exc:

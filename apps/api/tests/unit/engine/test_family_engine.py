@@ -11,7 +11,7 @@ from app.domain.family import FamilyStory
 from app.engine.family import assess, choose, prompt, selections
 
 ROOT = Path(__file__).resolve().parents[5]
-STORY = load_stories(ROOT / "content")[0]
+STORY = next(story for story in load_stories(ROOT / "content") if story.id == "first-night")
 
 
 def test_every_authored_path_replays_and_gates_safety():

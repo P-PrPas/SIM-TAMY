@@ -127,22 +127,29 @@ export function FamilySimulator({ storyId }: { storyId: string }) {
     <p className="eyebrow mt-8">{t("family.eyebrow")}</p>
     <h1 className="mt-3 text-3xl font-bold sm:text-5xl">{card?.title_th ?? t("family.title")}</h1>
     <p className="mt-4 max-w-2xl text-lg leading-relaxed text-stone-600">{card?.description_th ?? t("family.description")}</p>
+    <nav aria-label={t("family.courses")} className="my-6 flex flex-wrap gap-3">
+      <Link href="/family" className="button-text" aria-current={storyId === "first-night" ? "page" : undefined}>{t("family.link")}</Link>
+      <Link href="/parenthood" className="button-text" aria-current={storyId === "parenthood" ? "page" : undefined}>{t("family.journey")}</Link>
+    </nav>
+    {card && card.chapters_th.length > 1 && <ol aria-label={t("family.chapters")} className="my-6 grid gap-3 sm:grid-cols-3">
+      {card.chapters_th.map((chapter) => <li key={chapter} aria-current={view?.scene?.chapter_th === chapter ? "step" : undefined} className={`rounded-2xl border p-4 ${view?.scene?.chapter_th === chapter ? "border-amber-600 bg-amber-50 font-semibold" : "border-stone-300"}`}>{chapter}</li>)}
+    </ol>}
     {error && <div role="alert" className="my-5 rounded-xl border border-amber-600 bg-amber-50 p-4">{error}</div>}
     {!ready ? <p role="status">{t("family.loading")}</p> : !credentials ? <div className="mt-8 grid gap-6 md:grid-cols-2">
       <section className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-bold">{t("family.create")}</h2>
+        <h2 className="text-xl font-bold">{t(card?.mode === "solo" ? "family.startSolo" : "family.create")}</h2>
         <label htmlFor="family-role" className="mb-2 mt-5 block">{t("family.role")}</label>
         <select id="family-role" className="w-full rounded-xl border border-stone-400 bg-white p-3" value={role} onChange={(e) => setRole(e.target.value as Role)}>
           <option value="mother">{t("family.mother")}</option><option value="father">{t("family.father")}</option>
         </select>
-        <button disabled={busy || !card} onClick={() => void start(false)} className="button-primary mt-5 w-full">{busy ? t("family.loading") : t("family.create")}</button>
+        <button disabled={busy || !card} onClick={() => void start(false)} className="button-primary mt-5 w-full">{busy ? t("family.loading") : t(card?.mode === "solo" ? "family.startSolo" : "family.create")}</button>
       </section>
-      <section className="rounded-3xl border border-stone-200 bg-amber-50 p-6">
+      {card?.mode !== "solo" && <section className="rounded-3xl border border-stone-200 bg-amber-50 p-6">
         <h2 className="text-xl font-bold">{t("family.join")}</h2>
         <label htmlFor="family-invite" className="mb-2 mt-5 block">{t("family.invitation")}</label>
         <input id="family-invite" type="url" value={invitation} onChange={(e) => setInvitation(e.target.value)} className="w-full rounded-xl border border-stone-400 bg-white p-3" />
         <button disabled={busy || !invitation} onClick={() => void start(true)} className="button-primary mt-5 w-full">{t("family.join")}</button>
-      </section>
+      </section>}
     </div> : !view ? <p className="mt-8" role="status">{t("family.loading")}</p> : <>
       <div className="my-7 flex flex-wrap items-center justify-between gap-4">
         <span className="rounded-full bg-amber-100 px-4 py-2 font-semibold">{t(`family.${view.role}`)}</span>
