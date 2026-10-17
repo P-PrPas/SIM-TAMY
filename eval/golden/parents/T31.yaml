@@ -1,0 +1,23 @@
+# T31 (DAD-002) Perfect Path: asks about every sign, refers, explains, writes a note.
+id: T31
+case: DAD-002
+variant: A
+steps:
+  - {say: "ตอนนี้รู้สึกยังไงบ้างครับ", expect_actions_any: [A01]}
+  - {say: "คลอดมากี่วันแล้วครับ", expect_actions_any: [A02]}
+  - {say: "ผ้าอนามัยเปลี่ยนบ่อยแค่ไหนครับ", expect_actions_any: [A03]}
+  - {say: "น้ำคาวปลามีกลิ่นไหมครับ", expect_actions_any: [A04]}
+  - {say: "มีไข้ไหมครับ", expect_actions_any: [A05]}
+  - {say: "ช่วงนี้อารมณ์เป็นยังไงบ้างครับ", expect_actions_any: [A06]}
+  - {say: "ปวดหัวไหมครับ", expect_actions_any: [A07]}
+  - {say: "อยากให้ผมช่วยอะไรไหมครับ", expect_actions_any: [A08]}
+  - {say: "ผมเข้าใจนะ ไม่ต้องกลัว ผมอยู่ตรงนี้", expect_actions_any: [C01]}
+  - {say: "ผมขออธิบายขั้นตอนต่อไปนะ", expect_actions_any: [C02]}
+  - {decision: seek_care_now}
+  - {complete: true, note: "บันทึกทดสอบ: ส่งต่อเพราะพบสัญญาณอันตราย จดเวลาและอาการเพื่อแจ้งเจ้าหน้าที่"}
+expect:
+  safety_status: SAFETY_MET
+  revealed: [H1, H2, H3, H4, H5, H6]
+  events_include: [DECISION_COMMITTED, SESSION_COMPLETED]
+  events_exclude: [UNSAFE_ACTION]
+  items: {R-RISK-01: pass, R-RISK-02: pass, R-DEC-01: pass, R-DEC-03: pass}

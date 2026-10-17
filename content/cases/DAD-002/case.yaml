@@ -1,0 +1,131 @@
+# DAD-002 = "ภรรยาหลังคลอดบอกว่าแค่เหนื่อย: พ่อควรทำอย่างไร" (course PAR-D02, audience dad, Variants A and C).
+# DRAFT written by Engineering from docs/research/2026-10-17-parent-and-staff-content.md (section 8, PAR-D02). Every hidden
+# fact is worded from the official source named on it. NOT reviewed by the Content team or an expert.
+# The learner is the husband and asks his wife; the engine reveals a fact only when he asks.
+# TODO(content): fever and bleeding are worded without numbers; a measured value is left to the experts (research section 6).
+# TODO(content): H4 mentions thoughts of self-harm (CDC lists it as a warning sign). A psychiatrist or the Department of Mental
+# Health must review the wording and supply a real hotline before this goes anywhere near a learner; no number is invented here.
+# TODO(content): the benign fact set needs Variant B (no scene yet), so the safe choice here is always to seek care.
+case_id: DAD-002
+version: "0.1"
+status: Draft
+audience: dad
+title_th: "DAD-002 ภรรยาหลังคลอดบอกว่าแค่เหนื่อย (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
+
+patient_profile:
+  display_th: "คุณเป็นสามี ภรรยาเพิ่งคลอดมาได้ไม่กี่วัน และบอกว่าแค่เหนื่อย ลองถามเธอให้รู้ว่าควรพาไปโรงพยาบาลตอนนี้หรือช่วยดูแลที่บ้าน"
+  known_facts: [K1]
+
+facts:
+  - id: K1
+    kind: known
+    text_th: "คลอดมาได้ไม่กี่วัน บอกว่าแค่เหนื่อย ลูกนอนอยู่ข้าง ๆ"
+    source: "[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D02]"
+  - id: H1
+    kind: hidden
+    text_th: "ผ้าอนามัยชุ่มเต็มหนึ่งผืนหรือมากกว่าภายในหนึ่งชั่วโมง และมีลิ่มเลือดก้อนใหญ่ออกมา"
+    unlock_on: [A03]
+    keywords_th: ["ชุ่มเต็ม", "ลิ่มเลือด"]
+    leak_terms_th: ["ชุ่มเต็ม", "ลิ่มเลือด"]
+    fallback_utterances_th: ["ผ้าอนามัยชุ่มเต็มหนึ่งผืนภายในหนึ่งชั่วโมงเลยค่ะ แล้วก็มีลิ่มเลือดก้อนใหญ่ออกมา"]
+    risk_relevance: critical
+    source: "[S15 CDC Hear Her; S09 กรมอนามัย (ข่าว 11 ธ.ค. 2568)]"
+    status: Draft
+  - id: H2
+    kind: hidden
+    text_th: "น้ำคาวปลามีกลิ่นเหม็น"
+    unlock_on: [A04]
+    keywords_th: ["กลิ่นเหม็น"]
+    leak_terms_th: ["กลิ่นเหม็น"]
+    fallback_utterances_th: ["น้ำคาวปลามีกลิ่นเหม็นค่ะ"]
+    risk_relevance: critical
+    source: "[S09 กรมอนามัย; S01 DTAM 2569 หน้า 79]"
+    status: Draft
+  - id: H3
+    kind: hidden
+    text_th: "ตัวร้อนเหมือนมีไข้ตั้งแต่เมื่อวาน"
+    unlock_on: [A05]
+    keywords_th: ["ตัวร้อน"]
+    leak_terms_th: ["ตัวร้อน"]
+    fallback_utterances_th: ["ตัวร้อนเหมือนมีไข้ตั้งแต่เมื่อวานค่ะ"]
+    risk_relevance: critical
+    source: "[S09 กรมอนามัย; S15 CDC Hear Her; S01 DTAM 2569 หน้า 78-79]"
+    status: Draft
+  - id: H4
+    kind: hidden
+    text_th: "ร้องไห้โดยไม่มีสาเหตุมาหลายวัน รู้สึกสิ้นหวัง และเคยมีความคิดอยากทำร้ายตัวเองหรือลูก"
+    unlock_on: [A06]
+    keywords_th: ["ไม่มีสาเหตุ", "สิ้นหวัง", "ทำร้ายตัวเอง"]
+    leak_terms_th: ["ไม่มีสาเหตุ", "สิ้นหวัง", "ทำร้ายตัวเอง"]
+    fallback_utterances_th: ["ร้องไห้โดยไม่มีสาเหตุมาหลายวันแล้วค่ะ รู้สึกสิ้นหวัง เคยคิดอยากทำร้ายตัวเองด้วย"]
+    risk_relevance: critical
+    source: "[S09 กรมอนามัย; S15 CDC Hear Her]"
+    status: Draft
+  - id: H5
+    kind: hidden
+    text_th: "ปวดศีรษะไม่หาย และมองเห็นพร่ามัว"
+    unlock_on: [A07]
+    keywords_th: ["มองเห็นพร่า"]
+    leak_terms_th: ["มองเห็นพร่า"]
+    fallback_utterances_th: ["ปวดศีรษะไม่หายค่ะ แล้วก็มองเห็นพร่ามัวด้วย"]
+    risk_relevance: critical
+    source: "[S15 CDC Hear Her]"
+    status: Draft
+  - id: H6
+    kind: hidden
+    text_th: "อยากให้ช่วยอุ้มลูกและช่วยงานบ้านบ้าง จะได้พักผ่อน"
+    unlock_on: [A08]
+    keywords_th: ["ช่วยอุ้มลูก"]
+    leak_terms_th: ["ช่วยอุ้มลูก"]
+    fallback_utterances_th: ["อยากให้ช่วยอุ้มลูกกับช่วยงานบ้านบ้างค่ะ จะได้พักผ่อน"]
+    risk_relevance: contextual
+    source: "[S10 กรมอนามัย อนามัยมีเดีย 10 วิธีคุณพ่อ]"
+    status: Draft
+
+variants:
+  A:
+    # TODO(content): persona wording is a placeholder; the research defines no persona text.
+    persona: {minimization: low, family_pressure: false, style_th: "พูดเบา ๆ เหนื่อยแต่ตอบตามที่ถาม"}
+    fact_set: default
+  C:
+    persona: {minimization: high, family_pressure: true, style_th: "ลดความรุนแรงของอาการ บอกว่าไม่เป็นไร มีญาติอยู่ด้วย"}
+    fact_set: default
+    pressure_script:
+      # scripted, not LLM-generated (AGENTS.md); opened once the learner decides to refer
+      - {speaker: relative, text_th: "ผู้หญิงหลังคลอดก็เหนื่อยแบบนี้กันทุกคน พักเดี๋ยวก็หาย"}
+
+# TODO(content): diagnosis words the character must never say; the list below is minimal.
+forbidden_terms_th: ["ตกเลือด", "ติดเชื้อ", "ซึมเศร้าหลังคลอด"]
+
+decision_options:
+  - {id: seek_care_now, label_th: "พาภรรยาไปโรงพยาบาลตอนนี้", maps_to_actions: [B01, B02]}
+  - {id: support_at_home, label_th: "ช่วยดูแลที่บ้านก่อน", maps_to_actions: [B03]}
+
+branch_rules:
+  - {from: INTERVIEW, on_action_any: [A03, A04, A05, A06, A07], set_risk_state: recognized}
+  - {from: INTERVIEW, on_decision: seek_care_now, to: PRESSURE, if_variant: [C]}
+  - {from: INTERVIEW, on_decision: seek_care_now, to: CLOSING, if_variant: [A]}
+  - {from: INTERVIEW, on_decision: support_at_home, to: CLOSING, mark_unsafe: true}
+  - {from: PRESSURE, on_action_any: [C03], to: CLOSING}
+  - {from: PRESSURE, on_action_any: [C04], to: CLOSING, mark_unsafe: true}
+
+critical_facts_for_replay: [H1, H2, H3, H4, H5]
+
+# Each line is the learner's decision or a next step to take, never something that happened.
+# TODO(content): clinical consequences are for the experts to write.
+outcome_scripts:
+  Referral:
+    timeline_th:
+      - "ผู้เรียนเลือกพาภรรยาไปโรงพยาบาลตอนนี้"
+      - "ขั้นตอนที่ควรทำต่อ: บอกเจ้าหน้าที่ว่าเลือดออกอย่างไร มีไข้ตั้งแต่เมื่อไหร่ และอารมณ์ของภรรยาช่วงที่ผ่านมา และอยู่ข้าง ๆ เธอ"
+    disclaimer_th: "ฉบับร่าง ผลลัพธ์หลังส่งต่อรอผู้เชี่ยวชาญกำหนด เพื่อการศึกษาเท่านั้น"
+  UnsafeProceed:
+    timeline_th:
+      - "ผู้เรียนเลือกช่วยดูแลที่บ้านก่อน ทั้งที่ภรรยามีอาการที่สามารถถามได้"
+      - "เคสเข้าสู่การทบทวน (debrief) เพื่อดูว่าควรไปโรงพยาบาลเมื่อใด"
+    disclaimer_th: "ฉบับร่าง ผลลัพธ์ทางคลินิกรอผู้เชี่ยวชาญกำหนด เพื่อการศึกษาเท่านั้น"
+
+references:
+  - {id: REF1, title_th: "กรมอนามัย: ข่าว หญิงท้อง-หลังคลอด สังเกตอาการ (11 ธ.ค. 2568)", locator: "https://multimedia.anamai.moph.go.th/news/111268/"}
+  - {id: REF2, title_th: "งานวิจัยแหล่งอ้างอิงของโครงการ (ยังไม่ผ่านผู้เชี่ยวชาญ)", locator: "docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D02"}

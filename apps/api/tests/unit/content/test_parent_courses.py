@@ -14,6 +14,7 @@ from app.services.patient_voice import VoiceRequest
 CASES = Path(__file__).resolve().parents[5] / "content" / "cases"
 COURSES = {
     "DAD-001": "dad",
+    "DAD-002": "dad",
     "MOM-001": "mom",
 }  # case id -> audience; add a course here when it is written
 
