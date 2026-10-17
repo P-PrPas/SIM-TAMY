@@ -1,7 +1,8 @@
 """Latency and concurrency check (T-074): N learners play one short journey at the same time.
 
     python scripts/loadcheck.py http://localhost:8000 [--sessions 20] [--turns 6]
-                                [--case-id DEV-001] [--output eval/results/<name>.md]
+                                [--case-id DEV-001] [--expect-provider openai_like]
+                                [--output eval/results/<name>.md]
 
 Every learner: create session -> N turns -> decision -> complete -> report, all learners released
 together. Latency is wall clock as the client sees it, per request; error rate is every non-2xx
@@ -28,8 +29,9 @@ from typing import Any
 
 Call = Callable[[str, str, dict[str, Any] | None, str | None], tuple[int, Any]]
 TURN_P95_TARGET_S = 8.0  # PRD §1.3, non-streaming turn
-# neutral, non-clinical prompts: the check measures the pipeline, not the case
-PHRASES = ("สวัสดีค่ะ", "ช่วยเล่าให้ฟังหน่อยได้ไหมคะ", "มีอะไรเพิ่มเติมไหมคะ")
+# Neutral, non-clinical learner utterances stay in content, not source code.
+_PHRASES_FILE = Path(__file__).resolve().parents[1] / "content" / "loadcheck" / "utterances_th.json"
+PHRASES = tuple(json.loads(_PHRASES_FILE.read_text(encoding="utf-8"))["utterances_th"])
 
 
 @dataclass(frozen=True)
@@ -133,8 +135,7 @@ def render(
         f"version `{health.get('version', '?')}`, commit `{commit}`",
         f"- Errors (non-2xx or no answer): {errors} of {len(records)} "
         f"({100 * errors / len(records):.1f}%); status codes: {codes}",
-        f"- Turn p95 {p95_text} against the PRD 1.3 target of {TURN_P95_TARGET_S:.0f} s: "
-        f"{verdict}",
+        f"- Turn p95 {p95_text} against the PRD 1.3 target of {TURN_P95_TARGET_S:.0f} s: {verdict}",
         "- Latency is client wall clock, including network. Per-LLM-call numbers: `make stats`.",
         "",
         "| Step | Requests | Errors | p50 ms | p95 ms | max ms |",
@@ -171,10 +172,21 @@ def main(argv: list[str] | None = None) -> int:
         "--turns", type=int, default=6, help="keep below the per-session rate limit"
     )
     parser.add_argument("--case-id")
+    parser.add_argument(
+        "--expect-provider", help="fail before load if /health reports another provider"
+    )
     parser.add_argument("--output", type=Path, help="also write the markdown report here")
     args = parser.parse_args(argv)
+    if args.sessions < 1 or args.turns < 1:
+        parser.error("--sessions and --turns must be positive")
     call = http_call(args.base_url)
-    _, health = call("GET", "/health", None, None)
+    status, health = call("GET", "/health", None, None)
+    if status != 200 or health.get("db") != "ok":
+        print("loadcheck: API /health is not ready", file=sys.stderr)
+        return 2
+    if args.expect_provider and health.get("llm_provider") != args.expect_provider:
+        print("loadcheck: provider does not match --expect-provider", file=sys.stderr)
+        return 2
     records, wall = run(call, args.sessions, args.turns, args.case_id)
     report = render(records, wall, args.sessions, args.turns, health)
     print(report)

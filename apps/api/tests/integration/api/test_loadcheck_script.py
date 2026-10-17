@@ -4,6 +4,8 @@ import importlib.util
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from tests.integration.api.conftest import Api
 
 _spec = importlib.util.spec_from_file_location(
@@ -67,3 +69,63 @@ def test_it_plays_the_real_api_without_errors(api: Api) -> None:
         "create session", "turn", "turn", "decision", "complete", "report",
     ]  # fmt: skip
     assert all(r.status in (200, 201) for r in records), [(r.step, r.status) for r in records]
+
+
+def test_provider_guard_rejects_a_mock_without_running_sessions(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    calls: list[str] = []
+
+    def call(method: str, path: str, body: Any, token: Any) -> tuple[int, Any]:
+        calls.append(path)
+        assert path == "/health"
+        return 200, {"status": "ok", "db": "ok", "llm_provider": "mock"}
+
+    monkeypatch.setattr(loadcheck, "http_call", lambda _base: call)
+    assert loadcheck.main(["http://localhost", "--expect-provider", "openai_like"]) == 2
+    assert calls == ["/health"]
+    assert "provider" in capsys.readouterr().err
+
+
+def test_provider_guard_rejects_unhealthy_api_before_load(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def call(method: str, path: str, body: Any, token: Any) -> tuple[int, Any]:
+        assert path == "/health"
+        return 503, {"status": "down", "db": "error", "llm_provider": "openai_like"}
+
+    monkeypatch.setattr(loadcheck, "http_call", lambda _base: call)
+    assert loadcheck.main(["http://localhost", "--expect-provider", "openai_like"]) == 2
+
+
+def test_matching_provider_runs_and_saves_measured_report(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    api = fake_api()
+
+    def call(method: str, path: str, body: Any, token: Any) -> tuple[int, Any]:
+        if path == "/health":
+            return 200, {"status": "ok", "db": "ok", "llm_provider": "openai_like"}
+        return api(method, path, body, token)
+
+    monkeypatch.setattr(loadcheck, "http_call", lambda _base: call)
+    report = tmp_path / "result.md"
+    assert (
+        loadcheck.main(
+            [
+                "http://localhost",
+                "--expect-provider",
+                "openai_like",
+                "--sessions",
+                "1",
+                "--turns",
+                "1",
+                "--output",
+                str(report),
+            ]
+        )
+        == 0
+    )
+    saved = report.read_text(encoding="utf-8")
+    assert "provider `openai_like`" in saved
+    assert "Concurrent learners: 1, turns each: 1" in saved
