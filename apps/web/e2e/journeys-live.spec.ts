@@ -25,10 +25,12 @@ async function sendQuestion(page: Page, text: string) {
   const input = page.getByRole("textbox", { name: t("chat.messageLabel") });
   await input.fill(text);
   const response = page.waitForResponse((item) =>
-    item.request().method() === "POST" && /\/v1\/sessions\/[^/]+\/turns$/.test(item.url()));
+    item.request().method() === "POST" && item.status() === 200
+      && /\/v1\/sessions\/[^/]+\/turns$/.test(item.url()));
   await page.getByRole("button", { name: t("chat.send") }).click();
-  expect((await response).status()).toBe(200);
-  await expect(input).toBeEnabled();
+  await response; // TURN_IN_PROGRESS may briefly return 409; the client retries the same turn ID.
+  await expect(page.getByText(t("chat.typing"))).toHaveCount(0);
+  await expect(page.getByText(t("chat.sendError"))).toHaveCount(0);
   await expect(page.getByText(text, { exact: true })).toBeVisible();
 }
 

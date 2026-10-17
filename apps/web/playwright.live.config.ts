@@ -24,6 +24,7 @@ export default defineConfig({
         ALLOW_DRAFT_CASES: "true",
         LLM_PROVIDER: "mock",
         MOCK_LLM_SCRIPT: "tests/fixtures/mock_interpreter_invalid.yaml",
+        RATE_LIMIT_PER_MIN: "0",
         CORS_ORIGINS: webUrl,
       },
       url: `${apiUrl}/health`,
