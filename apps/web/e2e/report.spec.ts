@@ -21,5 +21,21 @@ test("Report prioritizes safety status and shows timeline and review at 360px", 
   await expect(page.getByText("Synthetic timeline event")).toBeVisible();
   await page.getByRole("tab", { name: t("report.review") }).click();
   await expect(page.getByText("Review source")).toBeVisible();
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: t("report.downloadJson") }).click();
+  expect((await download).suggestedFilename()).toBe("sim-tamy-report-PP-001-session-1.json");
+
+  await page.evaluate(() => { window.print = () => undefined; });
+  await page.getByRole("button", { name: t("report.print") }).click();
+  await page.emulateMedia({ media: "print" });
+  for (const heading of ["summary", "timeline", "glassBox", "consequenceReplay", "review"]) {
+    await expect(page.getByRole("heading", { name: t(`report.${heading}`), exact: true })).toBeVisible();
+  }
+  await expect(page.getByText("Synthetic timeline event").first()).toBeVisible();
+  await expect(page.getByText("Review source")).toBeVisible();
+  await expect(page.getByRole("tablist")).toBeHidden();
+  await expect(page.getByRole("button", { name: t("report.print") })).toBeHidden();
+  await expect(page.getByText(t("status.draft"))).toBeVisible();
+  await expect(page.getByText(t("banner.educationOnly"))).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
 });
