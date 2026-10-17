@@ -34,7 +34,7 @@ def test_bridge_uses_only_selected_reply_and_idempotently_persists_it(api: Api):
     assert api.client.get(path, headers=headers).json() == response.json()
     assert api.llm.calls == calls == 1
     with api.db() as db:
-        assert db.get(FamilyEvent, (room_id, 0)).reply_th == accepted
+        assert db.get(FamilyEvent, (room_id, 1)).reply_th == accepted
         assert len(list(db.scalars(select(LlmCall).where(LlmCall.session_id == room_id)))) == 1
 
 
@@ -59,5 +59,5 @@ def test_unapproved_reply_falls_back_and_retention_removes_calls_and_events(api:
         db.get(FamilyRoom, room_id).created_at = datetime.now(UTC) - timedelta(days=31)
         db.flush()
         assert purge_family(db, cutoff=datetime.now(UTC) - timedelta(days=30)) == 1
-        assert db.get(FamilyEvent, (room_id, 0)) is None
+        assert db.get(FamilyEvent, (room_id, 1)) is None
         assert not list(db.scalars(select(LlmCall).where(LlmCall.session_id == room_id)))
