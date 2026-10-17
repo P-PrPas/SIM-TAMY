@@ -38,6 +38,7 @@ def build(source: str) -> Recording:
                 allowed,
                 "answer",
                 step.say,
+                learner_audience=loaded.case.audience,
             )
             spoken = speak(
                 request,
