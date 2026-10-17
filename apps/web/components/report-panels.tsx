@@ -6,11 +6,13 @@ import { BranchReplay } from "@/components/branch-replay";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
 import { t } from "@/lib/i18n";
+import { EvidenceReview } from "@/components/evidence-review";
 
 type Report = components["schemas"]["ReportResponse"];
 type Message = components["schemas"]["Message"];
 
 export function GlassBoxPanel({ report }: { report: Report }) {
+  const [selectedTurn, setSelectedTurn] = useState<number | null>(null);
   const [history, setHistory] = useState<Message[] | null>(null);
   const [error, setError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
@@ -33,18 +35,24 @@ export function GlassBoxPanel({ report }: { report: Report }) {
     return () => { cancelled = true; };
   }, [report.session_id, retryKey]);
 
+  const visibleHistory = history?.filter((message) => selectedTurn === null || message.idx === selectedTurn);
   return <div className="space-y-6">
+    <EvidenceReview report={report} onSelectTurn={setSelectedTurn} />
     <div className="grid gap-5 md:grid-cols-2">
       <section aria-label={t("report.conversation")} className="print:hidden rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">{t("report.conversation")}</h2>
+        {selectedTurn !== null && <div className="mt-3 rounded-xl bg-brand-50 p-3">
+          <p role="status">{t("evidenceReview.selectedTurn")} {selectedTurn}</p>
+          <button type="button" onClick={() => setSelectedTurn(null)} className="mt-2 rounded-lg border border-brand-800 px-3 py-3 font-semibold">{t("evidenceReview.showAll")}</button>
+        </div>}
         {error && <div className="mt-4">
           <p role="alert">{t("report.historyLoadError")}</p>
           <button type="button" onClick={() => { setError(false); setHistory(null); setRetryKey((key) => key + 1); }} className="mt-3 rounded-lg border border-brand-800 px-3 py-2 font-semibold text-brand-900">{t("report.retry")}</button>
         </div>}
         {!error && history === null && <p role="status" className="mt-4">{t("report.loading")}</p>}
-        {history && (history.length === 0 ? <p className="mt-4">{t("report.noHistory")}</p>
+        {visibleHistory && (visibleHistory.length === 0 ? <p className="mt-4">{t("report.noHistory")}</p>
           : <ol className="mt-4 space-y-3">
-            {history.map((message, index) => <li key={index} className="rounded-xl bg-stone-50 p-3">
+            {visibleHistory.map((message, index) => <li key={index} className="rounded-xl bg-stone-50 p-3">
               <p className="text-sm font-bold text-brand-900">{t(`report.speaker.${message.speaker}`)} · {t("report.turn")} {message.idx}</p>
               <p className="mt-1 whitespace-pre-wrap break-words">{message.text}</p>
             </li>)}
