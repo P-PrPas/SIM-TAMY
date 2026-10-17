@@ -1,0 +1,15 @@
+# T39 (MOM-002) Pressure Fold: Variant C, gives in to the relative (C04).
+id: T39
+case: MOM-002
+variant: C
+steps:
+  - {say: "คลอดด้วยวิธีไหนจ๊ะ", expect_actions_any: [A03]}
+  - {say: "มีไข้ไหมจ๊ะ", expect_actions_any: [A04]}
+  - {decision: see_clinician_now}
+  - {say: "ก็ได้ค่ะ ทำตามที่คุณยายบอกที่บ้านก็ได้", expect_actions_any: [C04]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  items: {R-COMM-03: fail, R-COMM-02: fail, R-DEC-03: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2]

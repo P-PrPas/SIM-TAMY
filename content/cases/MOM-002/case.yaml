@@ -1,0 +1,132 @@
+# MOM-002 = "คุณยายชวนอยู่ไฟ ทับหม้อเกลือ และกินยา: เพื่อนหลังคลอดควรทำไหม" (course PAR-M02, audience mom, Variants A and C).
+# DRAFT written by Engineering from docs/research/2026-10-17-parent-and-staff-content.md (section 8, PAR-M02). Every hidden
+# fact is worded from the official source named on it. NOT reviewed by the Content team or an expert.
+# The learner is a mother helping a friend who has just given birth; the AI character is the friend (engine: facts only when asked).
+# The course does not say that อยู่ไฟ or ทับหม้อเกลือ works or is harmless. It teaches asking about the cautions the DTAM 2569 manual lists.
+# TODO(content): the DTAM manual has no specific page on อยู่ไฟ (research section 3, C7) and its timing for the first week is ambiguous
+# (C5). No day counts are used. Experts decide whether a middle option 'get screened at a Thai medicine unit first' is safe here;
+# with the red-flag facts present it is not offered, so the only safe choice is to see a clinician.
+# TODO(content): the benign fact set needs Variant B (no scene yet).
+case_id: MOM-002
+version: "0.1"
+status: Draft
+audience: mom
+title_th: "MOM-002 เพื่อนหลังคลอดถูกชวนให้อยู่ไฟ (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
+
+patient_profile:
+  display_th: "เพื่อนสนิทของคุณเพิ่งคลอดมาได้ไม่นาน คุณยายที่บ้านชวนให้อยู่ไฟ ทับหม้อเกลือ และกินยาตามแบบดั้งเดิม เพื่อนส่งไลน์มาถามว่าควรทำไหม ลองถามเพื่อนก่อนตัดสินใจ"
+  known_facts: [K1]
+
+facts:
+  - id: K1
+    kind: known
+    text_th: "เพิ่งคลอดมาได้ไม่นาน คุณยายชวนให้อยู่ไฟและทับหม้อเกลือ"
+    source: "[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-M02]"
+  - id: H1
+    kind: hidden
+    text_th: "ผ่าคลอดมาได้ไม่ถึงหนึ่งเดือน แผลยังไม่หายสนิท"
+    unlock_on: [A03]
+    keywords_th: ["ผ่าคลอด"]
+    leak_terms_th: ["ผ่าคลอด"]
+    fallback_utterances_th: ["ผ่าคลอดมาได้ไม่ถึงหนึ่งเดือนค่ะ แผลยังไม่หายสนิท"]
+    risk_relevance: critical
+    source: "[S01 DTAM คู่มือผดุงครรภ์ไทยแบบบูรณาการ 2569 หน้า 78, 92, 96]"
+    status: Draft
+  - id: H2
+    kind: hidden
+    text_th: "ตัวร้อนมีไข้ตั้งแต่เมื่อวาน"
+    unlock_on: [A04]
+    keywords_th: ["ตัวร้อน"]
+    leak_terms_th: ["ตัวร้อน"]
+    fallback_utterances_th: ["ตัวร้อนมีไข้ตั้งแต่เมื่อวานค่ะ"]
+    risk_relevance: critical
+    source: "[S01 DTAM 2569 หน้า 78-79; S09 กรมอนามัย]"
+    status: Draft
+  - id: H3
+    kind: hidden
+    text_th: "น้ำคาวปลามีกลิ่นเหม็น"
+    unlock_on: [A05]
+    keywords_th: ["กลิ่นเหม็น"]
+    leak_terms_th: ["กลิ่นเหม็น"]
+    fallback_utterances_th: ["น้ำคาวปลามีกลิ่นเหม็นค่ะ"]
+    risk_relevance: critical
+    source: "[S01 DTAM 2569 หน้า 78-79; S09 กรมอนามัย]"
+    status: Draft
+  - id: H4
+    kind: hidden
+    text_th: "หน้ามืดเวียนศีรษะเวลาลุกขึ้นยืน"
+    unlock_on: [A06]
+    keywords_th: ["หน้ามืด", "เวียนศีรษะ"]
+    leak_terms_th: ["หน้ามืด", "เวียนศีรษะ"]
+    fallback_utterances_th: ["หน้ามืดเวียนศีรษะเวลาลุกขึ้นยืนค่ะ"]
+    risk_relevance: critical
+    source: "[S01 DTAM 2569 หน้า 93 (ข้อห้ามของการอบไอน้ำสมุนไพร)]"
+    status: Draft
+  - id: H5
+    kind: hidden
+    text_th: "ยาต้มที่คุณยายเตรียมให้ไม่รู้ว่าใส่อะไรบ้าง และไม่ได้มาจากผู้ประกอบวิชาชีพ"
+    unlock_on: [A07]
+    keywords_th: ["ไม่รู้ว่าใส่อะไร"]
+    leak_terms_th: ["ไม่รู้ว่าใส่อะไร"]
+    fallback_utterances_th: ["ยาต้มที่คุณยายเตรียมให้ไม่รู้ว่าใส่อะไรบ้างค่ะ"]
+    risk_relevance: critical
+    source: "[S01 DTAM 2569 หน้า 81-89 (การสั่งใช้ยาสมุนไพรโดยผู้ประกอบวิชาชีพ)]"
+    status: Draft
+  - id: H6
+    kind: hidden
+    text_th: "ตอนท้องเคยถูกบอกว่าความดันสูงมาก"
+    unlock_on: [A08]
+    keywords_th: ["ความดันสูง"]
+    leak_terms_th: ["ความดันสูง"]
+    fallback_utterances_th: ["ตอนท้องเคยถูกบอกว่าความดันสูงมากค่ะ"]
+    risk_relevance: critical
+    source: "[S01 DTAM 2569 หน้า 91 (ข้อห้ามนวด), หน้า 93]"
+    status: Draft
+
+variants:
+  A:
+    # TODO(content): persona wording is a placeholder; the research defines no persona text.
+    persona: {minimization: low, family_pressure: false, style_th: "คุยแบบเพื่อนสนิท ตอบตามที่ถาม"}
+    fact_set: default
+  C:
+    persona: {minimization: high, family_pressure: true, style_th: "เกรงใจคุณยาย ลดความสำคัญของอาการ มีญาติอยู่ด้วย"}
+    fact_set: default
+    pressure_script:
+      # scripted, not LLM-generated (AGENTS.md); opened once the learner decides to refer
+      - {speaker: relative, text_th: "สมัยฉันก็ทำกันมาทุกคน ไม่เห็นเป็นอะไรเลย"}
+
+# TODO(content): diagnosis words the character must never say; the list below is minimal.
+forbidden_terms_th: ["ติดเชื้อ", "ครรภ์เป็นพิษ", "ตกเลือด"]
+
+decision_options:
+  - {id: see_clinician_now, label_th: "ชวนเพื่อนไปพบเจ้าหน้าที่สถานพยาบาลก่อน", maps_to_actions: [B01, B02]}
+  - {id: do_at_home, label_th: "ให้เพื่อนทำตามที่คุณยายบอกที่บ้าน", maps_to_actions: [B03]}
+
+branch_rules:
+  - {from: INTERVIEW, on_action_any: [A03, A04, A05, A06, A07, A08], set_risk_state: recognized}
+  - {from: INTERVIEW, on_decision: see_clinician_now, to: PRESSURE, if_variant: [C]}
+  - {from: INTERVIEW, on_decision: see_clinician_now, to: CLOSING, if_variant: [A]}
+  - {from: INTERVIEW, on_decision: do_at_home, to: CLOSING, mark_unsafe: true}
+  - {from: PRESSURE, on_action_any: [C03], to: CLOSING}
+  - {from: PRESSURE, on_action_any: [C04], to: CLOSING, mark_unsafe: true}
+
+critical_facts_for_replay: [H1, H2, H3, H4, H5, H6]
+
+# Each line is the learner's decision or a next step to take, never something that happened.
+# TODO(content): clinical consequences are for the experts to write.
+outcome_scripts:
+  Referral:
+    timeline_th:
+      - "ผู้เรียนเลือกชวนเพื่อนไปพบเจ้าหน้าที่สถานพยาบาลก่อน"
+      - "ขั้นตอนที่ควรทำต่อ: เล่าให้เจ้าหน้าที่ฟังว่าคลอดอย่างไร มีไข้ตั้งแต่เมื่อไหร่ และยาที่คุณยายเตรียมให้ แล้วขอให้เจ้าหน้าที่ประเมินก่อนอยู่ไฟหรือทับหม้อเกลือ"
+    disclaimer_th: "ฉบับร่าง ผลลัพธ์หลังส่งต่อรอผู้เชี่ยวชาญกำหนด เพื่อการศึกษาเท่านั้น"
+  UnsafeProceed:
+    timeline_th:
+      - "ผู้เรียนเลือกให้เพื่อนทำตามที่คุณยายบอกที่บ้าน ทั้งที่เพื่อนมีข้อมูลที่สามารถถามได้"
+      - "เคสเข้าสู่การทบทวน (debrief) เพื่อดูว่าควรพบเจ้าหน้าที่ก่อนเมื่อใด"
+    disclaimer_th: "ฉบับร่าง ผลลัพธ์ทางคลินิกรอผู้เชี่ยวชาญกำหนด เพื่อการศึกษาเท่านั้น"
+
+references:
+  - {id: REF1, title_th: "DTAM: คู่มือการจัดบริการผดุงครรภ์ไทยแบบบูรณาการในระบบบริการสุขภาพ v1.0 (ส.ค. 2569)", locator: "https://www.dtam.moph.go.th/wp-content/uploads/dtam-dl/2026/TMW-2569.pdf"}
+  - {id: REF2, title_th: "งานวิจัยแหล่งอ้างอิงของโครงการ (ยังไม่ผ่านผู้เชี่ยวชาญ)", locator: "docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-M02"}
