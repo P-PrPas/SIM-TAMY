@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "SIM-TAMY API: FastAPI backend, deterministic engine, AI components"
 requires-python = ">=3.11"
 dependencies = [
-  "fastapi>=0.115",
+  "fastapi>=0.121",  # Depends(scope=...) arrived in 0.121 (see app/api/deps.py)
   "uvicorn[standard]>=0.30",
   "pydantic>=2.7",
   "pydantic-settings>=2.3",  # typed env config (PRD 6.5)
