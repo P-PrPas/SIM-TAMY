@@ -19,17 +19,22 @@ class _Match(NamedTuple):
         return self.end - self.start
 
 
-# A communication stance ("ต้องส่งต่อ") flips when it follows one of these ("ไม่ต้องส่งต่อ"). Without
-# this the fallback read a refusal as the learner insisting on the referral and the gate passed.
-_NEGATORS = ("ไม่ต้อง", "ไม่", "ห้าม", "อย่า")
+# A communication stance ("ต้องส่งต่อ") means the opposite next to a negation ("ไม่ต้องส่งต่อ",
+# "ไม่จำเป็นต้องส่งต่อ"). The fallback cannot parse Thai, so it fails closed: a stance is not
+# credited when a negator stands anywhere else in the same clause (a run with no space or
+# punctuation). A phrase that carries its own negation ("ไม่รอ") is judged on the text around it.
+# Losing a credit is safe; giving one to a refusal passed the safety gate.
+_NEGATORS = ("ไม่", "ห้าม", "อย่า")
+_CLAUSE_BREAKS = " ,.!?;:…\n"
 # ponytail: only stances; a question in negative form ("ไม่ปวดท้องใช่ไหม") still asks
 _STANCE_CATEGORIES = ("COM",)
 
 
-def _negated(text: str, start: int, needle: str) -> bool:
-    if needle.startswith(_NEGATORS):  # the phrase carries its own negation ("ไม่รอ")
-        return False
-    return text[:start].rstrip().endswith(_NEGATORS)
+def _negated(text: str, start: int, end: int) -> bool:
+    head = max((text.rfind(c, 0, start) for c in _CLAUSE_BREAKS), default=-1) + 1
+    tails = [i for c in _CLAUSE_BREAKS if (i := text.find(c, end)) != -1]
+    clause = text[head:start] + text[end : min(tails, default=len(text))]
+    return any(n in clause for n in _NEGATORS)
 
 
 def _hits(
@@ -41,7 +46,7 @@ def _hits(
     found: list[_Match] = []
     start = text.find(needle)
     while start != -1:
-        if not (stance and _negated(text, start, needle)):
+        if not (stance and _negated(text, start, start + len(needle))):
             found.append(_Match(action_id, start, start + len(needle), is_example))
         start = text.find(needle, start + 1)
     return found
