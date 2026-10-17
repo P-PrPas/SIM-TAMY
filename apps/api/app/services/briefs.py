@@ -74,8 +74,10 @@ def case_brief(loaded: LoadedCase) -> CaseBrief:
         audience=Audience(c.audience) if c.audience else None,
         variants_available=playable_variants(loaded),
         patient_display_th=c.patient_profile.display_th,
-        # ponytail: the Case schema stores objective ids only; the id doubles as the label
-        learning_objectives=[LearningObjective(id=o, label_th=o) for o in c.learning_objectives],
+        learning_objectives=[
+            LearningObjective(id=o, label_th=_ui()["learning_objectives"][o])
+            for o in c.learning_objectives
+        ],
         decision_options=[DecisionOption(id=o.id, label_th=o.label_th) for o in c.decision_options],
         disclaimer_th=disclaimer_th(),
     )
