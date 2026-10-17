@@ -55,3 +55,26 @@ def test_the_pp001_draft_golden_files_have_no_failures(
     assert len(outcomes) == 5
     failed = [o for o in outcomes if o.status != "PASS"]
     assert not failed, render(outcomes)
+
+
+def test_the_parent_course_golden_files_have_no_failures(
+    make_db: Callable[[], str],
+    alembic_config: Callable[[str], Config],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Courses for new dads and moms (eval/golden/parents) run through the same runner."""
+    url = make_db()
+    command.upgrade(alembic_config(url), "head")
+    for name, value in {
+        "DATABASE_URL": url,
+        "ALLOW_DRAFT_CASES": "true",
+        "CONTENT_DIR": str(CONTENT_DIR),
+    }.items():
+        monkeypatch.setenv(name, value)
+
+    files = sorted((GOLDEN_DIR / "parents").glob("T*.yaml"))
+    outcomes = run_all(files, url)
+
+    assert files and len(outcomes) == len(files)
+    failed = [o for o in outcomes if o.status != "PASS"]
+    assert not failed, render(outcomes)

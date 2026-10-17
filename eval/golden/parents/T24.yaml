@@ -1,0 +1,15 @@
+# T24 (DAD-001) Pressure Fold: Variant C, he gives in and agrees to wait at home (C04).
+id: T24
+case: DAD-001
+variant: C
+steps:
+  - {say: "มีน้ำเดินหรือเปล่าครับ", expect_actions_any: [A03]}
+  - {say: "ลูกดิ้นเหมือนเดิมไหมครับ", expect_actions_any: [A06]}
+  - {decision: go_hospital_now}
+  - {say: "ก็ได้ครับ รอที่บ้านก่อนตามที่แนะนำ", expect_actions_any: [C04]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  items: {R-COMM-03: fail, R-COMM-02: fail, R-DEC-03: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H4]

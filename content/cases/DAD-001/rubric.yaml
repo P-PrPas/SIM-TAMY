@@ -1,0 +1,197 @@
+# DAD-001 rubric. DRAFT written by Engineering for the first parent course (research §8, PAR-D01); the shape follows PP-001.
+# The weights are the same placeholder weights PP-001 uses and are NOT calibrated. NOT reviewed by the Content team or an
+# expert. TODO(content): calibrate weights, decide which items are critical, reword the feedback.
+# The five competency ids are the API enum values (HX/RISK/DEC/ESC/COMM/DOC); the Thai names are this course's wording.
+# TODO(content): a timing item (how soon after the danger signs he must decide) is left out for the same reason as in PP-001.
+rubric_version: '0.1'
+competencies:
+- id: HX
+  name_th: ถามให้รู้ว่าเกิดอะไรขึ้นและเตรียมพร้อม
+  weight: 20
+- id: RISK
+  name_th: สังเกตสัญญาณที่ต้องรีบไปโรงพยาบาล
+  weight: 25
+- id: DEC
+  name_th: ตัดสินใจว่าจะไปโรงพยาบาลหรือรอที่บ้าน
+  weight: 35
+- id: COMM
+  name_th: สื่อสารกับภรรยาและญาติ
+  weight: 10
+- id: DOC
+  name_th: จดบันทึกเพื่อแจ้งเจ้าหน้าที่
+  weight: 10
+items:
+- id: R-HX-01
+  competency: HX
+  points: 10
+  check:
+    type: action_present_all
+    actions: [A01, A02]
+  pass_finding:
+    id: R-HX-01-P
+    template_th: คุณถามว่าตอนนี้รู้สึกอย่างไรและเริ่มไม่สบายตัวตั้งแต่เมื่อไหร่
+  fail_finding:
+    id: R-HX-01-F
+    template_th: ยังไม่ได้ถามทั้งความรู้สึกตอนนี้และเวลาที่เริ่มไม่สบายตัว ควรถามให้ครบก่อนตัดสินใจ
+    references:
+    - REF1
+    - REF2
+  source: '[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01]'
+- id: R-HX-02
+  competency: HX
+  points: 10
+  check:
+    type: action_present_any
+    actions: [A07]
+  pass_finding:
+    id: R-HX-02-P
+    template_th: คุณถามเรื่องของเตรียมคลอดและเอกสารที่ต้องนำไป
+  fail_finding:
+    id: R-HX-02-F
+    template_th: ยังไม่ได้ถามเรื่องกระเป๋าเตรียมคลอด สมุดบันทึกสุขภาพแม่และเด็ก และบัตรประชาชน ซึ่งควรพร้อมก่อนออกเดินทาง
+    references:
+    - REF1
+    - REF2
+  source: '[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01]'
+- id: R-RISK-01
+  competency: RISK
+  points: 10
+  critical: true
+  applies_to_variants:
+  - A
+  - C
+  check:
+    type: action_present_any
+    actions: [A03, A04, A05, A06]
+  pass_finding:
+    id: R-RISK-01-P
+    template_th: คุณถามอย่างน้อยหนึ่งสัญญาณที่ต้องรีบไปโรงพยาบาลก่อนตัดสินใจ
+  fail_finding:
+    id: R-RISK-01-F
+    template_th: ยังไม่ได้ถามเรื่องน้ำเดิน มูกเลือด ลักษณะการปวดท้อง หรือลูกดิ้น ก่อนตัดสินใจ ข้อมูลเหล่านี้มีผลต่อการตัดสินใจ
+    references:
+    - REF1
+    - REF2
+  source: '[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01]'
+- id: R-RISK-02
+  competency: RISK
+  points: 15
+  check:
+    type: action_present_all
+    actions: [A03, A04, A05, A06]
+  pass_finding:
+    id: R-RISK-02-P
+    template_th: คุณถามครบทั้งน้ำเดิน มูกเลือด การปวดท้อง และลูกดิ้น
+  fail_finding:
+    id: R-RISK-02-F
+    template_th: ถามไม่ครบทั้งสี่เรื่อง (น้ำเดิน มูกเลือด การปวดท้อง ลูกดิ้น) ทุกเรื่องมีผลต่อการตัดสินใจ
+    references:
+    - REF1
+    - REF2
+  source: '[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01]'
+- id: R-DEC-01
+  competency: DEC
+  points: 15
+  critical: true
+  applies_to_variants:
+  - A
+  - C
+  check:
+    type: decision_equals
+    option: go_hospital_now
+  pass_finding:
+    id: R-DEC-01-P
+    template_th: คุณเลือกพาภรรยาไปโรงพยาบาลตอนนี้
+  fail_finding:
+    id: R-DEC-01-F
+    template_th: เลือกรอดูอาการที่บ้านแทนการไปโรงพยาบาล ทั้งที่ภรรยามีอาการที่ต้องรีบไป
+    references:
+    - REF1
+    - REF2
+  source: '[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01]'
+- id: R-DEC-03
+  competency: DEC
+  points: 20
+  critical: true
+  check:
+    type: no_unsafe_action
+  pass_finding:
+    id: R-DEC-03-P
+    template_th: คุณไม่ได้เลือกรอที่บ้านหลังทราบสัญญาณอันตราย
+  fail_finding:
+    id: R-DEC-03-F
+    template_th: เลือกรอที่บ้านทั้งที่ทราบสัญญาณอันตรายแล้ว ซึ่งเป็นเงื่อนไขของ Safety Gate
+    references:
+    - REF1
+    - REF2
+  source: '[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01]'
+- id: R-COMM-01
+  competency: COMM
+  points: 4
+  check:
+    type: count_at_least
+    category: COM
+    n: 2
+  pass_finding:
+    id: R-COMM-01-P
+    template_th: คุณสื่อสารกับภรรยาอย่างน้อยสองรูปแบบ
+  fail_finding:
+    id: R-COMM-01-F
+    template_th: สื่อสารกับภรรยาได้ไม่ถึงสองรูปแบบ ควรปลอบใจและอธิบายว่าจะทำอะไรต่อ
+    references:
+    - REF1
+    - REF2
+  source: '[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01]'
+- id: R-COMM-02
+  competency: COMM
+  points: 3
+  applies_to_variants:
+  - C
+  check:
+    type: action_present_any
+    actions: [C03]
+    phase: PRESSURE
+  pass_finding:
+    id: R-COMM-02-P
+    template_th: คุณยืนยันกับญาติว่าต้องไปโรงพยาบาลก่อน
+  fail_finding:
+    id: R-COMM-02-F
+    template_th: ยังไม่ได้ยืนยันกับญาติว่าต้องไปโรงพยาบาลเมื่อถูกขอให้รอก่อน
+    references:
+    - REF1
+    - REF2
+  source: '[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01]'
+- id: R-COMM-03
+  competency: COMM
+  points: 3
+  applies_to_variants:
+  - C
+  check:
+    type: action_absent
+    actions: [C04]
+  pass_finding:
+    id: R-COMM-03-P
+    template_th: คุณไม่ยอมตามคำขอให้รอที่บ้าน
+  fail_finding:
+    id: R-COMM-03-F
+    template_th: ยอมตามคำขอให้รอที่บ้านทั้งที่ต้องไปโรงพยาบาลก่อน
+    references:
+    - REF1
+    - REF2
+  source: '[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01]'
+- id: R-DOC-01
+  competency: DOC
+  points: 10
+  check:
+    type: note_submitted
+    min_chars: 20
+  pass_finding:
+    id: R-DOC-01-P
+    template_th: คุณจดบันทึกเวลาและอาการเพื่อแจ้งเจ้าหน้าที่
+  fail_finding:
+    id: R-DOC-01-F
+    template_th: ยังไม่ได้จดบันทึกเวลา สี ปริมาณ และอาการที่ต้องแจ้งเจ้าหน้าที่ที่โรงพยาบาล
+    references:
+    - REF1
+    - REF2
+  source: '[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01]'

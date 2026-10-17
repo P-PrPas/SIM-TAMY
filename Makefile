@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e test-e2e-live validate-content leakcheck eval eval-pp001 bench rescore stats cost-report purge-old seed-demo loadcheck demo
+.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e test-e2e-live validate-content leakcheck eval eval-pp001 eval-parents bench rescore stats cost-report purge-old seed-demo loadcheck demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -74,6 +74,9 @@ eval:
 # The PP-001 (draft) scenario through the same runner: eval/golden/pp001/T*.yaml.
 eval-pp001:
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) ../../eval/run_eval.py --golden-dir ../../eval/golden/pp001
+# The courses for new dads and moms (eval/golden/parents/T*.yaml, one case per file).
+eval-parents:
+	cd $(API) && CONTENT_DIR=../../content ../../$(PY) ../../eval/run_eval.py --golden-dir ../../eval/golden/parents
 bench:
 	cd $(API) && ../../$(PY) ../../eval/model_bench.py $(BENCH_ARGS)
 # Rebuilds the score from the Event Log and diffs it with the stored report (needs DATABASE_URL).

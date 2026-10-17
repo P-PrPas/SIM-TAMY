@@ -1,0 +1,22 @@
+# T21 (DAD-001) Perfect Path: asks about every danger sign and the bag, decides to go, explains, writes a note.
+id: T21
+case: DAD-001
+variant: A
+steps:
+  - {say: "ตอนนี้รู้สึกยังไงบ้างครับ", expect_actions_any: [A01]}
+  - {say: "เริ่มไม่สบายตัวตั้งแต่กี่โมงครับ", expect_actions_any: [A02]}
+  - {say: "มีน้ำเดินหรือเปล่าครับ", expect_actions_any: [A03]}
+  - {say: "มีมูกออกมาไหมครับ", expect_actions_any: [A04]}
+  - {say: "ปวดท้องบ่อยแค่ไหนครับ", expect_actions_any: [A05]}
+  - {say: "ลูกดิ้นเหมือนเดิมไหมครับ", expect_actions_any: [A06]}
+  - {say: "กระเป๋าเตรียมคลอดอยู่ตรงไหนครับ", expect_actions_any: [A07]}
+  - {say: "ผมเข้าใจนะ ไม่ต้องกลัว ผมอยู่ตรงนี้", expect_actions_any: [C01]}
+  - {say: "ผมขออธิบายขั้นตอนต่อไปนะ", expect_actions_any: [C02]}
+  - {decision: go_hospital_now}
+  - {complete: true, note: "บันทึกทดสอบ: ไปโรงพยาบาลเพราะมีอาการที่ต้องรีบไป จดเวลาและอาการแล้วนำสมุดกับบัตรไปด้วย"}
+expect:
+  safety_status: SAFETY_MET
+  revealed: [H1, H2, H3, H4, H5]
+  events_include: [DECISION_COMMITTED, SESSION_COMPLETED]
+  events_exclude: [UNSAFE_ACTION]
+  items: {R-RISK-01: pass, R-RISK-02: pass, R-DEC-01: pass, R-DEC-03: pass}
