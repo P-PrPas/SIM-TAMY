@@ -13,12 +13,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="th">
-      <body className="min-h-screen bg-white text-slate-900">
+      <body className="min-h-screen text-slate-900">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-teal-950 focus:px-4 focus:py-3 focus:text-white">
+          {t("app.skipToContent")}
+        </a>
         {/* AGENTS.md rule 9: education-only banner on every surface */}
         <div role="note" className="bg-amber-100 px-4 py-2 text-center text-base text-amber-950">
           {t("banner.educationOnly")}
         </div>
-        {children}
+        <div id="main-content" tabIndex={-1}>{children}</div>
       </body>
     </html>
   );

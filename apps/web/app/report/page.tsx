@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { StatusBadge } from "@/components/status-badge";
@@ -102,6 +102,17 @@ export default function ReportPage() {
   const shown = (id: Tab) => printing || tab === id;
   const title = (id: Tab) => printing && <h2 className="mb-3 mt-8 text-xl font-bold text-slate-950">{t(`report.${id}`)}</h2>;
 
+  function onTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const next = event.key === "ArrowRight" ? (index + 1) % tabs.length
+      : event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length
+        : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : -1;
+    const target = tabs[next];
+    if (!target) return;
+    event.preventDefault();
+    setTab(target);
+    event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next]?.focus();
+  }
+
   return <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12 print:max-w-none print:p-0">
     <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div>
@@ -119,7 +130,7 @@ export default function ReportPage() {
       <button type="button" onClick={() => setPrinting(true)} className="rounded-xl border border-teal-800 bg-white px-4 py-3 font-semibold text-teal-900">{t("report.print")}</button>
     </div>
     <div role="tablist" aria-label={t("report.title")} className="print:hidden mt-6 flex flex-wrap gap-2 border-b border-slate-300 pb-3">
-      {tabs.map((item) => <button key={item} id={`tab-${item}`} type="button" role="tab" aria-selected={tab === item} aria-controls={`panel-${item}`} onClick={() => setTab(item)} className={`rounded-xl px-4 py-3 font-semibold ${tab === item ? "bg-teal-900 text-white" : "bg-slate-100 text-slate-900"}`}>{t(`report.${item}`)}</button>)}
+      {tabs.map((item, index) => <button key={item} id={`tab-${item}`} type="button" role="tab" aria-selected={tab === item} aria-controls={`panel-${item}`} tabIndex={tab === item ? 0 : -1} onClick={() => setTab(item)} onKeyDown={(event) => onTabKeyDown(event, index)} className={`rounded-xl px-4 py-3 font-semibold ${tab === item ? "bg-teal-900 text-white" : "bg-slate-100 text-slate-900"}`}>{t(`report.${item}`)}</button>)}
     </div>
     <section id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} className="mt-6">
       {shown("summary") && <div className="space-y-6">
