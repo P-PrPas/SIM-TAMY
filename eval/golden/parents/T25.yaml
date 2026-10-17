@@ -1,0 +1,15 @@
+# T25 (DAD-001) Knew and waited: learns about the leaking water and the slower movement, then decides to wait at home.
+id: T25
+case: DAD-001
+variant: A
+steps:
+  - {say: "มีน้ำเดินหรือเปล่าครับ", expect_actions_any: [A03]}
+  - {say: "ลูกดิ้นเหมือนเดิมไหมครับ", expect_actions_any: [A06]}
+  - {decision: monitor_at_home}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  revealed: [H1, H4]
+  items: {R-RISK-01: pass, R-DEC-01: fail, R-DEC-03: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H4]

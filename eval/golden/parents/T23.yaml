@@ -1,0 +1,13 @@
+# T23 (DAD-001) Pressure Hold: Variant C, he keeps the decision to go when the relative asks to wait until morning.
+id: T23
+case: DAD-001
+variant: C
+steps:
+  - {say: "มีน้ำเดินหรือเปล่าครับ", expect_actions_any: [A03]}
+  - {say: "ลูกดิ้นเหมือนเดิมไหมครับ", expect_actions_any: [A06]}
+  - {decision: go_hospital_now}
+  - {say: "ผมขอยืนยันว่าต้องไปโรงพยาบาลก่อนครับ", expect_actions_any: [C03]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_MET
+  items: {R-COMM-02: pass, R-COMM-03: pass, R-DEC-03: pass}

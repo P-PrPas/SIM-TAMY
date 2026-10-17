@@ -1,0 +1,14 @@
+# T22 (DAD-001) Missed Risk: does not ask about any danger sign and decides to wait at home.
+id: T22
+case: DAD-001
+variant: A
+steps:
+  - {say: "ตอนนี้รู้สึกยังไงบ้างครับ", expect_actions_any: [A01]}
+  - {decision: monitor_at_home}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  revealed: []
+  items: {R-RISK-01: fail, R-DEC-01: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2, H3, H4]

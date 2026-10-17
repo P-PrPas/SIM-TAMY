@@ -1,0 +1,123 @@
+# DAD-001 = "ภรรยาใกล้คลอดบอกว่าไม่สบายตัว: พ่อต้องพาไปโรงพยาบาลตอนนี้ไหม" (course PAR-D01, audience dad, Variants A and C).
+# DRAFT written by Engineering from docs/research/2026-10-17-parent-and-staff-content.md (section 8, PAR-D01). Every
+# hidden fact is worded from the official source named on it. NOT reviewed by the Content team or an expert.
+# The learner plays the husband and asks his wife (the AI character); the engine reveals a fact only when he asks.
+# TODO(content): the source gives no contraction frequency or duration for "when to go" (research section 6, item 1), so
+# none is used. Do not add numbers from another country's guidance. No digits in the facts: the Validator compares number
+# tokens with their trailing letters.
+# TODO(content): the "labour has not really started" fact set (research: benign) needs Variant B, which has no scene yet,
+# so this course only has the red-flag fact set and the safe choice is always to go. Content decides how to add the other.
+case_id: DAD-001
+version: "0.1"
+status: Draft
+audience: dad
+# The title is shown in the CaseBrief before the learner asks anything, so it must not state a hidden fact.
+title_th: "DAD-001 ภรรยาใกล้คลอดบอกว่าไม่สบายตัว (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
+
+patient_profile:
+  display_th: "คุณเป็นสามี ภรรยาใกล้ครบกำหนดคลอด และบอกว่าไม่สบายตัวมาตั้งแต่เมื่อคืน ลองถามเธอให้รู้ว่าควรพาไปโรงพยาบาลตอนนี้หรือรอดูอาการที่บ้าน"
+  known_facts: [K1]
+
+facts:
+  - id: K1
+    kind: known
+    text_th: "ใกล้ครบกำหนดคลอด รู้สึกไม่สบายตัวมาตั้งแต่เมื่อคืน"
+    source: "[docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01]"
+  - id: H1
+    kind: hidden
+    text_th: "มีน้ำใส ๆ ไหลออกมาจากช่องคลอด กลั้นไม่ได้เหมือนปัสสาวะเล็ด"
+    unlock_on: [A03]
+    keywords_th: ["น้ำใส", "กลั้นไม่ได้"]
+    leak_terms_th: ["น้ำใส", "กลั้นไม่ได้"]
+    fallback_utterances_th: ["มีน้ำใส ๆ ไหลออกมาค่ะ กลั้นไม่ได้เลย"]
+    risk_relevance: critical
+    source: "[S05 กรมอนามัย คู่มือการฝากครรภ์ 2565 หน้า 63; S19 NHS; research §2.1 D6]"
+    status: Draft
+  - id: H2
+    kind: hidden
+    text_th: "มีมูกปนเลือดออกมาด้วย"
+    unlock_on: [A04]
+    keywords_th: ["มูกปนเลือด"]
+    leak_terms_th: ["มูกปนเลือด"]
+    fallback_utterances_th: ["มีมูกปนเลือดออกมาค่ะ"]
+    risk_relevance: critical
+    source: "[S05 กรมอนามัย คู่มือการฝากครรภ์ 2565 หน้า 13-14, 62]"
+    status: Draft
+  - id: H3
+    kind: hidden
+    text_th: "ปวดท้องถี่ขึ้นเรื่อย ๆ นอนพักแล้วก็ยังไม่ทุเลา"
+    unlock_on: [A05]
+    keywords_th: ["ถี่ขึ้น", "ไม่ทุเลา"]
+    leak_terms_th: ["ถี่ขึ้น", "ไม่ทุเลา"]
+    fallback_utterances_th: ["ปวดท้องถี่ขึ้นเรื่อย ๆ ค่ะ นอนพักแล้วก็ไม่ทุเลา"]
+    risk_relevance: critical
+    source: "[S05 กรมอนามัย คู่มือการฝากครรภ์ 2565 ภาคผนวก ก ไตรมาส 3]"
+    status: Draft
+  - id: H4
+    kind: hidden
+    text_th: "รู้สึกว่าลูกดิ้นน้อยลงกว่าปกติ"
+    unlock_on: [A06]
+    keywords_th: ["ดิ้นน้อยลง"]
+    leak_terms_th: ["ดิ้นน้อยลง"]
+    fallback_utterances_th: ["รู้สึกว่าลูกดิ้นน้อยลงกว่าปกติค่ะ"]
+    risk_relevance: critical
+    source: "[S05 หน้า 13-14; S01 DTAM คู่มือผดุงครรภ์ไทยแบบบูรณาการ 2569 หน้า 57; S06 กรมอนามัย]"
+    status: Draft
+  - id: H5
+    kind: hidden
+    text_th: "สมุดบันทึกสุขภาพแม่และเด็กกับบัตรประชาชนของทั้งสองคนอยู่ในกระเป๋าเตรียมคลอดแล้ว"
+    unlock_on: [A07]
+    keywords_th: ["กระเป๋าเตรียมคลอด"]
+    leak_terms_th: ["กระเป๋าเตรียมคลอด"]
+    fallback_utterances_th: ["ของอยู่ในกระเป๋าเตรียมคลอดแล้วค่ะ ทั้งสมุดและบัตรประชาชน"]
+    risk_relevance: contextual
+    source: "[S05 กรมอนามัย คู่มือการฝากครรภ์ 2565 หน้า 62; research §2.1 D4]"
+    status: Draft
+
+variants:
+  A:
+    # TODO(content): persona wording is a placeholder; the research defines no persona text.
+    persona: {minimization: low, family_pressure: false, style_th: "พูดเบา ๆ ตอบตามที่ถาม"}
+    fact_set: default
+  C:
+    persona: {minimization: high, family_pressure: true, style_th: "ไม่อยากรบกวน ตอบสั้น ๆ มีญาติอยู่ด้วย"}
+    fact_set: default
+    pressure_script:
+      # the relative line is scripted (AGENTS.md: pressure lines are not LLM-generated); opened once he decides to go
+      - {speaker: relative, text_th: "รออยู่บ้านก่อนเถอะ ไว้ตอนเช้าค่อยไปก็ได้"}
+
+# TODO(content): diagnosis words the patient must never say; the list below is minimal.
+forbidden_terms_th: ["ถุงน้ำคร่ำแตก", "รกลอกตัว", "ครรภ์เป็นพิษ"]
+
+decision_options:
+  - {id: go_hospital_now, label_th: "พาภรรยาไปโรงพยาบาลตอนนี้", maps_to_actions: [B01, B02]}
+  - {id: monitor_at_home, label_th: "รอดูอาการที่บ้านก่อน", maps_to_actions: [B03]}
+
+branch_rules:
+  - {from: INTERVIEW, on_action_any: [A03, A04, A05, A06], set_risk_state: recognized}
+  - {from: INTERVIEW, on_decision: go_hospital_now, to: PRESSURE, if_variant: [C]}
+  - {from: INTERVIEW, on_decision: go_hospital_now, to: CLOSING, if_variant: [A]}
+  - {from: INTERVIEW, on_decision: monitor_at_home, to: CLOSING, mark_unsafe: true}
+  - {from: PRESSURE, on_action_any: [C03], to: CLOSING}
+  - {from: PRESSURE, on_action_any: [C04], to: CLOSING, mark_unsafe: true}
+
+critical_facts_for_replay: [H1, H2, H3, H4]
+
+# Each line is either the learner's decision (always true on that path) or a next step the learner should take, never
+# something that happened. TODO(content): clinical consequences are for the experts to write.
+outcome_scripts:
+  Referral:
+    timeline_th:
+      - "ผู้เรียนเลือกพาภรรยาไปโรงพยาบาลตอนนี้"
+      - "ขั้นตอนที่ควรทำต่อ: ให้ภรรยาเลี่ยงการยืนหรือเดิน จดเวลาที่เริ่มมีน้ำไหล สี และปริมาณ แล้วนำสมุดบันทึกสุขภาพแม่และเด็กกับบัตรประชาชนไปด้วย"
+    disclaimer_th: "ฉบับร่าง ผลลัพธ์หลังไปโรงพยาบาลรอผู้เชี่ยวชาญกำหนด เพื่อการศึกษาเท่านั้น"
+  UnsafeProceed:
+    timeline_th:
+      - "ผู้เรียนเลือกรอดูอาการที่บ้านก่อน ทั้งที่ภรรยามีอาการที่สามารถถามได้"
+      - "เคสเข้าสู่การทบทวน (debrief) เพื่อดูว่าควรไปโรงพยาบาลเมื่อใด"
+    disclaimer_th: "ฉบับร่าง ผลลัพธ์ทางคลินิกรอผู้เชี่ยวชาญกำหนด เพื่อการศึกษาเท่านั้น"
+
+references:
+  - {id: REF1, title_th: "กรมอนามัย: คู่มือการฝากครรภ์ สำหรับบุคลากรสาธารณสุข (พิมพ์ครั้งที่ 1 มี.ค. 2565)", locator: "https://cloud-atg.moph.go.th/ssjweb/uploads/files/1769692160_809098da_0.pdf"}
+  - {id: REF2, title_th: "งานวิจัยแหล่งอ้างอิงของโครงการ (ยังไม่ผ่านผู้เชี่ยวชาญ)", locator: "docs/research/2026-10-17-parent-and-staff-content.md §8 PAR-D01"}

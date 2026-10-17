@@ -1,0 +1,69 @@
+"""Parent and staff courses (research section 8): valid, still drafts, nothing leaks early."""
+
+from pathlib import Path
+
+import pytest
+
+from app.ai.validator import PatientValidator
+from app.content.loader import load_case
+from app.content.validate import check
+from app.domain.case import HiddenFact
+from app.domain.state import AllowedFact, AllowedFacts
+from app.services.patient_voice import VoiceRequest
+
+CASES = Path(__file__).resolve().parents[5] / "content" / "cases"
+COURSES = {"DAD-001": "dad"}  # case id -> audience; add a course here when it is written
+
+
+@pytest.mark.parametrize("case_id", COURSES)
+def test_course_passes_strict_validation_and_stays_a_draft(case_id: str) -> None:
+    loaded = load_case(CASES / case_id)
+    assert check(loaded, strict=True) == []
+    assert loaded.case.status == "Draft"  # only the Content team may promote it (AGENTS.md rule 9)
+    assert loaded.case.audience == COURSES[case_id]
+
+
+@pytest.mark.parametrize("case_id", COURSES)
+def test_course_facts_are_traceable_and_hidden_ones_do_not_leak(case_id: str) -> None:
+    case = load_case(CASES / case_id).case
+    assert all(f.source for f in case.facts)
+    hidden = [f for f in case.facts if f.kind == "hidden"]
+    assert any(f.risk_relevance == "critical" for f in hidden)
+    shown = [
+        case.title_th,
+        case.patient_profile.display_th,
+        *case.learning_objectives,
+        *(f.text_th for f in case.facts if f.kind == "known"),
+        *(o.label_th for o in case.decision_options),
+        *(v.persona.style_th for v in case.variants.values()),
+    ]
+    for fact in hidden:
+        others = [o for o in hidden if o.id != fact.id]
+        assert any(t in fact.text_th for t in fact.leak_terms_th), fact.id
+        assert any(k in fact.text_th for k in fact.keywords_th), fact.id
+        for line in fact.fallback_utterances_th:
+            assert any(k in line for k in fact.keywords_th), (fact.id, line)
+            assert not any(t in line for o in others for t in o.leak_terms_th), (fact.id, line)
+        for text in shown:  # the CaseBrief shows these before the first question (rule 5)
+            assert not any(t in text for t in (*fact.leak_terms_th, *fact.keywords_th)), (
+                fact.id,
+                text,
+            )
+
+
+@pytest.mark.parametrize("case_id", COURSES)
+def test_course_every_fallback_passes_the_real_validator(case_id: str) -> None:
+    """A fallback the Validator rejects would leave the learner with an empty reply."""
+    case = load_case(CASES / case_id).case
+    for fact in (f for f in case.facts if isinstance(f, HiddenFact)):
+        request = VoiceRequest(
+            persona_style_th=case.variants["A"].persona.style_th,
+            allowed=AllowedFacts(
+                facts=(AllowedFact(id=fact.id, text_th=fact.text_th),),
+                must_convey_fact_ids=(fact.id,),
+            ),
+            directive="answer",
+            learner_text="",
+        )
+        for line in fact.fallback_utterances_th:
+            assert PatientValidator(request).check(line, case, [fact.id]) == [], (fact.id, line)
