@@ -77,6 +77,7 @@ Defined in the root `Makefile` (ticket T-001). If a target is missing, add it ra
 | `make bench` | Model comparison on the Action dev set |
 | `make rescore SESSION=<id>` | Re-score from the Event Log |
 | `make stats` / `make cost-report` | Latency / LLM cost summaries |
+| `make loadcheck URL=<api>` | 20 concurrent learners; client-side p50/p95 and error rate (`docs/results/` holds saved runs) |
 | `make demo` | Demo mode (Mock LLM / Replay as configured) |
 
 Local default is `LLM_PROVIDER=mock` so everything runs offline and deterministically. Key env vars: `DATABASE_URL`, `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL_{INTERPRETER,GENERATOR,DEBRIEF}`, `ALLOW_DRAFT_CASES`, `GLASS_BOX_LIVE`, `INSTRUCTOR_SECRET` (full list in PRD §6.5 and `.env.example`).
