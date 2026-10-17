@@ -85,8 +85,8 @@ export default function DecisionPage() {
   return <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
     <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p className="text-sm font-bold text-teal-800">{t("decision.eyebrow")}</p>
-        <h1 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">{t("decision.title")}</h1>
+        <p className="text-sm font-bold text-brand-800">{t("decision.eyebrow")}</p>
+        <h1 className="mt-2 text-2xl font-bold text-stone-950 sm:text-3xl">{t("decision.title")}</h1>
       </div>
       <StatusBadge status={session.case.status} />
     </header>
@@ -96,22 +96,22 @@ export default function DecisionPage() {
       {rationale.trim() && <p className="mt-3 whitespace-pre-wrap break-words">{rationale.trim()}</p>}
       <p className="mt-4 font-semibold text-amber-950">{t("decision.irreversible")}</p>
       <div className="mt-6 flex flex-wrap gap-3">
-        <button type="button" onClick={() => { setReviewing(false); setError(""); }} disabled={inFlight} className="rounded-xl border border-slate-500 px-5 py-3 font-semibold disabled:opacity-50">{t("decision.change")}</button>
-        <button type="button" onClick={() => void confirm()} disabled={inFlight} className="rounded-xl bg-teal-900 px-5 py-3 font-bold text-white disabled:opacity-50">{t("decision.confirm")}</button>
+        <button type="button" onClick={() => { setReviewing(false); setError(""); }} disabled={inFlight} className="rounded-xl border border-stone-500 px-5 py-3 font-semibold disabled:opacity-50">{t("decision.change")}</button>
+        <button type="button" onClick={() => void confirm()} disabled={inFlight} className="rounded-xl bg-brand-900 px-5 py-3 font-bold text-white disabled:opacity-50">{t("decision.confirm")}</button>
       </div>
-    </section> : <form onSubmit={review} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+    </section> : <form onSubmit={review} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-7">
       <fieldset>
         <legend className="text-xl font-bold">{t("decision.select")}</legend>
         <div className="mt-4 space-y-3">
-          {options.map((option) => <label key={option.id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-300 p-4">
-            <input type="radio" name="decision" value={option.id} checked={selected === option.id} onChange={() => setSelected(option.id)} className="mt-1 size-5 accent-teal-900" />
+          {options.map((option) => <label key={option.id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-300 p-4 transition-colors hover:border-brand-600 has-checked:border-brand-700 has-checked:bg-brand-50">
+            <input type="radio" name="decision" value={option.id} checked={selected === option.id} onChange={() => setSelected(option.id)} className="mt-1 size-5 accent-brand-900" />
             <span className="break-words">{option.label_th}</span>
           </label>)}
         </div>
       </fieldset>
       <label htmlFor="rationale" className="mt-6 block font-semibold">{t("decision.rationale")}</label>
-      <textarea id="rationale" value={rationale} onChange={(event) => setRationale(event.target.value)} maxLength={300} rows={3} className="mt-2 w-full rounded-xl border border-slate-400 p-3 focus:outline-teal-700" />
-      <button type="submit" className="mt-5 rounded-xl bg-teal-900 px-5 py-3 font-bold text-white">{t("decision.review")}</button>
+      <textarea id="rationale" value={rationale} onChange={(event) => setRationale(event.target.value)} maxLength={300} rows={3} className="mt-2 w-full rounded-xl border border-stone-400 p-3 focus:outline-brand-700" />
+      <button type="submit" className="mt-5 rounded-xl bg-brand-900 px-5 py-3 font-bold text-white">{t("decision.review")}</button>
     </form>}
     {error && <p role="alert" className="mt-5 rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p>}
   </main>;

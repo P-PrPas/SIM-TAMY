@@ -34,6 +34,24 @@ beforeEach(() => { mocks.get.mockReset(); mocks.post.mockReset(); mocks.push.moc
 afterEach(() => cleanup());
 
 describe("S1 Join and S2 Briefing", () => {
+  it("offers learning scenarios without the engineering fixture or version metadata", async () => {
+    mocks.get.mockResolvedValue({ data: { items: [{ ...caseSummary, case_id: "DEV-001", title_th: "Engineering fixture" }, caseSummary] } });
+    render(<JoinPage />);
+    await screen.findByText(caseSummary.status_label_th);
+    expect(screen.queryByRole("option", { name: "Engineering fixture" })).toBeNull();
+    expect(screen.getByLabelText(t("join.case"))).toHaveProperty("value", "PP-001");
+    expect(screen.queryByText("0.1")).toBeNull();
+    expect(screen.getByRole("option", { name: t("join.variantA") })).toHaveProperty("value", "A");
+    expect(screen.getByRole("option", { name: t("join.variantC") })).toHaveProperty("value", "C");
+  });
+
+  it("shows the empty state when only the engineering fixture is available", async () => {
+    mocks.get.mockResolvedValue({ data: { items: [{ ...caseSummary, case_id: "DEV-001" }] } });
+    render(<JoinPage />);
+    expect(await screen.findByText(t("join.empty"))).toBeTruthy();
+    expect(screen.getByRole("button", { name: t("join.start") }).hasAttribute("disabled")).toBe(true);
+  });
+
   it("renders the draft badge and starts a session with a nickname", async () => {
     mocks.get.mockResolvedValue({ data: { items: [caseSummary] } });
     mocks.post.mockResolvedValue({ data: { session_id: "session-1", token: "secret-token", case: caseBrief } });

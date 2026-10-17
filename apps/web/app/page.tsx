@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 import { StatusBadge } from "@/components/status-badge";
 import { ApiError } from "@/lib/api/client";
@@ -33,7 +34,7 @@ export default function JoinPage() {
     let cancelled = false;
     void api().GET("/v1/cases").then(({ data }) => {
       if (cancelled) return;
-      const items = data?.items ?? [];
+      const items = (data?.items ?? []).filter((item) => item.case_id !== "DEV-001");
       setCases(items);
       setCaseId(items[0]?.case_id ?? "");
       setVariant(items[0]?.variants_available[0] ?? "A");
@@ -66,64 +67,88 @@ export default function JoinPage() {
     }
   }
 
-  return <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
-    <div className="mb-8 max-w-2xl">
-      <nav className="mb-4 flex flex-wrap gap-3" aria-label={t("app.title")}>
-        <Link href="/replay" className="inline-flex rounded-lg border border-teal-800 px-3 py-2 font-semibold text-teal-900">{t("replay.switch")}</Link>
-        <Link href="/instructor" className="inline-flex rounded-lg border border-teal-800 px-3 py-2 font-semibold text-teal-900">{t("instructor.link")}</Link>
-      </nav>
-      <p className="mb-2 text-sm font-bold tracking-wide text-teal-800">{t("join.eyebrow")}</p>
-      <h1 className="text-3xl font-bold leading-tight text-slate-950 sm:text-4xl">{t("join.title")}</h1>
-      <p className="mt-3 text-slate-700">{t("join.description")}</p>
-    </div>
-    <form onSubmit={(event) => void start(event)} className="grid gap-7 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8 lg:grid-cols-[1.2fr_0.8fr]">
-      <div className="space-y-5">
-        <div>
-          <label htmlFor="nickname" className="mb-2 block font-semibold">{t("join.nickname")}</label>
-          <input id="nickname" value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={30} required placeholder={t("join.nicknamePlaceholder")} className="w-full rounded-xl border border-slate-400 px-4 py-3 outline-offset-2 focus:outline-teal-700" />
+  return <main className="join-page">
+    <section className="hero">
+      <div className="hero-copy">
+        <p className="eyebrow"><span className="eyebrow-dot" aria-hidden="true" />{t("join.eyebrow")}</p>
+        <h1>{t("join.title")}</h1>
+        <p className="hero-description">{t("join.description")}</p>
+        <div className="hero-actions">
+          <a href="#practice" className="button-primary">{t("join.heroCta")}<span aria-hidden="true"> ↗</span></a>
+          <Link href="/replay" className="button-text">{t("replay.switch")}<span aria-hidden="true"> →</span></Link>
         </div>
-        <div>
-          <label htmlFor="class-code" className="mb-2 block font-semibold">{t("join.classCode")}</label>
-          <input id="class-code" value={classCode} onChange={(event) => setClassCode(event.target.value)} maxLength={6} autoCapitalize="characters" placeholder={t("join.classCodePlaceholder")} className="w-full rounded-xl border border-slate-400 px-4 py-3 uppercase outline-offset-2 focus:outline-teal-700" />
-        </div>
-        <div>
-          <label htmlFor="case" className="mb-2 block font-semibold">{t("join.case")}</label>
-          <select id="case" value={caseId} onChange={(event) => {
-            setCaseId(event.target.value);
-            setVariant(cases.find((item) => item.case_id === event.target.value)?.variants_available[0] ?? "A");
-          }} disabled={loading || cases.length === 0} className="w-full rounded-xl border border-slate-400 bg-white px-4 py-3 focus:outline-teal-700">
-            {cases.some((item) => item.audience)
-              ? [...AUDIENCE_ORDER, null].map((audience) => {
-                const group = cases.filter((item) => (item.audience ?? null) === audience);
-                return group.length > 0 && (
-                  <optgroup key={audience ?? "other"} label={t(`audience.${audience ?? "other"}`)}>
-                    {group.map((item) => <option key={item.case_id} value={item.case_id}>{item.title_th}</option>)}
-                  </optgroup>
-                );
-              })
-              : cases.map((item) => <option key={item.case_id} value={item.case_id}>{item.title_th}</option>)}
-          </select>
-          {selectedCase && <div className="mt-3"><StatusBadge status={selectedCase.status} /></div>}
-        </div>
-        <div>
-          <label htmlFor="variant" className="mb-2 block font-semibold">{t("join.variant")}</label>
-          <select id="variant" value={variant} onChange={(event) => setVariant(event.target.value as Variant)} disabled={!selectedCase} className="w-full rounded-xl border border-slate-400 bg-white px-4 py-3 focus:outline-teal-700">
-            {selectedCase?.variants_available.map((item) => <option key={item} value={item}>{item}</option>)}
-          </select>
-        </div>
+        <p className="hero-note"><span aria-hidden="true">✓</span> {t("join.heroNote")}</p>
       </div>
-      <div className="flex flex-col justify-between rounded-2xl bg-teal-950 p-5 text-white sm:p-7">
-        <div>
-          <p className="text-sm font-semibold text-teal-200">SIM-TAMY</p>
-          <p className="mt-4 text-xl font-semibold leading-relaxed">{selectedCase?.title_th ?? (loading ? t("join.loading") : t("join.empty"))}</p>
-          {selectedCase && <p className="mt-3 text-sm text-teal-100">{selectedCase.case_id} · {selectedCase.version}</p>}
-        </div>
-        <div className="mt-8">
-          {error && <p role="alert" className="mb-4 rounded-lg bg-rose-50 p-3 text-rose-950">{error}</p>}
-          {error === t("join.loadError") && <button type="button" onClick={() => { setLoading(true); setError(""); setRetryKey((key) => key + 1); }} className="mb-3 w-full rounded-xl border border-white px-4 py-3 font-semibold">{t("join.retry")}</button>}
-          <button type="submit" disabled={!selectedCase || submitting} className="w-full rounded-xl bg-amber-300 px-4 py-3 font-bold text-slate-950 hover:bg-amber-200 disabled:opacity-50">{t("join.start")}</button>
-        </div>
+      <div className="hero-art">
+        <div className="art-orbit art-orbit-one" /><div className="art-orbit art-orbit-two" />
+        <span className="art-spark" aria-hidden="true">✳</span>
+        <p className="art-kicker">{t("join.artLabel")}</p>
+        <Image src="/brand/logo.png" width={290} height={290} alt="" priority className="hero-logo" />
+        <div className="art-caption"><span className="art-line" /><p>{t("join.artTitle")}<small>{t("join.artNote")}</small></p></div>
       </div>
-    </form>
+    </section>
+    <section className="learning-features" aria-label={t("join.heroSecondary")}>
+      {[1, 2, 3].map((number) => <article key={number}>
+        <span className="feature-number" aria-hidden="true">0{number}</span>
+        <div><h2>{t(`join.feature${number}Title`)}</h2><p>{t(`join.feature${number}Text`)}</p></div>
+      </article>)}
+    </section>
+    <section id="practice" className="practice-section" aria-labelledby="practice-title">
+      <div className="section-heading"><div><p className="eyebrow">{t("join.sectionEyebrow")}</p><h2 id="practice-title">{t("join.sectionTitle")}</h2></div><p>{t("join.sectionDescription")}</p></div>
+      <form onSubmit={(event) => void start(event)} className="enrollment-form">
+        <div className="enrollment-fields">
+          <div className="form-intro"><h3>{t("join.formTitle")}</h3><p>{t("join.formDescription")}</p></div>
+          <div className="space-y-5">
+            <div>
+              <label htmlFor="nickname" className="mb-2 block font-semibold">{t("join.nickname")}</label>
+              <input id="nickname" value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={30} required autoComplete="nickname" placeholder={t("join.nicknamePlaceholder")} className="w-full rounded-xl border border-stone-400 px-4 py-3 outline-offset-2 focus:outline-brand-700" />
+            </div>
+            <div>
+              <label htmlFor="class-code" className="mb-2 block font-semibold">{t("join.classCode")}</label>
+              <input id="class-code" value={classCode} onChange={(event) => setClassCode(event.target.value)} maxLength={6} autoCapitalize="characters" placeholder={t("join.classCodePlaceholder")} className="w-full rounded-xl border border-stone-400 px-4 py-3 uppercase outline-offset-2 focus:outline-brand-700" />
+            </div>
+            <div>
+              <label htmlFor="case" className="mb-2 block font-semibold">{t("join.case")}</label>
+              <select id="case" value={caseId} onChange={(event) => {
+                setCaseId(event.target.value);
+                setVariant(cases.find((item) => item.case_id === event.target.value)?.variants_available[0] ?? "A");
+              }} disabled={loading || cases.length === 0} className="w-full rounded-xl border border-stone-400 bg-white px-4 py-3 focus:outline-brand-700">
+                {cases.some((item) => item.audience)
+                  ? [...AUDIENCE_ORDER, null].map((audience) => {
+                    const group = cases.filter((item) => (item.audience ?? null) === audience);
+                    return group.length > 0 && (
+                      <optgroup key={audience ?? "other"} label={t(`audience.${audience ?? "other"}`)}>
+                        {group.map((item) => <option key={item.case_id} value={item.case_id}>{item.title_th}</option>)}
+                      </optgroup>
+                    );
+                  })
+                  : cases.map((item) => <option key={item.case_id} value={item.case_id}>{item.title_th}</option>)}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="variant" className="mb-2 block font-semibold">{t("join.variant")}</label>
+              <select id="variant" value={variant} onChange={(event) => setVariant(event.target.value as Variant)} disabled={!selectedCase} className="w-full rounded-xl border border-stone-400 bg-white px-4 py-3 focus:outline-brand-700">
+                {selectedCase?.variants_available.map((item) => <option key={item} value={item}>{t(item === "A" ? "join.variantA" : "join.variantC")}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div className="case-preview">
+          <div>
+            <span className="preview-mark" aria-hidden="true">↗</span>
+            <p className="preview-label">{t("join.previewLabel")}</p>
+            <p className="preview-title" aria-live="polite">{selectedCase?.title_th ?? (loading ? t("join.loading") : t("join.empty"))}</p>
+            {selectedCase && <div className="mt-4"><StatusBadge status={selectedCase.status} /></div>}
+            <p className="preview-note">{t("join.previewNote")}</p>
+          </div>
+          <div className="mt-8">
+            {error && <p role="alert" className="mb-4 rounded-lg bg-rose-50 p-3 text-rose-950">{error}</p>}
+            {error === t("join.loadError") && <button type="button" onClick={() => { setLoading(true); setError(""); setRetryKey((key) => key + 1); }} className="mb-3 w-full rounded-xl border border-white px-4 py-3 font-semibold">{t("join.retry")}</button>}
+            <button type="submit" disabled={!selectedCase || submitting} aria-busy={submitting} className="button-gold w-full">{t(submitting ? "join.starting" : "join.start")}<span aria-hidden="true"> →</span></button>
+            <p className="preview-privacy">{t("join.privacyNote")}</p>
+          </div>
+        </div>
+      </form>
+    </section>
   </main>;
 }

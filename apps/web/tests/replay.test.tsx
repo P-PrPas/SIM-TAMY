@@ -11,9 +11,9 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/lib/api/runtime", () => ({ api: () => ({ GET: mocks.get, POST: mocks.post }) }));
 
 const recording = {
-  recording_id: "dev-001", title_th: "Synthetic engineering replay", case_id: "DEV-001",
+  recording_id: "dev-001", title_th: "Synthetic engineering replay", case_id: "PP-001",
   variant: "A", steps_count: 3,
-  case: { case_id: "DEV-001", version: "0.1", title_th: "Synthetic case", status: "Draft",
+  case: { case_id: "PP-001", version: "0.1", title_th: "Synthetic case", status: "Draft",
     status_label_th: "Draft", variants_available: ["A"], patient_display_th: "Synthetic patient",
     learning_objectives: [], decision_options: [], disclaimer_th: "Education only" },
   steps: [
@@ -34,6 +34,13 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("T-073 Replay Mode", () => {
+  it("keeps engineering recordings out of the learner gallery", async () => {
+    mocks.get.mockResolvedValue({ data: { items: [{ ...recording, case_id: "DEV-001", status: "Draft" }] } });
+    render(<ReplayPage />);
+    expect(await screen.findByText(t("replay.empty"))).toBeTruthy();
+    expect(screen.queryByRole("button", { name: t("replay.open") })).toBeNull();
+  });
+
   it("offers a Demo switch from Join without starting a learner session", async () => {
     render(<JoinPage />);
     expect(screen.getByRole("link", { name: t("replay.switch") }).getAttribute("href")).toBe("/replay");
