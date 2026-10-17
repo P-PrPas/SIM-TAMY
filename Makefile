@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e validate-content leakcheck eval eval-pp001 bench rescore stats cost-report purge-old seed-demo demo
+.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e test-e2e-live validate-content leakcheck eval eval-pp001 bench rescore stats cost-report purge-old seed-demo demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -55,6 +55,9 @@ test-coverage:
 
 test-e2e:
 	cd $(WEB) && npm run test:e2e
+
+test-e2e-live:
+	cd $(WEB) && npm run test:e2e:live
 
 # STRICT=1 will also require `source` on clinical items (T-010).
 validate-content:
