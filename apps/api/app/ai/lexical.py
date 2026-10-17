@@ -21,11 +21,12 @@ class _Match(NamedTuple):
 
 # A communication stance ("ต้องส่งต่อ") means the opposite next to a negation ("ไม่ต้องส่งต่อ",
 # "ไม่จำเป็นต้องส่งต่อ"). The fallback cannot parse Thai, so it fails closed: a stance is not
-# credited when a negator stands anywhere else in the same clause (a run with no space or
-# punctuation). A phrase that carries its own negation ("ไม่รอ") is judged on the text around it.
+# credited when a negator stands anywhere else in the same punctuation-delimited clause.
+# Spaces are not reliable Thai clause boundaries. A phrase carrying its own negation ("ไม่รอ")
+# is judged on the text around it; ambiguous unpunctuated stances receive no fallback credit.
 # Losing a credit is safe; giving one to a refusal passed the safety gate.
 _NEGATORS = ("ไม่", "ห้าม", "อย่า")
-_CLAUSE_BREAKS = " ,.!?;:…\n"
+_CLAUSE_BREAKS = ",.!?;:…"
 # ponytail: only stances; a question in negative form ("ไม่ปวดท้องใช่ไหม") still asks
 _STANCE_CATEGORIES = ("COM",)
 
