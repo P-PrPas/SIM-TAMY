@@ -28,7 +28,7 @@ facts:
     text_th: "ปวดศีรษะมากขึ้นมาใหม่ กินยาแล้วก็ไม่ทุเลา"
     unlock_on: [A03]
     keywords_th: ["ปวดศีรษะมาก"]
-    leak_terms_th: ["ปวดศีรษะมาก"]
+    leak_terms_th: ["ปวดศีรษะมาก", "ปวดศีรษะ", "กินยาแล้ว"]
     fallback_utterances_th: ["ปวดศีรษะมากขึ้นมาใหม่ค่ะ กินยาแล้วก็ไม่ทุเลา"]
     risk_relevance: critical
     source: "[S13 ราชวิทยาลัยสูตินรีแพทย์ฯ OB 63-021; S01 DTAM 2569 หน้า 56-57]"
@@ -48,7 +48,7 @@ facts:
     text_th: "หน้าและมือบวมมากกว่าปกติ"
     unlock_on: [A05]
     keywords_th: ["บวมมาก"]
-    leak_terms_th: ["บวมมาก"]
+    leak_terms_th: ["บวมมาก", "บวม"]
     fallback_utterances_th: ["หน้ากับมือบวมมากกว่าปกติค่ะ"]
     risk_relevance: critical
     source: "[S15 CDC Hear Her; S05 กรมอนามัย คู่มือการฝากครรภ์ 2565 หน้า 13-14]"
@@ -58,7 +58,7 @@ facts:
     text_th: "จุกแน่นใต้ลิ้นปี่และใต้ชายโครงด้านขวา"
     unlock_on: [A06]
     keywords_th: ["จุกแน่น"]
-    leak_terms_th: ["จุกแน่น"]
+    leak_terms_th: ["จุกแน่น", "ลิ้นปี่", "ชายโครง"]
     fallback_utterances_th: ["จุกแน่นใต้ลิ้นปี่แล้วก็ใต้ชายโครงด้านขวาค่ะ"]
     risk_relevance: critical
     source: "[S13 OB 63-021; S05 หน้า 13-14]"
@@ -68,7 +68,7 @@ facts:
     text_th: "ผลวัดความดันได้สูงกว่าเกณฑ์ที่กำหนดให้ส่งต่อ"
     unlock_on: [A07]
     keywords_th: ["สูงกว่าเกณฑ์"]
-    leak_terms_th: ["สูงกว่าเกณฑ์"]
+    leak_terms_th: ["สูงกว่าเกณฑ์", "ความดัน"]
     fallback_utterances_th: ["ผลวัดความดันได้สูงกว่าเกณฑ์ที่กำหนดให้ส่งต่อค่ะ"]
     risk_relevance: critical
     source: "[S01 DTAM 2569 หน้า 57, 64]"
@@ -88,7 +88,7 @@ facts:
     text_th: "ยังไม่เคยถามหมอที่ฝากครรภ์ว่านวดและประคบได้ไหม"
     unlock_on: [A09]
     keywords_th: ["ยังไม่เคยถามหมอ"]
-    leak_terms_th: ["ยังไม่เคยถามหมอ"]
+    leak_terms_th: ["ยังไม่เคยถามหมอ", "ประคบได้ไหม", "หมอที่ฝากครรภ์"]
     fallback_utterances_th: ["ยังไม่เคยถามหมอที่ฝากครรภ์เลยค่ะว่านวดและประคบได้ไหม"]
     risk_relevance: contextual
     source: "[S01 DTAM 2569 หน้า 56, 59-60]"
