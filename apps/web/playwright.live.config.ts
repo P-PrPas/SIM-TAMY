@@ -23,6 +23,7 @@ export default defineConfig({
         CONTENT_DIR: "../../content",
         ALLOW_DRAFT_CASES: "true",
         LLM_PROVIDER: "mock",
+        MOCK_LLM_SCRIPT: "tests/fixtures/mock_interpreter_invalid.yaml",
         CORS_ORIGINS: webUrl,
       },
       url: `${apiUrl}/health`,
