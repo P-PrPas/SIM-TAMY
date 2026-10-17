@@ -38,6 +38,7 @@ export default function ReportPage() {
         || data.effective.total_score < 0 || data.effective.total_score > 100
         || !["Draft", "In Review", "Approved"].includes(data.case.status)
         || !Array.isArray(data.competencies)
+        || !Array.isArray(data.items) || !Array.isArray(data.overrides)
         || !Array.isArray(data.findings) || !Array.isArray(data.timeline)
         || !Array.isArray(data.references) || !Array.isArray(data.debrief?.paragraphs)
         || !Array.isArray(data.glassbox?.facts)
