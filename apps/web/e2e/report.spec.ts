@@ -15,7 +15,7 @@ test("Report prioritizes safety status and shows timeline and review at 360px", 
   await page.goto("/report");
   await expect(page.locator("main [role='alert']")).toContainText(t("report.safetyNotMet"));
   await expect(page.getByText(t("report.safetyMet"))).toHaveCount(0);
-  await expect(page.getByText(t("status.draft"))).toBeVisible();
+  await expect(page.getByText(t("status.draft"))).toHaveCount(0);
   await expect(page.getByText("54.5")).toBeVisible();
   await page.getByRole("tab", { name: t("report.timeline") }).click();
   await expect(page.getByText("Synthetic timeline event")).toBeVisible();
@@ -35,7 +35,7 @@ test("Report prioritizes safety status and shows timeline and review at 360px", 
   await expect(page.getByText("Review source")).toBeVisible();
   await expect(page.getByRole("tablist")).toBeHidden();
   await expect(page.getByRole("button", { name: t("report.print") })).toBeHidden();
-  await expect(page.getByText(t("status.draft"))).toBeVisible();
-  await expect(page.getByText(t("banner.educationOnly"))).toBeVisible();
+  await expect(page.getByText(t("status.draft"))).toHaveCount(0);
+  await expect(page.getByText(t("banner.educationOnly"))).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
 });

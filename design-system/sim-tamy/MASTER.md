@@ -56,7 +56,7 @@ All Thai interface copy stays in `apps/web/lib/i18n/th.json`. Write for learners
 
 `DEV-001` is excluded from the learner entry and recording gallery. This is presentation filtering, not API access control. Recordings remain explicitly described as examples.
 
-Actual case status remains visible. Draft cases retain the PRD-required expert-review disclosure. Never relabel a draft as approved, hide the education banner, or remove the Critical Safety gate. Content-team text returned by the API is displayed unchanged; release wording in case content requires Content-team review.
+Product-owner update, 2026-10-18: learner screens omit review badges and education disclaimers, including the global banner. Instructor tools and exports retain real case status; drafts are never relabeled as approved. Critical Safety results remain visible. The owner also authorized removing the review suffix from course titles and replacing placeholder personas with course relationships; clinical facts and scoring stay unchanged.
 
 ## Verification
 
@@ -75,17 +75,3 @@ Validated locally on 2026-10-18:
 Motion follow-up: typecheck, lint, 80 unit tests, content validation, and backend pytest (502 passed / 172 database-dependent skips) were rerun. The browser suite passed its existing 19 checks; the additional motion check initially exposed an overly literal test assertion (`none` versus an equivalent identity transform matrix). It now checks the matrix's actual identity and passed on a focused rerun, including live reduced-motion changes and CTA interaction. No application animation behavior was changed to satisfy that assertion.
 
 GNU make was unavailable, so the commands defined by `make test` and `make validate-content` were executed directly with the repository virtual environment and npm scripts. Docker startup, live database journeys, and real-LLM runs were not verified. No backend, clinical content, scoring, schema, or dependency changes were made.
-
-## Remaining local test artifacts
-
-Automatic approval review rejected the cleanup command with `blocked by policy`; no cleanup was executed. The following task-owned paths remain (all ignored by git):
-
-- `apps/api/.tmp/frontend-redesign-final/`
-- `apps/api/.tmp/frontend-redesign-health/`
-- `apps/api/.tmp/frontend-redesign-pytest/`
-- `apps/api/.tmp/frontend-motion-pytest/`
-- `apps/web/test-results/.last-run.json`
-
-Playwright cleared the earlier screenshot directories during its subsequent normal test runs.
-
-The existing `AGENTS.md` changes, `.agents/`, `apps/api/.pytest-merge-check/`, and `docs/logo/` were present before this task and were left intact.

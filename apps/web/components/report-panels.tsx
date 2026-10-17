@@ -110,6 +110,5 @@ export function ConsequenceReplayPanel({ replay }: { replay: Report["replay"] })
           </li>)}
         </ol>}
     </section>
-    <p role="note" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">{replay.disclaimer_th || t("banner.educationOnly")}</p>
   </div>;
 }

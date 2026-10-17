@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 
-import { StatusBadge } from "@/components/status-badge";
 import { ConsequenceReplayPanel, GlassBoxPanel } from "@/components/report-panels";
 import { ApiError } from "@/lib/api/client";
 import { api } from "@/lib/api/runtime";
@@ -13,13 +12,11 @@ import { t } from "@/lib/i18n";
 import { downloadReportJson } from "@/lib/report-export";
 
 type Report = components["schemas"]["ReportResponse"];
-type CaseStatus = components["schemas"]["CaseStatus"];
 type Tab = "summary" | "timeline" | "glassBox" | "consequenceReplay" | "review";
 
 export default function ReportPage() {
   const { replace } = useRouter();
   const [report, setReport] = useState<Report | null>(null);
-  const [status, setStatus] = useState<CaseStatus | null>(null);
   const [tab, setTab] = useState<Tab>("summary");
   const [printing, setPrinting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -67,7 +64,6 @@ export default function ReportPage() {
     let cancelled = false;
     void Promise.resolve().then(() => {
       if (cancelled) return;
-      setStatus(active.brief.status);
       void load(active.id);
     });
     return () => { cancelled = true; };
@@ -88,7 +84,7 @@ export default function ReportPage() {
   }
 
   if (!report) return <main className="mx-auto w-full max-w-4xl px-4 py-8">
-    {status && <div className="mb-5"><StatusBadge status={status} compact /></div>}
+
     {error ? <div className="rounded-xl bg-rose-50 p-5 text-rose-950">
       <p role="alert">{error}</p>
       <button type="button" onClick={retry} className="mt-4 rounded-lg border border-rose-800 px-4 py-2 font-semibold">{t("report.retry")}</button>
@@ -120,7 +116,6 @@ export default function ReportPage() {
         <h1 className="mt-2 text-2xl font-bold text-stone-950 sm:text-3xl">{t("report.title")}</h1>
         <p className="mt-2 text-stone-700">{report.case.title_th}</p>
       </div>
-      <StatusBadge status={report.case.status} compact />
     </header>
     <section role={safetyNotMet ? "alert" : "status"} className={`rounded-2xl border p-5 text-lg font-bold ${safetyNotMet ? "border-rose-500 bg-rose-50 text-rose-950" : "border-emerald-500 bg-emerald-50 text-emerald-950"}`}>
       {t(safetyNotMet ? "report.safetyNotMet" : "report.safetyMet")}
@@ -182,7 +177,6 @@ export default function ReportPage() {
         </ul>}
       </section>}
     </section>
-    {report.disclaimers.map((disclaimer, index) => <p key={index} role="note" className="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">{disclaimer}</p>)}
     {loading && <p role="status" className="mt-4">{t("report.loading")}</p>}
   </main>;
 }

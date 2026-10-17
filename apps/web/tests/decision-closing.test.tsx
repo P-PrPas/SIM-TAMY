@@ -53,17 +53,17 @@ describe("T-052 Decision Panel", () => {
     expect(mocks.post).not.toHaveBeenCalled();
   });
 
-  it("requires an option and displays a safe load error without losing the badge", async () => {
+  it("requires an option and displays a safe load error without publishing internal review labels", async () => {
     mocks.get.mockResolvedValue({ data: session() });
     const view = render(<DecisionPage />);
-    await screen.findByText(t("status.draftFull"));
+    await screen.findByRole("radio", { name: "Refer" });
     fireEvent.click(screen.getByRole("button", { name: t("decision.review") }));
     expect(screen.getByRole("alert").textContent).toBe(t("decision.selectError"));
     view.unmount();
     mocks.get.mockRejectedValue(new Error("private error"));
     render(<DecisionPage />);
     expect(await screen.findByText(t("decision.loadError"))).toBeTruthy();
-    expect(screen.getByText(t("status.draftFull"))).toBeTruthy();
+    expect(screen.queryByText(t("status.draftFull"))).toBeNull();
     expect(screen.queryByText("private error")).toBeNull();
   });
 
@@ -71,7 +71,7 @@ describe("T-052 Decision Panel", () => {
     mocks.get.mockResolvedValue({ data: session() });
     mocks.post.mockResolvedValue({ data: { phase: "CLOSING", decision: { option_id: "refer", committed_at_idx: 1 }, replies: [] } });
     render(<DecisionPage />);
-    expect(await screen.findByText(t("status.draftFull"))).toBeTruthy();
+    await screen.findByRole("radio", { name: "Refer" });
     fireEvent.click(screen.getByRole("radio", { name: "Refer" }));
     fireEvent.change(screen.getByLabelText(t("decision.rationale")), { target: { value: "Reason" } });
     fireEvent.click(screen.getByRole("button", { name: t("decision.review") }));
@@ -89,7 +89,7 @@ describe("T-052 Decision Panel", () => {
     mocks.get.mockResolvedValue({ data: session("INTERVIEW", "C") });
     mocks.post.mockResolvedValue({ data: { phase: "PRESSURE", decision: { option_id: "refer", committed_at_idx: 1 }, replies: [{ speaker: "relative", text: "Synthetic pressure" }], pressure_turns_allowed: 2 } });
     render(<DecisionPage />);
-    await screen.findByText(t("status.draftFull"));
+    await screen.findByRole("radio", { name: "Refer" });
     fireEvent.click(screen.getByRole("radio", { name: "Refer" }));
     fireEvent.click(screen.getByRole("button", { name: t("decision.review") }));
     fireEvent.click(screen.getByRole("button", { name: t("decision.confirm") }));
@@ -100,7 +100,7 @@ describe("T-052 Decision Panel", () => {
     mocks.get.mockResolvedValue({ data: session() });
     mocks.post.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce({ data: { phase: "CLOSING", decision: { option_id: "refer", committed_at_idx: 1 }, replies: [] } });
     render(<DecisionPage />);
-    await screen.findByText(t("status.draftFull"));
+    await screen.findByRole("radio", { name: "Refer" });
     fireEvent.click(screen.getByRole("radio", { name: "Refer" }));
     fireEvent.change(screen.getByLabelText(t("decision.rationale")), { target: { value: "x".repeat(301) } });
     fireEvent.click(screen.getByRole("button", { name: t("decision.review") }));
@@ -138,7 +138,7 @@ describe("T-052 Closing and pressure handoff", () => {
     mocks.get.mockRejectedValue(new Error("private error"));
     render(<ClosingPage />);
     expect(await screen.findByText(t("closing.loadError"))).toBeTruthy();
-    expect(screen.getByText(t("status.draftFull"))).toBeTruthy();
+    expect(screen.queryByText(t("status.draftFull"))).toBeNull();
     expect(screen.queryByText("private error")).toBeNull();
   });
 
@@ -146,7 +146,7 @@ describe("T-052 Closing and pressure handoff", () => {
     mocks.get.mockResolvedValue({ data: session("CLOSING") });
     mocks.post.mockResolvedValue({ data: { status: "completed", report_ready: true, report_url: "javascript:alert(1)" } });
     render(<ClosingPage />);
-    expect(await screen.findByText(t("status.draftFull"))).toBeTruthy();
+    await screen.findByRole("button", { name: t("closing.complete") });
     fireEvent.click(screen.getByRole("button", { name: t("closing.complete") }));
     await waitFor(() => expect(mocks.push).toHaveBeenCalledWith("/report"));
     expect(mocks.post).toHaveBeenCalledWith("/v1/sessions/{session_id}/complete", {
@@ -158,7 +158,7 @@ describe("T-052 Closing and pressure handoff", () => {
     mocks.get.mockResolvedValue({ data: session("CLOSING") });
     mocks.post.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce({ data: { status: "completed", report_ready: true, report_url: "/v1/sessions/session-1/report" } });
     render(<ClosingPage />);
-    await screen.findByText(t("status.draftFull"));
+    await screen.findByRole("button", { name: t("closing.complete") });
     fireEvent.change(screen.getByLabelText(t("closing.note")), { target: { value: "x".repeat(501) } });
     fireEvent.click(screen.getByRole("button", { name: t("closing.complete") }));
     expect(screen.getByRole("alert").textContent).toBe(t("closing.tooLong"));

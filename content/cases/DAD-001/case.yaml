@@ -8,11 +8,11 @@
 # TODO(content): the "labour has not really started" fact set (research: benign) needs Variant B, which has no scene yet,
 # so this course only has the red-flag fact set and the safe choice is always to go. Content decides how to add the other.
 case_id: DAD-001
-version: "0.1"
+version: "0.2"
 status: Draft
 audience: dad
 # The title is shown in the CaseBrief before the learner asks anything, so it must not state a hidden fact.
-title_th: "DAD-001 ภรรยาใกล้คลอดบอกว่าไม่สบายตัว (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+title_th: "DAD-001 ภรรยาใกล้คลอดบอกว่าไม่สบายตัว"
 learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
 
 patient_profile:
@@ -77,11 +77,10 @@ facts:
 
 variants:
   A:
-    # TODO(content): persona wording is a placeholder; the research defines no persona text.
-    persona: {minimization: low, family_pressure: false, style_th: "พูดเบา ๆ ตอบตามที่ถาม"}
+    persona: {minimization: low, family_pressure: false, style_th: "คุณเป็นภรรยาที่กำลังคุยกับสามีซึ่งเป็นผู้เรียน แทนตัวเองว่าเรา เรียกสามีว่าคุณ พูดนุ่มนวล เป็นกันเอง และตอบตรงคำถามทีละเรื่อง ไม่ใช้คำเรียกบุคลากรทางการแพทย์ ไม่แต่งความทรงจำหรือข้อมูลครอบครัว"}
     fact_set: default
   C:
-    persona: {minimization: high, family_pressure: true, style_th: "ไม่อยากรบกวน ตอบสั้น ๆ มีญาติอยู่ด้วย"}
+    persona: {minimization: high, family_pressure: true, style_th: "คุณเป็นภรรยาที่กำลังคุยกับสามีซึ่งเป็นผู้เรียน แทนตัวเองว่าเรา เรียกสามีว่าคุณ ตอบสั้นอย่างเกรงใจและไม่อยากรบกวน มีญาติอยู่ด้วย น้ำเสียงลดความสำคัญได้แต่ต้องบอกข้อมูลที่ถูกถามครบ ไม่พูดแทนญาติ"}
     fact_set: default
     pressure_script:
       # the relative line is scripted (AGENTS.md: pressure lines are not LLM-generated); opened once he decides to go

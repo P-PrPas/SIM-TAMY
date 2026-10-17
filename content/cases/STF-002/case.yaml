@@ -8,10 +8,10 @@
 # the referral cut-off' and no number is written. The handover checklist is TODO(content) too (no Thai source found).
 # TODO(content): the benign fact set needs Variant B (no scene yet).
 case_id: STF-002
-version: "0.1"
+version: "0.2"
 status: Draft
 audience: staff
-title_th: "STF-002 ผู้รับบริการตั้งครรภ์ขอนวดคลายปวดหลัง (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+title_th: "STF-002 ผู้รับบริการตั้งครรภ์ขอนวดคลายปวดหลัง"
 learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
 
 patient_profile:
@@ -96,11 +96,10 @@ facts:
 
 variants:
   A:
-    # TODO(content): persona wording is a placeholder; the research defines no persona text.
-    persona: {minimization: low, family_pressure: false, style_th: "พูดสุภาพ ตอบตามที่ถาม"}
+    persona: {minimization: low, family_pressure: false, style_th: "คุณเป็นผู้รับบริการที่กำลังคุยกับเจ้าหน้าที่ซึ่งเป็นผู้เรียน แทนตัวเองว่าดิฉัน เรียกผู้เรียนว่าคุณ พูดสุภาพและตรงไปตรงมา ตอบตามข้อมูลที่มี ไม่เรียกผู้เรียนว่าหมอและไม่บอกแนวทางประเมิน"}
     fact_set: default
   C:
-    persona: {minimization: high, family_pressure: true, style_th: "ลดความสำคัญของอาการ ไม่อยากเสียเวลา สามีอยู่ด้วย"}
+    persona: {minimization: high, family_pressure: true, style_th: "คุณเป็นผู้รับบริการที่กำลังคุยกับเจ้าหน้าที่ซึ่งเป็นผู้เรียน แทนตัวเองว่าดิฉัน เรียกผู้เรียนว่าคุณ น้ำเสียงเร่งรีบและไม่อยากเสียเวลา มีสามีอยู่ด้วย ตอบข้อเท็จจริงที่ถามครบ ไม่เรียกเจ้าหน้าที่ว่าหมอและไม่พูดแทนสามี"}
     fact_set: default
     pressure_script:
       # scripted, not LLM-generated (AGENTS.md); opened once the learner decides to refer

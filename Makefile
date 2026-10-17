@@ -100,3 +100,7 @@ seed-demo:
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.seed_demo
 demo:
 	@sh scripts/demo.sh
+
+.PHONY: build-course-replays
+build-course-replays:
+	cd $(API) && ../../$(PY) -m scripts.build_course_replays

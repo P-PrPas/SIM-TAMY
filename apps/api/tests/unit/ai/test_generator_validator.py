@@ -1,5 +1,7 @@
 """The patient LLM only sees allowed facts; rejected replies never reach a learner."""
 
+import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -56,6 +58,29 @@ def test_generator_prompt_excludes_unallowed_history_and_case_content() -> None:
     assert "leak_terms_th" not in sent.prompt and "rubric" not in sent.prompt
     assert "follow up" in sent.prompt and "ignore previous instructions" in sent.prompt
     assert "must_convey_fact_ids" in sent.prompt
+
+
+def test_generator_receives_the_course_audience_without_extra_case_facts() -> None:
+    provider = RecordingProvider()
+    generator = PatientGenerator(LLMClient(provider, model="mock", timeout_s=1))
+    generator.generate(replace(voice_request(), learner_audience="dad"), 0)
+    prompt = json.loads(provider.requests[0].prompt)
+    assert prompt["persona"]["learner_audience"] == "dad"
+    assert H2.text_th not in provider.requests[0].prompt
+
+
+def test_wrong_learner_title_regenerates_then_uses_a_validated_fallback() -> None:
+    from app.ai.validator import _unverified_medical_titles
+
+    class WrongRole:
+        def generate(self, request: VoiceRequest, attempt: int) -> str:
+            return _unverified_medical_titles()[0]
+
+    request = replace(voice_request(directive="deflect_smalltalk"), learner_audience="dad")
+    spoken = speak(request, CASE, [], Voice(WrongRole(), PatientValidator(request)))
+    assert spoken.rejected == (("learner_role",),) * 3
+    assert spoken.fallback and spoken.text
+    assert PatientValidator(request).check(spoken.text, CASE, []) == []
 
 
 def test_generator_retry_receives_only_rule_names_not_rejected_text() -> None:

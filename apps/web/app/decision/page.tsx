@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
-import { StatusBadge } from "@/components/status-badge";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
 import { readSession } from "@/lib/flow";
@@ -11,12 +10,10 @@ import { t } from "@/lib/i18n";
 
 type SessionView = components["schemas"]["SessionView"];
 type DecisionOption = components["schemas"]["DecisionOption"];
-type CaseStatus = components["schemas"]["CaseStatus"];
 
 export default function DecisionPage() {
   const { push, replace } = useRouter();
   const [session, setSession] = useState<SessionView | null>(null);
-  const [status, setStatus] = useState<CaseStatus | null>(null);
   const [options, setOptions] = useState<DecisionOption[]>([]);
   const [selected, setSelected] = useState("");
   const [rationale, setRationale] = useState("");
@@ -29,7 +26,6 @@ export default function DecisionPage() {
     const active = readSession();
     if (!active) { replace("/"); return; }
     let cancelled = false;
-    void Promise.resolve().then(() => { if (!cancelled) setStatus(active.brief.status); });
     void api().GET("/v1/sessions/{session_id}", { params: { path: { session_id: active.id } } })
       .then(({ data }) => {
         if (cancelled) return;
@@ -78,7 +74,7 @@ export default function DecisionPage() {
   }
 
   if (!session) return <main className="mx-auto max-w-3xl px-4 py-8">
-    {status && <div className="mb-5"><StatusBadge status={status} /></div>}
+
     {error ? <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p> : <p role="status">{t("decision.loading")}</p>}
   </main>;
 
@@ -88,7 +84,6 @@ export default function DecisionPage() {
         <p className="text-sm font-bold text-brand-800">{t("decision.eyebrow")}</p>
         <h1 className="mt-2 text-2xl font-bold text-stone-950 sm:text-3xl">{t("decision.title")}</h1>
       </div>
-      <StatusBadge status={session.case.status} />
     </header>
     {reviewing ? <section className="rounded-2xl border border-amber-300 bg-amber-50 p-5">
       <h2 className="text-xl font-bold">{t("decision.selected")}</h2>

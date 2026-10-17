@@ -40,6 +40,7 @@ class VoiceRequest:
     persona_minimization: str = "low"
     persona_mood: str | None = None
     rejection_rules: tuple[str, ...] = ()
+    learner_audience: Literal["dad", "mom", "staff"] | None = None
 
 
 class Generator(Protocol):

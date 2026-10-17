@@ -28,6 +28,7 @@ class PatientGenerator:
                     "style_th": request.persona_style_th,
                     "minimization": request.persona_minimization,
                     "mood": request.persona_mood,
+                    "learner_audience": request.learner_audience,
                 },
                 "allowed_facts": [fact.model_dump() for fact in request.allowed.facts],
                 "must_convey_fact_ids": list(request.allowed.must_convey_fact_ids),

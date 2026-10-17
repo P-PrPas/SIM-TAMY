@@ -93,6 +93,19 @@ def test_replay_disabled_is_not_found_for_both_endpoints(client, monkeypatch):
         assert response.json()["error"]["code"] == "NOT_FOUND"
 
 
+def test_learning_examples_ship_and_are_available_by_default(client, monkeypatch):
+    http, _ = client
+    monkeypatch.delenv("ENABLE_REPLAY", raising=False)
+    monkeypatch.setenv("RECORDINGS_DIR", str(Path(__file__).resolve().parents[4] / "recordings"))
+    get_settings.cache_clear()
+    listing = http.get("/v1/replay/recordings")
+    assert listing.status_code == 200
+    learning = [item for item in listing.json()["items"] if item["case_id"] != "DEV-001"]
+    assert {item["case_id"] for item in learning} >= {"DAD-001", "MOM-001", "STF-002"}
+    for item in learning:
+        assert http.get(f"/v1/replay/recordings/{item['recording_id']}").status_code == 200
+
+
 def test_replay_lists_and_returns_valid_recording_without_llm_or_db(client):
     http, folder = client
     snapshot = _recording()

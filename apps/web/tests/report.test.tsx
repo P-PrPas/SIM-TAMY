@@ -103,7 +103,7 @@ describe("T-053 Report", () => {
     expect(warning.compareDocumentPosition(score) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.queryByText("99")).toBeNull();
     expect(screen.queryByText(t("report.safetyMet"))).toBeNull();
-    expect(screen.getByText(t("status.draft"))).toBeTruthy();
+    expect(screen.queryByText(t("status.draft"))).toBeNull();
     expect(screen.getByText("Risk recognition")).toBeTruthy();
     expect(mocks.get).toHaveBeenCalledWith("/v1/sessions/{session_id}/report", { params: { path: { session_id: "session-1" } } });
   });
@@ -111,7 +111,7 @@ describe("T-053 Report", () => {
   it("shows timeline and only improvement references in their respective tabs", async () => {
     mocks.get.mockResolvedValue({ data: report });
     render(<ReportPage />);
-    await screen.findByText(t("status.draft"));
+    await screen.findByRole("tablist");
     fireEvent.click(screen.getByRole("tab", { name: t("report.timeline") }));
     expect(screen.getByText("Synthetic timeline event")).toBeTruthy();
     expect(screen.getByText(`${t("report.turn")} 3`)).toBeTruthy();
@@ -142,7 +142,7 @@ describe("T-053 Report", () => {
       .mockResolvedValueOnce({ data: report });
     render(<ReportPage />);
     expect(await screen.findByText(t("report.notReady"))).toBeTruthy();
-    expect(screen.getByText(t("status.draft"))).toBeTruthy();
+    expect(screen.queryByText(t("status.draft"))).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: t("report.retry") }));
     expect(await screen.findByText(t("report.loadError"))).toBeTruthy();
     expect(screen.queryByText("private server detail")).toBeNull();
@@ -205,7 +205,7 @@ describe("T-054 Glass Box and Consequence Replay", () => {
     expect(screen.getByText("Synthetic timeline event")).toBeTruthy();
   });
 
-  it("shows the scripted UnsafeProceed scene and missed-opportunity marker with disclaimer", async () => {
+  it("keeps the safety scene and missed opportunities while omitting the learner disclaimer", async () => {
     mocks.get.mockResolvedValue({ data: detailed });
     render(<ReportPage />);
     await screen.findByText("Risk recognition");
@@ -213,7 +213,7 @@ describe("T-054 Glass Box and Consequence Replay", () => {
 
     expect(screen.getByText("Synthetic scripted scene")).toBeTruthy();
     expect(screen.getByText("Synthetic missed-opportunity marker")).toBeTruthy();
-    expect(screen.getByText("Synthetic replay education notice")).toBeTruthy();
+    expect(screen.queryByText("Synthetic replay education notice")).toBeNull();
     expect(screen.getByText(`${t("report.turn")} 4`)).toBeTruthy();
     expect(screen.getByText(t("report.safetyNotMet"))).toBeTruthy();
   });

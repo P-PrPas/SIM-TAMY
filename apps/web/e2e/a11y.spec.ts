@@ -64,7 +64,7 @@ for (const [name, path, phase] of [
     await expect(ready[path]!(page)).toBeVisible();
     if (path === "/") {
       await expect(page.locator("#case option").first()).toBeAttached();
-      await expect(page.getByText(new RegExp(["draft", "inReview", "approved"].map((key) => t(`status.${key}`)).join("|"))).first()).toBeVisible();
+      await expect(page.getByText(t("status.draftFull"), { exact: true })).toHaveCount(0);
     }
     if (phase === "PRESSURE") await expect(page.getByText(t("chat.pressure"))).toBeVisible();
     await expectNoSeriousViolations(page);
@@ -78,4 +78,17 @@ test("the skip link is the first focusable element and moves focus to the conten
   await expect(skip).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
+});
+
+test("hero text keeps accessible contrast during the entrance animation", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await expect(page.locator("#case:enabled")).toBeVisible();
+  await page.locator(".hero").evaluate((element) => {
+    for (const animation of element.getAnimations({ subtree: true })) {
+      animation.pause();
+      animation.currentTime = 0;
+    }
+  });
+  await expectNoSeriousViolations(page);
 });

@@ -4,11 +4,11 @@
 # (the source document itself says the figures and rules are a design proposal). Keep status Draft until reviewed.
 # TODO(content): items the source leaves to experts are marked TODO(content) below. Do not fill them in from here.
 case_id: PP-001
-version: "0.1"
+version: "0.2"
 status: Draft
 # The title is shown in the CaseBrief before the learner asks anything, so it must not state a hidden fact.
 # The source calls this case "PN-R01 ขอฟื้นฟูหลังคลอด แต่มีเลือดออกมาก"; that internal name stays out of title_th.
-title_th: "PN-R01 ขอฟื้นฟูหลังคลอด (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+title_th: "PN-R01 ขอฟื้นฟูหลังคลอด"
 audience: staff
 learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
 
@@ -58,11 +58,10 @@ facts:
 
 variants:
   A:
-    # TODO(content): persona wording is a placeholder; the source defines no persona text.
-    persona: {minimization: low, family_pressure: false, style_th: "พูดสุภาพ ตอบตามที่ถาม"}
+    persona: {minimization: low, family_pressure: false, style_th: "คุณเป็นผู้รับบริการที่กำลังคุยกับเจ้าหน้าที่ซึ่งเป็นผู้เรียน แทนตัวเองว่าดิฉัน เรียกผู้เรียนว่าคุณ พูดสุภาพ เข้าใจง่าย ตอบตามคำถาม ไม่สมมติว่าผู้เรียนเป็นแพทย์หรือพยาบาล"}
     fact_set: default
   C:
-    persona: {minimization: high, family_pressure: true, style_th: "พูดเบา ตอบสั้น มีญาติอยู่ด้วย"}
+    persona: {minimization: high, family_pressure: true, style_th: "คุณเป็นผู้รับบริการที่กำลังคุยกับเจ้าหน้าที่ซึ่งเป็นผู้เรียน แทนตัวเองว่าดิฉัน เรียกผู้เรียนว่าคุณ พูดเบาและตอบสั้น มีญาติอยู่ด้วย ตอบข้อเท็จจริงที่ถามครบ ไม่สมมติวิชาชีพของผู้เรียนและไม่พูดแทนญาติ"}
     fact_set: default
     pressure_script:
       # the only relative line the source gives (7.1, last row); opened after the learner says referral is needed

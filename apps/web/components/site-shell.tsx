@@ -36,5 +36,5 @@ export function SiteHeader() {
 }
 
 export function SiteFooter() {
-  return <footer className="site-footer"><div><strong>SIM-TAMY<span className="brand-dot">.</span></strong><p>{t("brand.footer")}</p></div><p>{t("brand.scope")}</p></footer>;
+  return <footer className="site-footer"><div><strong>SIM-TAMY<span className="brand-dot">.</span></strong><p>{t("brand.footer")}</p></div></footer>;
 }

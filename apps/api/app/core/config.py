@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     llm_base_url: str | None = None  # openai_like provider, e.g. https://api.z.ai/api/paas/v4
     llm_reasoning_effort: str | None = None  # passed through when set (GLM-5.3: low|high|max)
     mock_llm_script: Path | None = None  # YAML script for the mock provider
-    enable_replay: bool = False
+    enable_replay: bool = True
     recordings_dir: Path = Path(__file__).resolve().parents[4] / "recordings"
     instructor_secret: SecretStr | None = None
     content_dir: Path = Path("./content")
