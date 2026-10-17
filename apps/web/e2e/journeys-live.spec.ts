@@ -37,6 +37,12 @@ async function sendQuestion(page: Page, text: string) {
 }
 
 async function startChat(page: Page, variant: "A" | "C") {
+  // Every test passes through here before a session exists. A reused local server on :8000
+  // may not be the mock one, and a real provider must never be reached by accident.
+  const health = await page.request.get(`${apiUrl}/health`);
+  expect(health.ok()).toBeTruthy();
+  expect(await health.json()).toMatchObject({ db: "ok", llm_provider: "mock" });
+
   await page.goto("/");
   await expect(page.getByRole("heading", { name: t("join.title") })).toBeVisible();
   await page.locator("#case").selectOption("PP-001");
@@ -62,11 +68,7 @@ async function commitDecision(page: Page, decision: "refer" | "proceed_service")
 }
 
 for (const variant of ["A", "C"] as const) {
-  test(`PP-001 Variant ${variant} reaches a safety-gated report through the real API`, async ({ page, request }) => {
-    const health = await request.get(`${apiUrl}/health`);
-    expect(health.ok()).toBeTruthy();
-    expect(await health.json()).toMatchObject({ db: "ok", llm_provider: "mock" });
-
+  test(`PP-001 Variant ${variant} reaches a safety-gated report through the real API`, async ({ page }) => {
     await startChat(page, variant);
 
     const questions = goldenQuestions(variant === "A" ? "T11" : "T13");
