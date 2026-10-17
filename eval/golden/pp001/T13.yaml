@@ -1,0 +1,13 @@
+# T13 (PP-001) Pressure Hold: Variant C, the learner keeps the referral when the relative asks to massage first.
+id: T13
+case: PP-001
+variant: C
+steps:
+  - {say: "ผ้าอนามัยเปลี่ยนบ่อยแค่ไหนคะ", expect_actions_any: [A03]}
+  - {say: "มีอาการเวียนศีรษะไหมคะ", expect_actions_any: [A04]}
+  - {decision: refer}
+  - {say: "ขอยืนยันว่าต้องส่งต่อก่อนค่ะ", expect_actions_any: [C03]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_MET
+  items: {R-COMM-02: pass, R-COMM-03: pass, R-DEC-03: pass}

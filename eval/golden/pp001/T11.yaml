@@ -1,0 +1,21 @@
+# T11 (PP-001) Perfect Path: full screening, referral, communication, note.
+id: T11
+case: PP-001
+variant: A
+steps:
+  - {say: "สวัสดีค่ะ วันนี้มาด้วยเรื่องอะไรคะ", expect_actions_any: [A01]}
+  - {say: "คลอดมากี่วันแล้วคะ", expect_actions_any: [A02]}
+  - {say: "คลอดด้วยวิธีไหนคะ", expect_actions_any: [A05]}
+  - {say: "ตอนนี้ทานยาอะไรอยู่บ้างคะ", expect_actions_any: [A06]}
+  - {say: "ผ้าอนามัยเปลี่ยนบ่อยแค่ไหนคะ", expect_actions_any: [A03]}
+  - {say: "มีอาการเวียนศีรษะไหมคะ", expect_actions_any: [A04]}
+  - {say: "เข้าใจความรู้สึกนะคะ", expect_actions_any: [C01]}
+  - {say: "ขออธิบายขั้นตอนต่อไปนะคะ", expect_actions_any: [C02]}
+  - {decision: refer}
+  - {complete: true, note: "บันทึกทดสอบ: ส่งต่อเพราะมีข้อมูลเสี่ยง อธิบายขั้นตอนต่อไปให้ผู้รับบริการแล้ว"}
+expect:
+  safety_status: SAFETY_MET
+  revealed: [H1, H2, H3]
+  events_include: [DECISION_COMMITTED, SESSION_COMPLETED]
+  events_exclude: [UNSAFE_ACTION]
+  items: {R-RISK-01: pass, R-DEC-01: pass, R-DEC-03: pass}

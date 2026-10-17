@@ -1,0 +1,203 @@
+# PP-001 rubric. DRAFT written by Engineering from docs/SIM-TAMY-curriculum-and-solution.md section 6 (weights of 6.1,
+# gate of 6.2, example feedback of 6.3). The source says weights and levels are a draft awaiting calibration by instructors.
+# NOT reviewed by the Content team or an expert. TODO(content): calibrate weights, add Thai-medicine items for activities
+# beyond the safety gate, reword the feedback. Item points add up to the competency weight.
+# CONTRACT GAP: the source (6.1) has six competencies incl. 'Thai medicine within role' (15), but the API enum
+# CompetencyId is HX/RISK/DEC/ESC/COMM/DOC. Without a contract change it is folded into DEC (20+15=35).
+# UNSAFE_ACTION is only logged once a critical fact was revealed (engine rule), so a start without screening
+# is judged by the critical items R-RISK-01 and R-DEC-01, not by R-DEC-03.
+# TODO(content): a timing item (how soon after the risk facts the learner must refer) was removed. The engine's
+# within_turns_after_fact needs every listed fact revealed, so it reports 'late' for 'did not ask'. Content decides
+# which facts count, max_turns, and how 'not asked' is told apart from 'late'.
+rubric_version: '0.1'
+competencies:
+- id: HX
+  name_th: ซักประวัติและรวบรวมข้อมูล
+  weight: 20
+- id: RISK
+  name_th: รับรู้อาการอันตรายและจัดลำดับ
+  weight: 25
+- id: DEC
+  name_th: เลือกแผนดูแลหรือส่งต่อ และใช้ศาสตร์แผนไทยตามบทบาทและข้อควรระวัง
+  weight: 35
+- id: COMM
+  name_th: สื่อสารและเคารพผู้รับบริการ
+  weight: 10
+- id: DOC
+  name_th: บันทึกและส่งมอบข้อมูล
+  weight: 10
+items:
+- id: R-HX-01
+  competency: HX
+  points: 10
+  check:
+    type: action_present_all
+    actions: [A02, A05]
+  pass_finding:
+    id: R-HX-01-P
+    template_th: คุณถามวันหลังคลอดและวิธีคลอดครบ
+  fail_finding:
+    id: R-HX-01-F
+    template_th: ยังไม่ได้ถามทั้งวันหลังคลอดและวิธีคลอด ควรถามให้ครบก่อนเสนอกิจกรรมฟื้นฟู
+    references:
+    - REF1
+    - REF2
+  source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
+- id: R-HX-02
+  competency: HX
+  points: 10
+  check:
+    type: action_present_any
+    actions: [A06]
+  pass_finding:
+    id: R-HX-02-P
+    template_th: คุณถามเรื่องยาที่ใช้และประวัติการรักษา
+  fail_finding:
+    id: R-HX-02-F
+    template_th: ยังไม่ได้ถามเรื่องยาที่ใช้และประวัติการรักษา ซึ่งเป็นข้อมูลที่ควรรู้ก่อนเริ่มกิจกรรม
+    references:
+    - REF1
+    - REF2
+  source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
+- id: R-RISK-01
+  competency: RISK
+  points: 10
+  critical: true
+  applies_to_variants:
+  - A
+  - C
+  check:
+    type: action_present_any
+    actions: [A03, A04]
+  pass_finding:
+    id: R-RISK-01-P
+    template_th: คุณถามเรื่องเลือดออกหรืออาการร่วมก่อนตัดสินใจ
+  fail_finding:
+    id: R-RISK-01-F
+    template_th: ยังไม่ได้ถามปริมาณเลือดหรืออาการร่วมก่อนตัดสินใจ ข้อมูลสำคัญของเคสคือเลือดออกมากร่วมกับเวียนศีรษะ
+    references:
+    - REF1
+    - REF2
+  source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
+- id: R-RISK-02
+  competency: RISK
+  points: 15
+  check:
+    type: action_present_all
+    actions: [A03, A04]
+  pass_finding:
+    id: R-RISK-02-P
+    template_th: คุณถามทั้งเลือดออกและอาการร่วมครบ
+  fail_finding:
+    id: R-RISK-02-F
+    template_th: ถามเลือดออกและอาการร่วมไม่ครบทั้งสองเรื่อง ข้อมูลทั้งสองมีผลต่อการตัดสินใจ
+    references:
+    - REF1
+    - REF2
+  source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
+- id: R-DEC-01
+  competency: DEC
+  points: 15
+  critical: true
+  applies_to_variants:
+  - A
+  - C
+  check:
+    type: decision_equals
+    option: refer
+  pass_finding:
+    id: R-DEC-01-P
+    template_th: คุณระงับการเริ่มฟื้นฟูและเลือกส่งต่อ
+  fail_finding:
+    id: R-DEC-01-F
+    template_th: เลือกเริ่มกิจกรรมฟื้นฟูแทนการส่งต่อ ทั้งที่มีสัญญาณที่ต้องได้รับการดูแลทันที
+    references:
+    - REF1
+    - REF2
+  source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
+- id: R-DEC-03
+  competency: DEC
+  points: 20
+  critical: true
+  check:
+    type: no_unsafe_action
+  pass_finding:
+    id: R-DEC-03-P
+    template_th: คุณไม่ได้เริ่มกิจกรรมฟื้นฟูหลังทราบสัญญาณอันตราย
+  fail_finding:
+    id: R-DEC-03-F
+    template_th: เริ่มกิจกรรมฟื้นฟูทั้งที่ทราบสัญญาณอันตรายแล้ว ซึ่งเป็นเงื่อนไขของ Safety Gate
+    references:
+    - REF1
+    - REF2
+  source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
+- id: R-COMM-01
+  competency: COMM
+  points: 4
+  check:
+    type: count_at_least
+    category: COM
+    n: 2
+  pass_finding:
+    id: R-COMM-01-P
+    template_th: คุณสื่อสารกับผู้รับบริการอย่างน้อยสองรูปแบบ
+  fail_finding:
+    id: R-COMM-01-F
+    template_th: สื่อสารกับผู้รับบริการได้ไม่ถึงสองรูปแบบ ควรรับฟังและอธิบายขั้นตอนต่อไป
+    references:
+    - REF1
+    - REF2
+  source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
+- id: R-COMM-02
+  competency: COMM
+  points: 3
+  applies_to_variants:
+  - C
+  check:
+    type: action_present_any
+    actions: [C03]
+    phase: PRESSURE
+  pass_finding:
+    id: R-COMM-02-P
+    template_th: คุณยืนยันเหตุผลการส่งต่อกับญาติ
+  fail_finding:
+    id: R-COMM-02-F
+    template_th: ยังไม่ได้ยืนยันเหตุผลการส่งต่อกับญาติเมื่อถูกขอให้นวดก่อน
+    references:
+    - REF1
+    - REF2
+  source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
+- id: R-COMM-03
+  competency: COMM
+  points: 3
+  applies_to_variants:
+  - C
+  check:
+    type: action_absent
+    actions: [C04]
+  pass_finding:
+    id: R-COMM-03-P
+    template_th: คุณไม่ยอมตามคำขอให้เริ่มกิจกรรมต่อ
+  fail_finding:
+    id: R-COMM-03-F
+    template_th: ยอมตามคำขอให้เริ่มกิจกรรมต่อ ทั้งที่ต้องส่งต่อก่อน
+    references:
+    - REF1
+    - REF2
+  source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'
+- id: R-DOC-01
+  competency: DOC
+  points: 10
+  check:
+    type: note_submitted
+    min_chars: 20
+  pass_finding:
+    id: R-DOC-01-P
+    template_th: คุณส่งบันทึกสรุปเคส
+  fail_finding:
+    id: R-DOC-01-F
+    template_th: ยังไม่ได้ส่งบันทึกสรุปอาการ สิ่งที่ทำ และข้อมูลที่ยังไม่ทราบ
+    references:
+    - REF1
+    - REF2
+  source: '[SIM-TAMY หลักสูตรและแนวคิดโซลูชัน v0.1, §6]'

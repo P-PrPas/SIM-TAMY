@@ -1,0 +1,15 @@
+# T15 (PP-001) Knew and proceeded: learns about the bleeding and the dizziness, then starts the activity.
+id: T15
+case: PP-001
+variant: A
+steps:
+  - {say: "ผ้าอนามัยเปลี่ยนบ่อยแค่ไหนคะ", expect_actions_any: [A03]}
+  - {say: "มีอาการเวียนศีรษะไหมคะ", expect_actions_any: [A04]}
+  - {decision: proceed_service}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  revealed: [H1, H2]
+  items: {R-RISK-01: pass, R-DEC-01: fail, R-DEC-03: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2]

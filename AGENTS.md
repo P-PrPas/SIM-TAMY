@@ -73,6 +73,7 @@ Defined in the root `Makefile` (ticket T-001). If a target is missing, add it ra
 | `make test-coverage` | Web Vitest coverage report |
 | `make test-e2e` | Browser test of S1–S3 against Prism at 360px (requires Chrome locally or Playwright Chromium in CI) |
 | `make eval` | Golden Test Suite (T01–T10) with pass/fail table |
+| `make eval-pp001` | The same runner on the PP-001 draft scenario (`eval/golden/pp001/`) |
 | `make bench` | Model comparison on the Action dev set |
 | `make rescore SESSION=<id>` | Re-score from the Event Log |
 | `make stats` / `make cost-report` | Latency / LLM cost summaries |
