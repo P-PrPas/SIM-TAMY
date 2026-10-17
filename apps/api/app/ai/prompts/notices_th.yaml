@@ -1,4 +1,8 @@
 # Thai UI strings the API must send (openapi `Notice`, case status label). Data, not code.
+learning_objectives:
+  risk_recognition: "สังเกตอาการผิดปกติและสัญญาณเตือนที่ควรขอความช่วยเหลือ"
+  referral_decision: "ตัดสินใจได้ว่าเมื่อใดควรหยุดดูแลเบื้องต้นและส่งต่อให้บุคลากรทางการแพทย์"
+  communication_under_pressure: "สื่อสารเหตุผลและยืนยันการตัดสินใจอย่างชัดเจน แม้อยู่ในสถานการณ์กดดัน"
 notices:
   EDUCATION_ONLY: "นี่คือการจำลองเพื่อการเรียนรู้ ไม่ใช่คำแนะนำทางการแพทย์"
   PRIVACY_LLM: "ข้อความของคุณจะถูกส่งไปยังผู้ให้บริการโมเดลภาษาเพื่อสร้างคำตอบ"
