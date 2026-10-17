@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from app.ai.lexical import match_actions
 from app.ai.validator import PatientValidator
 from app.content.loader import load_case
 from app.content.validate import check
@@ -134,3 +135,17 @@ def test_course_partial_replies_are_rejected_before_the_fact_is_asked(case_id: s
     for reply in PARTIAL_REPLIES[case_id]:
         reasons = validator.check(reply, case, [])
         assert reasons and reasons[0].startswith("leak_term"), reply
+
+
+NEGATIONS = ("ไม่", "ไม่จำเป็น", "ไม่ควร", "ไม่คิดว่า")
+
+
+@pytest.mark.parametrize("case_id", COURSES)
+def test_course_a_negated_referral_is_never_credited_as_insisting(case_id: str) -> None:
+    """Without the LLM Interpreter, refusing to refer must not close the pressure phase as C03."""
+    actions = load_case(CASES / case_id).actions
+    c03 = next(a for a in actions if a.id == "C03")
+    for keyword in (k for k in c03.keywords_th if not k.startswith("ไม่")):
+        for negation in NEGATIONS:
+            text = negation + keyword
+            assert "C03" not in [d.id for d in match_actions(text, actions)], text
