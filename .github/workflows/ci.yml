@@ -47,6 +47,14 @@ jobs:
       - run: ruff format --check .
       - run: mypy app
       - run: pytest --cov=app
+      - name: measure offline validation suites
+        run: python -m scripts.build_validation_report --output .tmp/validation-ci.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: measured-validation
+          path: apps/api/.tmp/validation-ci.json
+          if-no-files-found: ignore
       - name: engine coverage gate (>= 85%)
         run: coverage report --include='app/engine/*' --fail-under=85
       - name: validate-content
