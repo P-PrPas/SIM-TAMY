@@ -32,7 +32,7 @@ export default function ReplayPage() {
   useEffect(() => {
     let cancelled = false;
     void api().GET("/v1/replay/recordings").then(({ data }) => {
-      if (!cancelled) setItems(data?.items ?? []);
+      if (!cancelled) setItems((data?.items ?? []).filter((item) => item.case_id !== "DEV-001"));
     }).catch(() => { if (!cancelled) setError(t("replay.unavailable")); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -78,38 +78,38 @@ export default function ReplayPage() {
   return <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
     <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
       <div>
-        <p className="font-bold text-teal-800">{t("replay.label")}</p>
+        <p className="font-bold text-brand-800">{t("replay.label")}</p>
         <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{t("replay.title")}</h1>
       </div>
       {recording && <StatusBadge status={recording.case.status} compact />}
     </header>
-    <Link href="/" className="inline-flex rounded-lg border border-slate-500 px-3 py-2 font-semibold">{t("replay.back")}</Link>
+    <Link href="/" className="inline-flex rounded-lg border border-stone-500 px-3 py-2 font-semibold">{t("replay.back")}</Link>
     {error && <p role="alert" className="mt-5 rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p>}
     {loading && <p role="status" className="mt-5">{t("replay.loading")}</p>}
     {!recording && !loading && !error && items.length === 0 && <p className="mt-5">{t("replay.empty")}</p>}
     {!recording && <ul className="mt-6 space-y-3">
-      {items.map((item) => <li key={item.recording_id} className="rounded-xl border border-slate-300 bg-white p-4">
+      {items.map((item) => <li key={item.recording_id} className="rounded-xl border border-stone-300 bg-white p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <p className="font-semibold">{item.title_th}</p>
           <StatusBadge status={item.status} compact />
         </div>
-        {item.description_th && <p className="mt-1 text-slate-700">{item.description_th}</p>}
+        {item.description_th && <p className="mt-1 text-stone-700">{item.description_th}</p>}
         <button type="button" onClick={() => void open(item.recording_id)} disabled={loading}
-          className="mt-3 rounded-lg bg-teal-900 px-4 py-2 font-semibold text-white disabled:opacity-50">{t("replay.open")}</button>
+          className="mt-3 rounded-lg bg-brand-900 px-4 py-2 font-semibold text-white disabled:opacity-50">{t("replay.open")}</button>
       </li>)}
     </ul>}
     {recording && <>
       <p className="mt-5 text-lg font-semibold">{recording.title_th}</p>
       <div className="mt-4 flex flex-wrap gap-2">
         {!done && <button type="button" onClick={() => setPlaying((value) => !value)}
-          className="rounded-lg border border-teal-800 px-4 py-2 font-semibold text-teal-950">{t(playing ? "replay.pause" : "replay.resume")}</button>}
+          className="rounded-lg border border-brand-800 px-4 py-2 font-semibold text-brand-950">{t(playing ? "replay.pause" : "replay.resume")}</button>}
         <button type="button" onClick={() => { setIndex(-1); setPlaying(true); }}
-          className="rounded-lg border border-slate-500 px-4 py-2 font-semibold">{t("replay.restart")}</button>
+          className="rounded-lg border border-stone-500 px-4 py-2 font-semibold">{t("replay.restart")}</button>
       </div>
       <ol aria-live="polite" className="mt-5 space-y-3">
         {recording.steps.slice(0, index + 1).map((step, position) => <li key={position}
-          className="rounded-xl border border-slate-300 bg-white p-4">
-          <p className="text-sm font-semibold text-teal-800">{step.speaker ? t(`chat.${step.speaker}`) : t(`replay.${step.type}`)}</p>
+          className="rounded-xl border border-stone-300 bg-white p-4">
+          <p className="text-sm font-semibold text-brand-800">{step.speaker ? t(`chat.${step.speaker}`) : t(`replay.${step.type}`)}</p>
           <p className="mt-1 whitespace-pre-wrap break-words">{stepLabel(step, recording)}</p>
         </li>)}
       </ol>

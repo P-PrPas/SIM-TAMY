@@ -74,15 +74,15 @@ export default function ClosingPage() {
   return <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
     <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p className="text-sm font-bold text-teal-800">{t("closing.eyebrow")}</p>
-        <h1 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">{t("closing.title")}</h1>
+        <p className="text-sm font-bold text-brand-800">{t("closing.eyebrow")}</p>
+        <h1 className="mt-2 text-2xl font-bold text-stone-950 sm:text-3xl">{t("closing.title")}</h1>
       </div>
       <StatusBadge status={session.case.status} />
     </header>
-    <form onSubmit={(event) => void complete(event)} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+    <form onSubmit={(event) => void complete(event)} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-7">
       <label htmlFor="note" className="block font-semibold">{t("closing.note")}</label>
-      <textarea id="note" value={note} onChange={(event) => setNote(event.target.value)} maxLength={500} rows={6} disabled={inFlight} className="mt-3 w-full rounded-xl border border-slate-400 p-3 focus:outline-teal-700 disabled:bg-slate-100" />
-      <button type="submit" disabled={inFlight} className="mt-5 rounded-xl bg-teal-900 px-5 py-3 font-bold text-white disabled:opacity-50">{t("closing.complete")}</button>
+      <textarea id="note" value={note} onChange={(event) => setNote(event.target.value)} maxLength={500} rows={6} disabled={inFlight} className="mt-3 w-full rounded-xl border border-stone-400 p-3 focus:outline-brand-700 disabled:bg-stone-100" />
+      <button type="submit" disabled={inFlight} className="mt-5 rounded-xl bg-brand-900 px-5 py-3 font-bold text-white disabled:opacity-50">{t("closing.complete")}</button>
     </form>
     {error && <p role="alert" className="mt-5 rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p>}
   </main>;

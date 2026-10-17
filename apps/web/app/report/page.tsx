@@ -100,7 +100,7 @@ export default function ReportPage() {
   const tabs: Tab[] = ["summary", "timeline", "glassBox", "consequenceReplay", "review"];
   // Printing renders every panel, because the tab bar is hidden on paper.
   const shown = (id: Tab) => printing || tab === id;
-  const title = (id: Tab) => printing && <h2 className="mb-3 mt-8 text-xl font-bold text-slate-950">{t(`report.${id}`)}</h2>;
+  const title = (id: Tab) => printing && <h2 className="mb-3 mt-8 text-xl font-bold text-stone-950">{t(`report.${id}`)}</h2>;
 
   function onTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const next = event.key === "ArrowRight" ? (index + 1) % tabs.length
@@ -116,9 +116,9 @@ export default function ReportPage() {
   return <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12 print:max-w-none print:p-0">
     <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p className="text-sm font-bold text-teal-800">{t("report.eyebrow")}</p>
-        <h1 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">{t("report.title")}</h1>
-        <p className="mt-2 text-slate-700">{report.case.title_th}</p>
+        <p className="text-sm font-bold text-brand-800">{t("report.eyebrow")}</p>
+        <h1 className="mt-2 text-2xl font-bold text-stone-950 sm:text-3xl">{t("report.title")}</h1>
+        <p className="mt-2 text-stone-700">{report.case.title_th}</p>
       </div>
       <StatusBadge status={report.case.status} compact />
     </header>
@@ -126,55 +126,55 @@ export default function ReportPage() {
       {t(safetyNotMet ? "report.safetyNotMet" : "report.safetyMet")}
     </section>
     <div className="mt-5 flex flex-wrap gap-3 print:hidden">
-      <button type="button" onClick={() => downloadReportJson(report)} className="rounded-xl border border-teal-800 bg-white px-4 py-3 font-semibold text-teal-900">{t("report.downloadJson")}</button>
-      <button type="button" onClick={() => setPrinting(true)} className="rounded-xl border border-teal-800 bg-white px-4 py-3 font-semibold text-teal-900">{t("report.print")}</button>
+      <button type="button" onClick={() => downloadReportJson(report)} className="rounded-xl border border-brand-800 bg-white px-4 py-3 font-semibold text-brand-900">{t("report.downloadJson")}</button>
+      <button type="button" onClick={() => setPrinting(true)} className="rounded-xl border border-brand-800 bg-white px-4 py-3 font-semibold text-brand-900">{t("report.print")}</button>
     </div>
-    <div role="tablist" aria-label={t("report.title")} className="print:hidden mt-6 flex flex-wrap gap-2 border-b border-slate-300 pb-3">
-      {tabs.map((item, index) => <button key={item} id={`tab-${item}`} type="button" role="tab" aria-selected={tab === item} aria-controls={`panel-${item}`} tabIndex={tab === item ? 0 : -1} onClick={() => setTab(item)} onKeyDown={(event) => onTabKeyDown(event, index)} className={`rounded-xl px-4 py-3 font-semibold ${tab === item ? "bg-teal-900 text-white" : "bg-slate-100 text-slate-900"}`}>{t(`report.${item}`)}</button>)}
+    <div role="tablist" aria-label={t("report.title")} className="print:hidden mt-6 flex flex-wrap gap-2 border-b border-stone-300 pb-3">
+      {tabs.map((item, index) => <button key={item} id={`tab-${item}`} type="button" role="tab" aria-selected={tab === item} aria-controls={`panel-${item}`} tabIndex={tab === item ? 0 : -1} onClick={() => setTab(item)} onKeyDown={(event) => onTabKeyDown(event, index)} className={`rounded-xl px-4 py-3 font-semibold ${tab === item ? "bg-brand-900 text-white" : "bg-stone-100 text-stone-900"}`}>{t(`report.${item}`)}</button>)}
     </div>
     <section id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} className="mt-6">
       {shown("summary") && <div className="space-y-6">
         {title("summary")}
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">{t("report.score")}</h2>
-          <p className="mt-2 text-4xl font-bold text-slate-950">{report.effective.total_score}</p>
+          <p className="mt-2 text-4xl font-bold text-stone-950">{report.effective.total_score}</p>
         </section>
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">{t("report.competencies")}</h2>
           <ul className="mt-4 space-y-4">
-            {report.competencies.map((entry) => <li key={entry.id} className="flex flex-wrap justify-between gap-2 border-b border-slate-100 pb-3">
+            {report.competencies.map((entry) => <li key={entry.id} className="flex flex-wrap justify-between gap-2 border-b border-stone-100 pb-3">
               <span className="break-words">{entry.name_th}</span>
               <span className="font-bold">{entry.score_pct}%</span>
             </li>)}
           </ul>
         </section>
-        {report.debrief.paragraphs.length > 0 && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        {report.debrief.paragraphs.length > 0 && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">{t("report.feedback")}</h2>
           {report.debrief.paragraphs.map((paragraph, index) => <p key={index} className="mt-3 whitespace-pre-wrap break-words leading-7">{paragraph.text_th}</p>)}
         </section>}
       </div>}
-      {shown("timeline") && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      {shown("timeline") && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         {title("timeline")}
         {report.timeline.length === 0 ? <p>{t("report.noTimeline")}</p> : <ol className="space-y-4">
-          {report.timeline.map((entry) => <li key={entry.event_id} className="border-l-4 border-teal-700 pl-4">
-            <p className="text-sm font-semibold text-slate-700">{t("report.turn")} {entry.turn_idx}</p>
+          {report.timeline.map((entry) => <li key={entry.event_id} className="border-l-4 border-brand-700 pl-4">
+            <p className="text-sm font-semibold text-stone-700">{t("report.turn")} {entry.turn_idx}</p>
             <p className="mt-1 whitespace-pre-wrap break-words">{entry.summary_th}</p>
           </li>)}
         </ol>}
       </section>}
       {shown("glassBox") && <>{title("glassBox")}<GlassBoxPanel report={report} /></>}
       {shown("consequenceReplay") && <>{title("consequenceReplay")}<ConsequenceReplayPanel replay={report.replay} /></>}
-      {shown("review") && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      {shown("review") && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         {title("review")}
         {needsReview.length === 0 ? <p>{t("report.noReview")}</p> : <ul className="space-y-6">
           {needsReview.map((finding) => {
             const references = report.references.filter((reference) => finding.reference_ids?.includes(reference.id));
-            return <li key={finding.id} className="border-b border-slate-200 pb-5 last:border-0 last:pb-0">
+            return <li key={finding.id} className="border-b border-stone-200 pb-5 last:border-0 last:pb-0">
               <p className="whitespace-pre-wrap break-words font-semibold">{finding.text_th}</p>
               {references.length > 0 && <div className="mt-3">
                 <h3 className="text-sm font-bold">{t("report.references")}</h3>
                 <ul className="mt-2 list-disc space-y-1 pl-5">
-                  {references.map((reference) => <li key={reference.id} className="break-words">{reference.title_th}{reference.locator && <span className="ml-2 text-slate-700">{reference.locator}</span>}</li>)}
+                  {references.map((reference) => <li key={reference.id} className="break-words">{reference.title_th}{reference.locator && <span className="ml-2 text-stone-700">{reference.locator}</span>}</li>)}
                 </ul>
               </div>}
             </li>;

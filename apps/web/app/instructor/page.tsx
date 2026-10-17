@@ -126,32 +126,32 @@ export default function InstructorPage() {
 
   return <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
     <header className="mb-8">
-      <Link href="/" className="inline-flex rounded-lg border border-teal-800 px-4 py-2 font-semibold text-teal-900">{t("instructor.back")}</Link>
-      <h1 className="mt-5 text-3xl font-bold text-slate-950">{t("instructor.title")}</h1>
-      <p className="mt-2 text-slate-700">{t("instructor.intro")}</p>
+      <Link href="/" className="inline-flex rounded-lg border border-brand-800 px-4 py-2 font-semibold text-brand-900">{t("instructor.back")}</Link>
+      <h1 className="mt-5 text-3xl font-bold text-stone-950">{t("instructor.title")}</h1>
+      <p className="mt-2 text-stone-700">{t("instructor.intro")}</p>
     </header>
-    {!secret ? <form onSubmit={(event) => void enter(event)} className="max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    {!secret ? <form onSubmit={(event) => void enter(event)} className="max-w-lg rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
       <label htmlFor="instructor-secret" className="block font-semibold">{t("instructor.secret")}</label>
-      <input id="instructor-secret" type="password" autoComplete="off" value={draftSecret} onChange={(event) => setDraftSecret(event.target.value)} required className="mt-2 w-full rounded-lg border border-slate-400 px-4 py-3" />
-      <button type="submit" disabled={busy} className="mt-4 rounded-lg bg-teal-900 px-5 py-3 font-semibold text-white disabled:opacity-50">{t("instructor.enter")}</button>
+      <input id="instructor-secret" type="password" autoComplete="off" value={draftSecret} onChange={(event) => setDraftSecret(event.target.value)} required className="mt-2 w-full rounded-lg border border-stone-400 px-4 py-3" />
+      <button type="submit" disabled={busy} className="mt-4 rounded-lg bg-brand-900 px-5 py-3 font-semibold text-white disabled:opacity-50">{t("instructor.enter")}</button>
     </form> : <div className="space-y-8">
-      <button type="button" onClick={logout} className="rounded-lg border border-slate-500 px-4 py-2 font-semibold">{t("instructor.logout")}</button>
+      <button type="button" onClick={logout} className="rounded-lg border border-stone-500 px-4 py-2 font-semibold">{t("instructor.logout")}</button>
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
           <h2 className="text-xl font-bold">{t("instructor.classes")}</h2>
           <form onSubmit={(event) => void createClass(event)} className="mt-4">
             <label htmlFor="class-name" className="block font-semibold">{t("instructor.className")}</label>
-            <input id="class-name" value={className} onChange={(event) => setClassName(event.target.value)} maxLength={80} required className="mt-2 w-full rounded-lg border border-slate-400 px-4 py-3" />
-            <button type="submit" disabled={busy} className="mt-3 rounded-lg bg-teal-900 px-4 py-3 font-semibold text-white disabled:opacity-50">{t("instructor.createClass")}</button>
+            <input id="class-name" value={className} onChange={(event) => setClassName(event.target.value)} maxLength={80} required className="mt-2 w-full rounded-lg border border-stone-400 px-4 py-3" />
+            <button type="submit" disabled={busy} className="mt-3 rounded-lg bg-brand-900 px-4 py-3 font-semibold text-white disabled:opacity-50">{t("instructor.createClass")}</button>
           </form>
           {classes.length === 0 ? <p className="mt-5">{t("instructor.noClasses")}</p> : <ul className="mt-5 space-y-2">
-            {classes.map((room) => <li key={room.class_id}><button type="button" onClick={() => void selectClass(room)} aria-pressed={selected?.class_id === room.class_id} className="w-full rounded-lg border border-slate-300 p-3 text-left hover:bg-teal-50 focus:outline-teal-700">
-              <span className="block font-semibold">{room.name}</span><span className="text-slate-700">{t("instructor.classCode")}: {room.code}</span>
+            {classes.map((room) => <li key={room.class_id}><button type="button" onClick={() => void selectClass(room)} aria-pressed={selected?.class_id === room.class_id} className="w-full rounded-lg border border-stone-300 p-3 text-left hover:bg-brand-50 focus:outline-brand-700">
+              <span className="block font-semibold">{room.name}</span><span className="text-stone-700">{t("instructor.classCode")}: {room.code}</span>
             </button></li>)}
           </ul>}
         </div>
         {selected && <div className="space-y-6">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <h2 className="text-xl font-bold">{t("instructor.analytics")}: {selected.name}</h2>
             {analytics ? <div className="mt-4 space-y-4">
               <dl className="grid gap-3 sm:grid-cols-2">
@@ -166,25 +166,25 @@ export default function InstructorPage() {
               {analytics.critical_item_fail_rates.length > 0 && <div><h3 className="font-bold">{t("instructor.criticalRates")}</h3><ul className="mt-2 space-y-1">{analytics.critical_item_fail_rates.map((item) => <li key={item.item_id}>{item.label_th}: {Math.round(item.fail_rate * 100)}% ({t("instructor.sampleSize")}: {item.n})</li>)}</ul></div>}
             </div> : <p role="status" className="mt-4">{t("report.loading")}</p>}
           </section>
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <h2 className="text-xl font-bold">{t("instructor.sessions")}</h2>
             {sessions.length === 0 ? <p className="mt-4">{t("instructor.noSessions")}</p> : <ul className="mt-4 space-y-4">
-              {sessions.map((item) => <li key={item.session_id} className="rounded-xl border border-slate-300 p-4">
+              {sessions.map((item) => <li key={item.session_id} className="rounded-xl border border-stone-300 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-bold">{item.learner_name}</h3><StatusBadge status={item.case_status} compact /></div>
-                <p className="mt-2 text-slate-700">{t("instructor.case")}: {item.case_id} · {item.variant}</p>
-                <p className="text-slate-700">{t("instructor.started")}: <time dateTime={item.started_at}>{new Date(item.started_at).toLocaleString("th-TH")}</time></p>
-                <p className="text-slate-700">{t("instructor.turns")}: {item.turns}</p>
-                {item.status === "completed" && item.total_score != null && <p className="text-slate-700">{t("report.score")}: {item.total_score}</p>}
+                <p className="mt-2 text-stone-700">{t("instructor.case")}: {item.case_id} · {item.variant}</p>
+                <p className="text-stone-700">{t("instructor.started")}: <time dateTime={item.started_at}>{new Date(item.started_at).toLocaleString("th-TH")}</time></p>
+                <p className="text-stone-700">{t("instructor.turns")}: {item.turns}</p>
+                {item.status === "completed" && item.total_score != null && <p className="text-stone-700">{t("report.score")}: {item.total_score}</p>}
                 <p className="mt-2 font-semibold">{item.status === "completed" ? (item.safety_status === "SAFETY_NOT_MET" ? t("report.safetyNotMet") : t("report.safetyMet")) : t("instructor.active")}</p>
-                {item.status === "completed" && <button type="button" onClick={() => void openReport(item.session_id)} className="mt-3 rounded-lg border border-teal-800 px-4 py-2 font-semibold text-teal-900">{t("instructor.openReport")}</button>}
+                {item.status === "completed" && <button type="button" onClick={() => void openReport(item.session_id)} className="mt-3 rounded-lg border border-brand-800 px-4 py-2 font-semibold text-brand-900">{t("instructor.openReport")}</button>}
               </li>)}
             </ul>}
-            {nextCursor && <button type="button" onClick={() => void loadMore()} disabled={busy} className="mt-4 rounded-lg border border-teal-800 px-4 py-2 font-semibold text-teal-900">{t("instructor.more")}</button>}
+            {nextCursor && <button type="button" onClick={() => void loadMore()} disabled={busy} className="mt-4 rounded-lg border border-brand-800 px-4 py-2 font-semibold text-brand-900">{t("instructor.more")}</button>}
           </section>
         </div>}
       </section>
       {reportError && <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-950">{reportError}</p>}
-      {report && <section className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm" aria-label={t("report.title")}>
+      {report && <section className="rounded-2xl border border-stone-300 bg-white p-5 shadow-sm" aria-label={t("report.title")}>
         <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-2xl font-bold">{t("report.title")}</h2><p>{report.case.title_th}</p></div><StatusBadge status={report.case.status} /></div>
         <div role={report.effective.safety_status === "SAFETY_NOT_MET" ? "alert" : "status"} className={`mt-5 rounded-xl p-4 font-bold ${report.effective.safety_status === "SAFETY_NOT_MET" ? "bg-rose-50 text-rose-950" : "bg-emerald-50 text-emerald-950"}`}>{t(report.effective.safety_status === "SAFETY_NOT_MET" ? "report.safetyNotMet" : "report.safetyMet")}</div>
         <h3 className="mt-5 font-bold">{t("report.score")}: {report.effective.total_score}</h3>
@@ -193,7 +193,7 @@ export default function InstructorPage() {
         <h3 className="mt-5 font-bold">{t("report.feedback")}</h3>
         <ul className="mt-2 space-y-2">{report.findings.map((item) => <li key={item.id} className="whitespace-pre-wrap">{item.text_th}</li>)}</ul>
         {report.disclaimers.map((note, index) => <p key={index} role="note" className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">{note}</p>)}
-        <button type="button" onClick={closeReport} className="mt-5 rounded-lg border border-slate-600 px-4 py-2">{t("instructor.closeReport")}</button>
+        <button type="button" onClick={closeReport} className="mt-5 rounded-lg border border-stone-600 px-4 py-2">{t("instructor.closeReport")}</button>
       </section>}
     </div>}
     {error && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p>}
