@@ -7,9 +7,10 @@ import { ApiError } from "../lib/api/client";
 import { saveSession } from "../lib/flow";
 import { t } from "../lib/i18n";
 
-const mocks = vi.hoisted(() => ({ get: vi.fn(), replace: vi.fn() }));
+const mocks = vi.hoisted(() => ({ get: vi.fn(), replace: vi.fn(), download: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: mocks.replace }) }));
 vi.mock("@/lib/api/runtime", () => ({ api: () => ({ GET: mocks.get }) }));
+vi.mock("@/lib/report-export", () => ({ downloadReportJson: mocks.download }));
 
 const brief = {
   case_id: "PP-001", version: "0.1", title_th: "Synthetic case", status: "Draft" as const,
@@ -41,12 +42,37 @@ const report = {
 };
 
 beforeEach(() => {
-  mocks.get.mockReset(); mocks.replace.mockReset(); sessionStorage.clear();
+  mocks.get.mockReset(); mocks.replace.mockReset(); mocks.download.mockReset(); sessionStorage.clear();
   saveSession({ id: "session-1", token: "synthetic-token", caseId: "PP-001", brief });
 });
 afterEach(() => cleanup());
 
 describe("T-053 Report", () => {
+  it("exports the exact completed report without changing the safety wording", async () => {
+    mocks.get.mockResolvedValue({ data: report });
+    render(<ReportPage />);
+    await screen.findByText(t("report.safetyNotMet"));
+    fireEvent.click(screen.getByRole("button", { name: t("report.downloadJson") }));
+    expect(mocks.download).toHaveBeenCalledWith(report);
+    expect(screen.queryByText(t("report.safetyMet"))).toBeNull();
+  });
+
+  it("prints every section, then returns to the selected tab after printing", async () => {
+    mocks.get.mockResolvedValue({ data: report });
+    const print = vi.spyOn(window, "print").mockImplementation(() => undefined);
+    render(<ReportPage />);
+    await screen.findByText(t("report.safetyNotMet"));
+    expect(screen.queryByText("Synthetic timeline event")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: t("report.print") }));
+    expect(print).toHaveBeenCalledOnce();
+    expect(screen.getAllByText("Synthetic timeline event").length).toBeGreaterThan(0);
+    expect(screen.getByText("Review source")).toBeTruthy();
+    expect(screen.getByText("Synthetic feedback")).toBeTruthy();
+    fireEvent(window, new Event("afterprint"));
+    await waitFor(() => expect(screen.queryByText("Synthetic timeline event")).toBeNull());
+    print.mockRestore();
+  });
+
   it("supports arrow keys, Home and End in the report tablist", async () => {
     mocks.get.mockResolvedValue({ data: report });
     render(<ReportPage />);

@@ -10,6 +10,7 @@ import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
 import { readSession } from "@/lib/flow";
 import { t } from "@/lib/i18n";
+import { downloadReportJson } from "@/lib/report-export";
 
 type Report = components["schemas"]["ReportResponse"];
 type CaseStatus = components["schemas"]["CaseStatus"];
@@ -20,6 +21,7 @@ export default function ReportPage() {
   const [report, setReport] = useState<Report | null>(null);
   const [status, setStatus] = useState<CaseStatus | null>(null);
   const [tab, setTab] = useState<Tab>("summary");
+  const [printing, setPrinting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const request = useRef(0);
@@ -71,6 +73,14 @@ export default function ReportPage() {
     return () => { cancelled = true; };
   }, [load, replace]);
 
+  useEffect(() => {
+    if (!printing) return;
+    const done = () => setPrinting(false);
+    window.addEventListener("afterprint", done, { once: true });
+    window.print();
+    return () => window.removeEventListener("afterprint", done);
+  }, [printing]);
+
   function retry() {
     const active = readSession();
     if (!active) { replace("/"); return; }
@@ -88,6 +98,9 @@ export default function ReportPage() {
   const safetyNotMet = report.effective.safety_status === "SAFETY_NOT_MET";
   const needsReview = report.findings.filter((finding) => finding.polarity === "improve");
   const tabs: Tab[] = ["summary", "timeline", "glassBox", "consequenceReplay", "review"];
+  // Printing renders every panel, because the tab bar is hidden on paper.
+  const shown = (id: Tab) => printing || tab === id;
+  const title = (id: Tab) => printing && <h2 className="mb-3 mt-8 text-xl font-bold text-slate-950">{t(`report.${id}`)}</h2>;
 
   function onTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const next = event.key === "ArrowRight" ? (index + 1) % tabs.length
@@ -100,7 +113,7 @@ export default function ReportPage() {
     event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next]?.focus();
   }
 
-  return <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+  return <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12 print:max-w-none print:p-0">
     <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div>
         <p className="text-sm font-bold text-teal-800">{t("report.eyebrow")}</p>
@@ -112,11 +125,16 @@ export default function ReportPage() {
     <section role={safetyNotMet ? "alert" : "status"} className={`rounded-2xl border p-5 text-lg font-bold ${safetyNotMet ? "border-rose-500 bg-rose-50 text-rose-950" : "border-emerald-500 bg-emerald-50 text-emerald-950"}`}>
       {t(safetyNotMet ? "report.safetyNotMet" : "report.safetyMet")}
     </section>
-    <div role="tablist" aria-label={t("report.title")} className="mt-6 flex flex-wrap gap-2 border-b border-slate-300 pb-3">
+    <div className="mt-5 flex flex-wrap gap-3 print:hidden">
+      <button type="button" onClick={() => downloadReportJson(report)} className="rounded-xl border border-teal-800 bg-white px-4 py-3 font-semibold text-teal-900">{t("report.downloadJson")}</button>
+      <button type="button" onClick={() => setPrinting(true)} className="rounded-xl border border-teal-800 bg-white px-4 py-3 font-semibold text-teal-900">{t("report.print")}</button>
+    </div>
+    <div role="tablist" aria-label={t("report.title")} className="print:hidden mt-6 flex flex-wrap gap-2 border-b border-slate-300 pb-3">
       {tabs.map((item, index) => <button key={item} id={`tab-${item}`} type="button" role="tab" aria-selected={tab === item} aria-controls={`panel-${item}`} tabIndex={tab === item ? 0 : -1} onClick={() => setTab(item)} onKeyDown={(event) => onTabKeyDown(event, index)} className={`rounded-xl px-4 py-3 font-semibold ${tab === item ? "bg-teal-900 text-white" : "bg-slate-100 text-slate-900"}`}>{t(`report.${item}`)}</button>)}
     </div>
     <section id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} className="mt-6">
-      {tab === "summary" && <div className="space-y-6">
+      {shown("summary") && <div className="space-y-6">
+        {title("summary")}
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">{t("report.score")}</h2>
           <p className="mt-2 text-4xl font-bold text-slate-950">{report.effective.total_score}</p>
@@ -135,7 +153,8 @@ export default function ReportPage() {
           {report.debrief.paragraphs.map((paragraph, index) => <p key={index} className="mt-3 whitespace-pre-wrap break-words leading-7">{paragraph.text_th}</p>)}
         </section>}
       </div>}
-      {tab === "timeline" && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      {shown("timeline") && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        {title("timeline")}
         {report.timeline.length === 0 ? <p>{t("report.noTimeline")}</p> : <ol className="space-y-4">
           {report.timeline.map((entry) => <li key={entry.event_id} className="border-l-4 border-teal-700 pl-4">
             <p className="text-sm font-semibold text-slate-700">{t("report.turn")} {entry.turn_idx}</p>
@@ -143,9 +162,10 @@ export default function ReportPage() {
           </li>)}
         </ol>}
       </section>}
-      {tab === "glassBox" && <GlassBoxPanel report={report} />}
-      {tab === "consequenceReplay" && <ConsequenceReplayPanel replay={report.replay} />}
-      {tab === "review" && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      {shown("glassBox") && <>{title("glassBox")}<GlassBoxPanel report={report} /></>}
+      {shown("consequenceReplay") && <>{title("consequenceReplay")}<ConsequenceReplayPanel replay={report.replay} /></>}
+      {shown("review") && <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        {title("review")}
         {needsReview.length === 0 ? <p>{t("report.noReview")}</p> : <ul className="space-y-6">
           {needsReview.map((finding) => {
             const references = report.references.filter((reference) => finding.reference_ids?.includes(reference.id));

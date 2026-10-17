@@ -27,3 +27,8 @@ button, input, select, textarea {
     transition-duration: 0.01ms !important;
   }
 }
+
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body { background: white; }
+}

@@ -34,7 +34,7 @@ export function GlassBoxPanel({ report }: { report: Report }) {
 
   return <div className="space-y-6">
     <div className="grid gap-5 md:grid-cols-2">
-      <section aria-label={t("report.conversation")} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section aria-label={t("report.conversation")} className="print:hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">{t("report.conversation")}</h2>
         {error && <div className="mt-4">
           <p role="alert">{t("report.historyLoadError")}</p>
