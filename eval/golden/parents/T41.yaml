@@ -1,0 +1,24 @@
+# T41 (STF-002) Perfect Path: asks about every sign, refers, explains, writes a note.
+id: T41
+case: STF-002
+variant: A
+steps:
+  - {say: "สวัสดีค่ะ วันนี้มาด้วยเรื่องอะไรคะ", expect_actions_any: [A01]}
+  - {say: "ตั้งครรภ์ได้กี่เดือนแล้วคะ", expect_actions_any: [A02]}
+  - {say: "ปวดศีรษะไหมคะ", expect_actions_any: [A03]}
+  - {say: "ตามัวหรือตาพร่าไหมคะ", expect_actions_any: [A04]}
+  - {say: "หน้าหรือมือบวมไหมคะ", expect_actions_any: [A05]}
+  - {say: "จุกแน่นใต้ลิ้นปี่ไหมคะ", expect_actions_any: [A06]}
+  - {say: "ขอวัดความดันก่อนนะคะ", expect_actions_any: [A07]}
+  - {say: "ลูกดิ้นเหมือนเดิมไหมคะ", expect_actions_any: [A08]}
+  - {say: "หมอที่ฝากครรภ์บอกไหมคะว่านวดได้", expect_actions_any: [A09]}
+  - {say: "เข้าใจความรู้สึกนะคะ", expect_actions_any: [C01]}
+  - {say: "ขออธิบายขั้นตอนต่อไปนะคะ", expect_actions_any: [C02]}
+  - {decision: hold_and_refer}
+  - {complete: true, note: "บันทึกทดสอบ: ส่งต่อเพราะพบสัญญาณอันตราย จดเวลาและอาการเพื่อแจ้งเจ้าหน้าที่"}
+expect:
+  safety_status: SAFETY_MET
+  revealed: [H1, H2, H3, H4, H5, H6, H7]
+  events_include: [DECISION_COMMITTED, SESSION_COMPLETED]
+  events_exclude: [UNSAFE_ACTION]
+  items: {R-RISK-01: pass, R-RISK-02: pass, R-DEC-01: pass, R-DEC-03: pass}

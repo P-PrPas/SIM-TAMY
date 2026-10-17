@@ -1,0 +1,15 @@
+# T45 (STF-002) Knew and took the unsafe choice: learns two signs, then takes it.
+id: T45
+case: STF-002
+variant: A
+steps:
+  - {say: "ปวดศีรษะไหมคะ", expect_actions_any: [A03]}
+  - {say: "ตามัวหรือตาพร่าไหมคะ", expect_actions_any: [A04]}
+  - {decision: proceed_service}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  revealed: [H1, H2]
+  items: {R-RISK-01: pass, R-DEC-01: fail, R-DEC-03: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2]
