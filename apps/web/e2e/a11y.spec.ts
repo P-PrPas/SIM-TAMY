@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { t } from "../lib/i18n";
 import { syntheticReport } from "./fixtures/report";
@@ -11,17 +11,18 @@ const brief = {
 };
 const headers = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Allow-Methods": "GET, POST, OPTIONS" };
 
-async function seed(page: Page) {
+async function seed(page: Page, phase = "INTERVIEW") {
   await page.addInitScript((value) => sessionStorage.setItem("sim-tamy-session", JSON.stringify(value)), {
     id: "session-1", token: "synthetic-token", caseId: "PP-001", brief,
   });
-  await page.route("**/v1/sessions/session-1**", (route) => {
+  await page.route("**/v1/sessions/session-1**", async (route) => {
     const request = route.request();
+    await new Promise((resolve) => setTimeout(resolve, 300)); // slow API: loading must not satisfy the gate
     if (request.method() === "OPTIONS") return route.fulfill({ status: 204, headers });
     if (request.url().endsWith("/report")) return route.fulfill({ status: 200, headers, contentType: "application/json", json: syntheticReport });
     return route.fulfill({ status: 200, headers, contentType: "application/json", json: {
       session_id: "session-1", case: { case_id: "PP-001", version: "0.1", status: "Draft", status_label_th: "Draft case" },
-      variant: "A", status: "active", phase: "INTERVIEW", turn_idx: 1, turns_remaining: 39,
+      variant: "A", status: "active", phase, turn_idx: 1, turns_remaining: 39,
       decision: { committed: false, option_id: null },
       history: [{ idx: 1, speaker: "patient", text: "Synthetic reply", created_at: "2026-10-12T00:00:00Z" }],
       limits: { max_turns: 40, max_text_chars: 500, max_rationale_chars: 300, max_note_chars: 500 },
@@ -42,20 +43,28 @@ async function expectNoSeriousViolations(page: Page) {
   expect(violations, JSON.stringify(violations)).toEqual([]);
 }
 
-for (const [name, path] of [["S3 Chat", "/chat"], ["S4 Decision", "/decision"], ["S6 Closing", "/closing"], ["S7 Report", "/report"], ["S2 Briefing", "/briefing"]] as const) {
+// What each screen shows once its data has loaded; the loading and error states also render <main>.
+const ready: Record<string, (page: Page) => Locator> = {
+  "/": (page) => page.getByRole("heading", { name: t("join.title") }),
+  "/briefing": (page) => page.getByRole("link", { name: t("briefing.begin") }),
+  "/chat": (page) => page.getByRole("textbox", { name: t("chat.messageLabel") }),
+  "/decision": (page) => page.locator('input[name="decision"]').first(),
+  "/closing": (page) => page.getByRole("button", { name: t("closing.complete") }),
+  "/report": (page) => page.getByRole("tablist"),
+};
+
+for (const [name, path, phase] of [
+  ["S1 Join", "/"], ["S2 Briefing", "/briefing"], ["S3 Chat", "/chat"], ["S4 Decision", "/decision"],
+  ["S5 Pressure", "/chat", "PRESSURE"], ["S6 Closing", "/closing", "CLOSING"], ["S7 Report", "/report", "COMPLETED"],
+] as const) {
   test(`${name} has no critical or serious axe violations at 360px`, async ({ page }) => {
-    await seed(page);
+    if (path !== "/") await seed(page, phase);
     await page.goto(path);
-    await page.locator("main").first().waitFor();
+    await expect(ready[path]!(page)).toBeVisible();
+    if (phase === "PRESSURE") await expect(page.getByText(t("chat.pressure"))).toBeVisible();
     await expectNoSeriousViolations(page);
   });
 }
-
-test("S1 Join has no critical or serious axe violations at 360px", async ({ page }) => {
-  await page.goto("/");
-  await page.locator("main").first().waitFor();
-  await expectNoSeriousViolations(page);
-});
 
 test("the skip link is the first focusable element and moves focus to the content", async ({ page }) => {
   await page.goto("/");
