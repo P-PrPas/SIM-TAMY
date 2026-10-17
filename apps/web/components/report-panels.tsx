@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { BranchReplay } from "@/components/branch-replay";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
 import { t } from "@/lib/i18n";
@@ -90,15 +91,9 @@ export function GlassBoxPanel({ report }: { report: Report }) {
   </div>;
 }
 
-export function ConsequenceReplayPanel({ replay }: { replay: Report["replay"] }) {
+export function ConsequenceReplayPanel({ replay, timeline }: { replay: Report["replay"]; timeline?: Report["timeline"] }) {
   return <div className="space-y-5">
-    <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-bold">{t("report.scriptedScene")}</h2>
-      {replay.timeline_th.length === 0 ? <p className="mt-3">{t("report.noScene")}</p>
-        : <ol className="mt-4 space-y-3">
-          {replay.timeline_th.map((line, index) => <li key={index} className="border-l-4 border-brand-700 pl-4 whitespace-pre-wrap break-words">{line}</li>)}
-        </ol>}
-    </section>
+    <BranchReplay replay={replay} timeline={timeline} />
     <section className="rounded-2xl border border-amber-300 bg-amber-50 p-5">
       <h2 className="text-lg font-bold text-amber-950">{t("report.missedOpportunities")}</h2>
       {replay.missed_opportunities.length === 0 ? <p className="mt-3">{t(replay.terminal_state === "UnsafeProceed"
