@@ -157,7 +157,7 @@ export default function ReportPage() {
         </ol>}
       </section>}
       {shown("glassBox") && <>{title("glassBox")}<GlassBoxPanel report={report} /></>}
-      {shown("consequenceReplay") && <>{title("consequenceReplay")}<ConsequenceReplayPanel replay={report.replay} /></>}
+      {shown("consequenceReplay") && <>{title("consequenceReplay")}<ConsequenceReplayPanel replay={report.replay} timeline={report.timeline} /></>}
       {shown("review") && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         {title("review")}
         {needsReview.length === 0 ? <p>{t("report.noReview")}</p> : <ul className="space-y-6">
