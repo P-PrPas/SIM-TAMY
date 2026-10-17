@@ -1,6 +1,7 @@
+import type { components } from "../api/schema";
 import th from "./th.json";
 
-/** Look up a Thai string by dotted key, e.g. t("banner.educationOnly"). Throws on a missing key. */
+/** Look up a Thai string by dotted key, e.g. t("app.title"). Throws on a missing key. */
 export function t(key: string): string {
   let node: unknown = th;
   for (const part of key.split(".")) {
@@ -11,4 +12,8 @@ export function t(key: string): string {
   }
   if (typeof node !== "string") throw new Error(`i18n key is not a string: ${key}`);
   return node;
+}
+
+export function patientLabel(audience?: components["schemas"]["Audience"] | null): string {
+  return t(audience === "dad" ? "chat.wife" : audience === "mom" ? "chat.friend" : "chat.patient");
 }

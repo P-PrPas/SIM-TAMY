@@ -61,15 +61,15 @@ async function noHorizontalOverflow(page: Page) {
 test("Decision A confirms twice, then Closing completes at 360px", async ({ page }) => {
   const submitted = await setup(page, "A");
   await page.goto("/decision");
-  await expect(page.getByText(t("status.draftFull"))).toBeVisible();
-  await expect(page.getByText(t("banner.educationOnly"))).toBeVisible();
+  await expect(page.getByText(t("status.draftFull"))).toHaveCount(0);
+  await expect(page.getByText(t("banner.educationOnly"))).toHaveCount(0);
   await page.getByRole("radio", { name: "Refer" }).check();
   await page.getByRole("button", { name: t("decision.review") }).click();
   expect(submitted).toHaveLength(0);
   await expect(page.getByText(t("decision.irreversible"))).toBeVisible();
   await page.getByRole("button", { name: t("decision.confirm") }).click();
   await expect(page).toHaveURL(/\/closing$/);
-  await expect(page.getByText(t("status.draftFull"))).toBeVisible();
+  await expect(page.getByText(t("status.draftFull"))).toHaveCount(0);
   await noHorizontalOverflow(page);
   await page.getByRole("button", { name: t("closing.complete") }).click();
   await expect(page).toHaveURL(/\/report$/);

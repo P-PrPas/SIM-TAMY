@@ -10,7 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from app.api.v1.schemas import Recording, RecordingStep
-from app.content.loader import load_case
+from app.content.loader import LoadedCase, load_case
 from app.engine.findings import build_findings
 from app.engine.glassbox import build_glassbox
 from app.engine.replay import build_replay
@@ -49,27 +49,46 @@ def build() -> Recording:
     play.decide("refer").note(30).complete()
     steps.append(RecordingStep(t_ms=450, type="decision", option_id="refer"))
     steps.append(RecordingStep(t_ms=350, type="complete"))
-    scoring = score(play.events, LOADED.rubric, LOADED.actions, "A")
-    findings = build_findings(scoring.items, LOADED.rubric)
+    return assemble(
+        LOADED,
+        play,
+        steps,
+        RECORDING_ID,
+        session_id=uuid.UUID("00000000-0000-0000-0000-000000000073"),
+        description_th=disclaimer_th(),
+    )
+
+
+def assemble(
+    loaded: LoadedCase,
+    play: Play,
+    steps: list[RecordingStep],
+    recording_id: str,
+    *,
+    session_id: uuid.UUID,
+    description_th: str | None = None,
+) -> Recording:
+    scoring = score(play.events, loaded.rubric, loaded.actions, play.variant)
+    findings = build_findings(scoring.items, loaded.rubric)
     saved = SimpleNamespace(
         created_at=datetime(2026, 10, 16, tzinfo=UTC),
-        rubric_version=LOADED.rubric.rubric_version,
+        rubric_version=loaded.rubric.rubric_version,
         debrief=_template_debrief(findings).model_dump(mode="json"),
-        glassbox=build_glassbox(play.events, LOADED.case, LOADED.actions).model_dump(mode="json"),
-        replay=build_replay(play.events, LOADED.case, disclaimer_th(), replay_notes()).model_dump(
+        glassbox=build_glassbox(play.events, loaded.case, loaded.actions).model_dump(mode="json"),
+        replay=build_replay(play.events, loaded.case, disclaimer_th(), replay_notes()).model_dump(
             mode="json"
         ),
     )
-    row = SimpleNamespace(id=uuid.UUID("00000000-0000-0000-0000-000000000073"), variant="A")
-    report = _assemble(row, LOADED, saved, scoring, findings, play.events)
+    row = SimpleNamespace(id=session_id, variant=play.variant)
+    report = _assemble(row, loaded, saved, scoring, findings, play.events)
     return Recording(
-        recording_id=RECORDING_ID,
-        title_th=LOADED.case.title_th,
-        description_th=disclaimer_th(),
-        case_id=LOADED.case.case_id,
-        variant="A",
+        recording_id=recording_id,
+        title_th=loaded.case.title_th,
+        description_th=description_th,
+        case_id=loaded.case.case_id,
+        variant=play.variant,
         steps_count=len(steps),
-        case=case_brief(LOADED),
+        case=case_brief(loaded),
         steps=steps,
         report=report,
     )

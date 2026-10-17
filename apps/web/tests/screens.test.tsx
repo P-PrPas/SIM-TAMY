@@ -37,7 +37,7 @@ describe("S1 Join and S2 Briefing", () => {
   it("offers learning scenarios without the engineering fixture or version metadata", async () => {
     mocks.get.mockResolvedValue({ data: { items: [{ ...caseSummary, case_id: "DEV-001", title_th: "Engineering fixture" }, caseSummary] } });
     render(<JoinPage />);
-    await screen.findByText(caseSummary.status_label_th);
+    await waitFor(() => expect(document.querySelector("#case option")).not.toBeNull());
     expect(screen.queryByRole("option", { name: "Engineering fixture" })).toBeNull();
     expect(screen.getByLabelText(t("join.case"))).toHaveProperty("value", "PP-001");
     expect(screen.queryByText("0.1")).toBeNull();
@@ -52,11 +52,11 @@ describe("S1 Join and S2 Briefing", () => {
     expect(screen.getByRole("button", { name: t("join.start") }).hasAttribute("disabled")).toBe(true);
   });
 
-  it("renders the draft badge and starts a session with a nickname", async () => {
+  it("starts a session without publishing internal review labels", async () => {
     mocks.get.mockResolvedValue({ data: { items: [caseSummary] } });
     mocks.post.mockResolvedValue({ data: { session_id: "session-1", token: "secret-token", case: caseBrief } });
     render(<JoinPage />);
-    await screen.findByText(caseSummary.status_label_th);
+    await waitFor(() => expect(document.querySelector("#case option")).not.toBeNull());
     fireEvent.change(screen.getByLabelText(t("join.nickname")), { target: { value: "Learner" } });
     fireEvent.click(screen.getByRole("button", { name: t("join.start") }));
     await waitFor(() => expect(mocks.push).toHaveBeenCalledWith("/briefing"));
@@ -69,17 +69,17 @@ describe("S1 Join and S2 Briefing", () => {
     const mk = (case_id: string, audience?: "dad" | "mom" | "staff") => ({ ...caseSummary, case_id, title_th: `Case ${case_id}`, audience });
     mocks.get.mockResolvedValue({ data: { items: [mk("FIX-001"), mk("STF-001", "staff"), mk("DAD-001", "dad")] } });
     render(<JoinPage />);
-    await screen.findByText(caseSummary.status_label_th);
+    await waitFor(() => expect(document.querySelector("#case option")).not.toBeNull());
     const groups = Array.from(document.querySelectorAll("#case optgroup"));
     expect(groups.map((g) => g.getAttribute("label"))).toEqual([t("audience.dad"), t("audience.staff"), t("audience.other")]);
     expect(groups[0]?.textContent).toBe("Case DAD-001");
   });
 
-  it("shows case briefing and its draft status", async () => {
+  it("shows case briefing without internal review labels", async () => {
     saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
     render(<BriefingPage />);
     expect(await screen.findByText("Opening patient information")).toBeTruthy();
-    expect(screen.getByText(caseSummary.status_label_th)).toBeTruthy();
+    expect(screen.queryByText(caseSummary.status_label_th)).toBeNull();
     expect(screen.getByText("Recognize risk")).toBeTruthy();
     expect(screen.getByRole("link", { name: t("briefing.begin") }).getAttribute("href")).toBe("/chat");
   });
@@ -92,7 +92,7 @@ describe("S1 Join and S2 Briefing", () => {
     mocks.get.mockResolvedValue({ data: { items: [caseSummary] } });
     mocks.post.mockResolvedValue({ data: { session_id: "session-1", token: "secret-token", case: caseBrief, notices } });
     const join = render(<JoinPage />);
-    await screen.findByText(caseSummary.status_label_th);
+    await waitFor(() => expect(document.querySelector("#case option")).not.toBeNull());
     fireEvent.change(screen.getByLabelText(t("join.nickname")), { target: { value: "Learner" } });
     fireEvent.click(screen.getByRole("button", { name: t("join.start") }));
     await waitFor(() => expect(mocks.push).toHaveBeenCalledWith("/briefing"));
@@ -108,7 +108,7 @@ describe("S1 Join and S2 Briefing", () => {
     mocks.get.mockResolvedValue({ data: { items: [caseSummary] } });
     mocks.post.mockRejectedValue(new ApiError("CLASS_NOT_FOUND", 404));
     render(<JoinPage />);
-    await screen.findByText(caseSummary.status_label_th);
+    await waitFor(() => expect(document.querySelector("#case option")).not.toBeNull());
     fireEvent.change(screen.getByLabelText(t("join.nickname")), { target: { value: "Learner" } });
     fireEvent.change(screen.getByLabelText(t("join.classCode")), { target: { value: "ABC123" } });
     fireEvent.click(screen.getByRole("button", { name: t("join.start") }));
@@ -119,7 +119,7 @@ describe("S1 Join and S2 Briefing", () => {
   it("rejects a malformed class code before calling the API", async () => {
     mocks.get.mockResolvedValue({ data: { items: [caseSummary] } });
     render(<JoinPage />);
-    await screen.findByText(caseSummary.status_label_th);
+    await waitFor(() => expect(document.querySelector("#case option")).not.toBeNull());
     fireEvent.change(screen.getByLabelText(t("join.nickname")), { target: { value: "Learner" } });
     fireEvent.change(screen.getByLabelText(t("join.classCode")), { target: { value: "A" } });
     fireEvent.click(screen.getByRole("button", { name: t("join.start") }));
@@ -131,7 +131,7 @@ describe("S1 Join and S2 Briefing", () => {
     mocks.get.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce({ data: { items: [caseSummary] } });
     render(<JoinPage />);
     fireEvent.click(await screen.findByRole("button", { name: t("join.retry") }));
-    expect(await screen.findByText(caseSummary.status_label_th)).toBeTruthy();
+    await waitFor(() => expect(document.querySelector("#case option")).not.toBeNull());
     expect(mocks.get).toHaveBeenCalledTimes(2);
   });
 
@@ -148,7 +148,7 @@ describe("S1 Join and S2 Briefing", () => {
     mocks.post.mockRejectedValueOnce(new Error("offline"))
       .mockResolvedValueOnce({ data: { session_id: "session-1", token: "secret-token", case: caseBrief } });
     render(<JoinPage />);
-    await screen.findByText(caseSummary.status_label_th);
+    await waitFor(() => expect(document.querySelector("#case option")).not.toBeNull());
     fireEvent.change(screen.getByLabelText(t("join.nickname")), { target: { value: "Learner" } });
     fireEvent.change(screen.getByLabelText(t("join.variant")), { target: { value: "C" } });
     fireEvent.click(screen.getByRole("button", { name: t("join.start") }));
@@ -179,7 +179,11 @@ describe("S1 Join and S2 Briefing", () => {
   });
 
   it("renders localized badges for every review status", () => {
-    const view = render(<StatusBadge status="In Review" />);
+    const view = render(<StatusBadge status="Draft" />);
+    expect(screen.getByText(t("status.draftFull"))).toBeTruthy();
+    view.rerender(<StatusBadge status="Draft" compact />);
+    expect(screen.getByText(t("status.draft"))).toBeTruthy();
+    view.rerender(<StatusBadge status="In Review" />);
     expect(screen.getByText(t("status.inReview"))).toBeTruthy();
     view.rerender(<StatusBadge status="Approved" />);
     expect(screen.getByText(t("status.approved"))).toBeTruthy();
@@ -187,11 +191,19 @@ describe("S1 Join and S2 Briefing", () => {
 });
 
 describe("S3 Chat", () => {
-  it("keeps the case-status badge visible while a saved chat reloads", async () => {
+  it.each([["dad", "chat.wife"], ["mom", "chat.friend"], ["staff", "chat.patient"]] as const)("labels the conversation partner for the %s course", async (audience, label) => {
+    saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: { ...caseBrief, audience } });
+    mocks.get.mockResolvedValue({ data: { ...sessionView, history: [{ idx: 1, speaker: "patient", text: "Partner reply" }] } });
+    render(<ChatPage />);
+    await screen.findByText("Partner reply");
+    expect(screen.getByText(t(label))).toBeTruthy();
+  });
+
+  it("keeps review metadata out of a saved chat while it reloads", async () => {
     saveSession({ id: "session-1", token: "secret-token", caseId: "PP-001", brief: caseBrief });
     mocks.get.mockImplementation(() => new Promise(() => undefined));
     render(<ChatPage />);
-    expect(await screen.findByText(t("status.draftFull"))).toBeTruthy();
+    expect(screen.queryByText(t("status.draftFull"))).toBeNull();
     expect(screen.getByText(t("chat.loading"))).toBeTruthy();
   });
 

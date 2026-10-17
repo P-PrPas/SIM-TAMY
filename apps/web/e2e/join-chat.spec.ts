@@ -16,22 +16,22 @@ async function noHorizontalOverflow(page: import("@playwright/test").Page) {
 test("Join and Briefing render a Draft case at 360px against Prism", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: t("join.title") })).toBeVisible();
-  await expect(page.getByText(t("status.draftFull"))).toBeVisible();
-  await expect(page.getByText(t("banner.educationOnly"))).toBeVisible();
+  await expect(page.getByText(t("status.draftFull"))).toHaveCount(0);
+  await expect(page.getByText(t("banner.educationOnly"))).toHaveCount(0);
   await noHorizontalOverflow(page);
 
   await page.getByRole("textbox", { name: t("join.nickname") }).fill("Learner");
   await page.getByRole("button", { name: t("join.start") }).click();
   await expect(page).toHaveURL(/\/briefing$/);
-  await expect(page.getByText(t("status.draftFull"))).toBeVisible();
-  await expect(page.getByText(t("banner.educationOnly"))).toBeVisible();
+  await expect(page.getByText(t("status.draftFull"))).toHaveCount(0);
+  await expect(page.getByText(t("banner.educationOnly"))).toHaveCount(0);
   await expect(page.getByRole("link", { name: t("briefing.begin") })).toBeVisible();
   await noHorizontalOverflow(page);
 });
 
 test("Join explains an invalid class code without leaving the page", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText(t("status.draftFull"))).toBeVisible();
+  await expect(page.getByText(t("status.draftFull"))).toHaveCount(0);
   await page.route("**/v1/sessions", (route) => route.fulfill({
     status: 404,
     contentType: "application/json",
@@ -51,7 +51,7 @@ test("Chat keeps a failed optimistic turn and retries it with the same ID", asyn
   await page.getByRole("button", { name: t("join.start") }).click();
   await page.getByRole("link", { name: t("briefing.begin") }).click();
   await expect(page.getByRole("heading", { name: t("chat.title") })).toBeVisible();
-  await expect(page.getByText(t("banner.educationOnly"))).toBeVisible();
+  await expect(page.getByText(t("banner.educationOnly"))).toHaveCount(0);
   await noHorizontalOverflow(page);
 
   const turnIds: string[] = [];

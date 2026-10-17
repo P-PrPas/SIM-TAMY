@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-import { StatusBadge } from "@/components/status-badge";
 import { ApiError } from "@/lib/api/client";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
@@ -138,7 +137,6 @@ export default function JoinPage() {
             <span className="preview-mark" aria-hidden="true">↗</span>
             <p className="preview-label">{t("join.previewLabel")}</p>
             <p className="preview-title" aria-live="polite">{selectedCase?.title_th ?? (loading ? t("join.loading") : t("join.empty"))}</p>
-            {selectedCase && <div className="mt-4"><StatusBadge status={selectedCase.status} /></div>}
             <p className="preview-note">{t("join.previewNote")}</p>
           </div>
           <div className="mt-8">

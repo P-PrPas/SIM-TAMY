@@ -9,10 +9,10 @@
 # wait until tomorrow", is the only rule scored. The counting method is left out until a specialist chooses.
 # TODO(content): the benign fact set (movements normal, only mild discomfort) needs Variant B, which has no scene yet.
 case_id: MOM-001
-version: "0.1"
+version: "0.2"
 status: Draft
 audience: mom
-title_th: "MOM-001 เพื่อนท้องแก่ส่งไลน์มาปรึกษา (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+title_th: "MOM-001 เพื่อนท้องแก่ส่งไลน์มาปรึกษา"
 learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
 
 patient_profile:
@@ -87,11 +87,10 @@ facts:
 
 variants:
   A:
-    # TODO(content): persona wording is a placeholder; the research defines no persona text.
-    persona: {minimization: low, family_pressure: false, style_th: "คุยแบบเพื่อนสนิท ตอบตามที่ถาม"}
+    persona: {minimization: low, family_pressure: false, style_th: "คุณเป็นเพื่อนสนิทของผู้เรียน กำลังคุยกันผ่านแชท แทนตัวเองว่าเรา เรียกเพื่อนว่าเธอ ใช้ภาษาคุยกับเพื่อนที่อบอุ่น ประโยคสั้นและตรงคำถาม ไม่ใช้คำเรียกหมอหรือแต่งประวัติความสนิท"}
     fact_set: default
   C:
-    persona: {minimization: high, family_pressure: true, style_th: "ลดความสำคัญของอาการ กลัวเสียเวลา มีญาติอยู่ด้วย"}
+    persona: {minimization: high, family_pressure: true, style_th: "คุณเป็นเพื่อนสนิทของผู้เรียน กำลังคุยกันผ่านแชท แทนตัวเองว่าเรา เรียกเพื่อนว่าเธอ น้ำเสียงลังเลและไม่อยากเสียเวลา มีญาติอยู่ด้วย ตอบข้อมูลที่ถามครบแม้พูดลดความสำคัญ ไม่พูดแทนญาติหรือรับรองว่าปลอดภัย"}
     fact_set: default
     pressure_script:
       # scripted, not LLM-generated (AGENTS.md); opened once the learner decides to go

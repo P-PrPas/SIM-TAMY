@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { StatusBadge } from "@/components/status-badge";
 import type { components } from "@/lib/api/schema";
 import { readSession } from "@/lib/flow";
 import { t } from "@/lib/i18n";
@@ -37,7 +36,6 @@ export default function BriefingPage() {
           <div>
             <h1 className="text-3xl font-bold text-stone-950 sm:text-4xl">{brief.title_th}</h1>
           </div>
-          <StatusBadge status={brief.status} />
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           <section className="rounded-2xl border border-brand-950 bg-brand-950 p-6 text-brand-50 shadow-sm sm:p-8">
@@ -51,7 +49,6 @@ export default function BriefingPage() {
             </ul>
           </section>
         </div>
-        <p role="note" className="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-4 font-semibold text-amber-950">{brief.disclaimer_th || t("banner.educationOnly")}</p>
         {notices.map((notice) => <p key={notice.code} role="note" className="mt-3 rounded-xl border border-stone-300 bg-stone-50 p-4 text-stone-800">{notice.text_th}</p>)}
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <Link href="/chat" className="rounded-xl bg-brand-900 px-6 py-3 font-bold text-white hover:bg-brand-800">{t("briefing.begin")}</Link>

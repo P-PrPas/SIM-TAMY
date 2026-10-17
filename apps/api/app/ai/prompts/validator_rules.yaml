@@ -1,4 +1,14 @@
 # Non-clinical phrases that reveal the model role or its instructions.
+unverified_medical_titles:
+  - "พี่หมอ"
+  - "คุณหมอ"
+  - "หมอคะ"
+  - "หมอค่ะ"
+  - "คุณแพทย์"
+  - "คุณพยาบาล"
+learner_address_boundary: '(?:^|[.!?\n]|(?:ค่ะ|คะ|ครับ|นะ)[\s,]*)\s*'
+learner_whitespace_address: '\s+(?:พี่หมอ|หมอคะ|หมอค่ะ|คุณหมอ(?=\s|$|[.!?,]))'
+
 role_break_phrases:
   - "as an ai"
   - "i am an ai"

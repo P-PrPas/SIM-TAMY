@@ -16,8 +16,8 @@ function goldenQuestions(id: "T11" | "T13"): string[] {
 }
 
 async function assertSafeShell(page: Page, compact = false) {
-  await expect(page.getByText(t(compact ? "status.draft" : "status.draftFull"), { exact: true })).toBeVisible();
-  await expect(page.getByText(t("banner.educationOnly"))).toBeVisible();
+  await expect(page.getByText(t(compact ? "status.draft" : "status.draftFull"), { exact: true })).toHaveCount(0);
+  await expect(page.getByText(t("banner.educationOnly"))).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
 }
 

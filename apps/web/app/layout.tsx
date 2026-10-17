@@ -22,9 +22,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           {t("app.skipToContent")}
         </a>
         <SiteHeader />
-        <div role="note" className="education-banner">
-          {t("banner.educationOnly")}
-        </div>
         <div id="main-content" tabIndex={-1}>{children}</div>
         <SiteFooter />
       </body>

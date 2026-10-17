@@ -321,7 +321,7 @@ GET /replay/recordings/{id}      ─► {…summary, case, steps:[{t_ms, type, s
 | # | คำถาม | ข้อเสนอของผม |
 |---|---|---|
 | Q1 | Instructor override กับ Critical Safety: ให้ override item `critical` ได้หรือไม่? | ไม่ให้ใน MVP (แตะ scoring semantics = ask-first); ต้องมี ADR ถ้าจะเปิด |
-| Q2 | `getRecording` และ `listRecordings` เปิด public ได้หรือไม่ในโหมด production | ได้เฉพาะเมื่อ `ENABLE_REPLAY=true`; ปิดโดยค่าเริ่มต้นนอก demo |
+| Q2 | `getRecording` และ `listRecordings` เปิด public ได้หรือไม่ในโหมด production | ได้เฉพาะเมื่อ `ENABLE_REPLAY=true`; เปิดโดยค่าเริ่มต้นพร้อมตัวอย่างสังเคราะห์ และใช้ false เพื่อปิดได้ |
 | Q3 | เก็บ learner free text นานเท่าไร (retention) | ตาม PRD §15/OD — ต้องมีค่าชัดก่อน pilot |
 | Q4 | ฉาก PRESSURE: ผู้เรียนอยากจบก่อนใช้โควตาครบได้หรือไม่? | ตอนนี้ spec ให้จบได้ต่อเมื่อใช้โควตาครบ (server เปลี่ยนเป็น `CLOSING` เอง); ถ้าต้องการปุ่ม "จบฉาก" ต้องเพิ่ม endpoint/พารามิเตอร์ใหม่ — ผมแนะนำไม่ทำใน MVP |
 

@@ -22,6 +22,23 @@ def _role_break_phrases() -> tuple[str, ...]:
     return tuple(normalize_th(s).casefold() for s in loaded["role_break_phrases"])
 
 
+@lru_cache
+def _unverified_medical_titles() -> tuple[str, ...]:
+    loaded = yaml.safe_load(_RULES.read_text(encoding="utf-8"))
+    return tuple(normalize_th(s).casefold() for s in loaded["unverified_medical_titles"])
+
+
+@lru_cache
+def _learner_address_pattern() -> re.Pattern[str]:
+    loaded = yaml.safe_load(_RULES.read_text(encoding="utf-8"))
+    titles = "|".join(re.escape(title) for title in _unverified_medical_titles())
+    return re.compile(
+        str(loaded["learner_address_boundary"])
+        + f"(?:{titles})|"
+        + str(loaded["learner_whitespace_address"])
+    )
+
+
 class PatientValidator:
     def __init__(self, request: VoiceRequest) -> None:
         self.request = request
@@ -50,6 +67,8 @@ class PatientValidator:
             return ["unsupported_number"]
         if any(phrase in folded for phrase in _role_break_phrases()):
             return ["role_break"]
+        if self.request.learner_audience and _learner_address_pattern().search(folded):
+            return ["learner_role"]
         if self.request.directive == "answer":
             by_id = {f.id: f for f in case.facts if isinstance(f, HiddenFact)}
             for fact_id in self.request.allowed.must_convey_fact_ids:

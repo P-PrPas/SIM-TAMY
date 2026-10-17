@@ -7,10 +7,10 @@
 # Health must review the wording and supply a real hotline before this goes anywhere near a learner; no number is invented here.
 # TODO(content): the benign fact set needs Variant B (no scene yet), so the safe choice here is always to seek care.
 case_id: DAD-002
-version: "0.1"
+version: "0.2"
 status: Draft
 audience: dad
-title_th: "DAD-002 ภรรยาหลังคลอดบอกว่าแค่เหนื่อย (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+title_th: "DAD-002 ภรรยาหลังคลอดบอกว่าแค่เหนื่อย"
 learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
 
 patient_profile:
@@ -85,11 +85,10 @@ facts:
 
 variants:
   A:
-    # TODO(content): persona wording is a placeholder; the research defines no persona text.
-    persona: {minimization: low, family_pressure: false, style_th: "พูดเบา ๆ เหนื่อยแต่ตอบตามที่ถาม"}
+    persona: {minimization: low, family_pressure: false, style_th: "คุณเป็นภรรยาที่กำลังคุยกับสามีซึ่งเป็นผู้เรียน แทนตัวเองว่าเรา เรียกสามีว่าคุณ ใช้ประโยคสั้น เว้นจังหวะ และพูดอย่างสนิทใจ ตอบตามข้อมูลที่มี ไม่เติมอาการเพื่อให้สมบทบาท"}
     fact_set: default
   C:
-    persona: {minimization: high, family_pressure: true, style_th: "ลดความรุนแรงของอาการ บอกว่าไม่เป็นไร มีญาติอยู่ด้วย"}
+    persona: {minimization: high, family_pressure: true, style_th: "คุณเป็นภรรยาที่กำลังคุยกับสามีซึ่งเป็นผู้เรียน แทนตัวเองว่าเรา เรียกสามีว่าคุณ พูดอย่างเกรงใจ มีญาติอยู่ด้วย น้ำเสียงพยายามทำให้สามีสบายใจแต่ต้องตอบข้อเท็จจริงครบ ไม่รับรองว่าปลอดภัยและไม่พูดแทนญาติ"}
     fact_set: default
     pressure_script:
       # scripted, not LLM-generated (AGENTS.md); opened once the learner decides to refer

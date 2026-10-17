@@ -53,7 +53,7 @@ describe("T-073 Replay Mode", () => {
     expect(screen.getByText(t("replay.label"))).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: t("replay.open") }));
     expect(await screen.findByText("First question")).toBeTruthy();
-    expect(screen.getByText(t("status.draft"))).toBeTruthy();
+    expect(screen.queryByText(t("status.draft"))).toBeNull();
     expect(screen.queryByText("Practice again")).toBeNull();
     expect(await screen.findByText("Synthetic reply")).toBeTruthy();
     expect(await screen.findByText("Practice again")).toBeTruthy();
@@ -62,7 +62,7 @@ describe("T-073 Replay Mode", () => {
     expect(mocks.post).not.toHaveBeenCalled();
   });
 
-  it("shows the case status badge on every recording row before it is opened", async () => {
+  it("keeps review labels out of the learner recording gallery", async () => {
     mocks.get.mockImplementation(() => Promise.resolve({ data: { items: [
       { ...recording, recording_id: "a", title_th: "Row A", status: "Draft", status_label_th: "Draft" },
       { ...recording, recording_id: "b", title_th: "Row B", status: "In Review", status_label_th: "In Review" },
@@ -70,8 +70,8 @@ describe("T-073 Replay Mode", () => {
     render(<ReplayPage />);
     const rows = (await screen.findAllByRole("listitem"));
     expect(rows).toHaveLength(2);
-    expect(rows[0]?.textContent).toContain(t("status.draft"));
-    expect(rows[1]?.textContent).toContain(t("status.inReview"));
+    expect(rows[0]?.textContent).not.toContain(t("status.draft"));
+    expect(rows[1]?.textContent).not.toContain(t("status.inReview"));
   });
 
   it("handles disabled replay as a safe unavailable state", async () => {
@@ -79,6 +79,14 @@ describe("T-073 Replay Mode", () => {
     render(<ReplayPage />);
     await waitFor(() => expect(screen.getByRole("alert").textContent).toContain(t("replay.unavailable")));
     expect(screen.queryByText("private detail")).toBeNull();
+  });
+
+  it("recovers the gallery after a transient request failure", async () => {
+    mocks.get.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce({ data: { items: [recording] } });
+    render(<ReplayPage />);
+    fireEvent.click(await screen.findByRole("button", { name: t("join.retry") }));
+    expect(await screen.findByText(recording.title_th)).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("fails closed on an invalid safety result instead of showing met language", async () => {

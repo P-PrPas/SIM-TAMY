@@ -3,19 +3,16 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
-import { StatusBadge } from "@/components/status-badge";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
 import { readSession } from "@/lib/flow";
 import { t } from "@/lib/i18n";
 
 type SessionView = components["schemas"]["SessionView"];
-type CaseStatus = components["schemas"]["CaseStatus"];
 
 export default function ClosingPage() {
   const { push, replace } = useRouter();
   const [session, setSession] = useState<SessionView | null>(null);
-  const [status, setStatus] = useState<CaseStatus | null>(null);
   const [note, setNote] = useState("");
   const [inFlight, setInFlight] = useState(false);
   const [error, setError] = useState("");
@@ -25,7 +22,6 @@ export default function ClosingPage() {
     const active = readSession();
     if (!active) { replace("/"); return; }
     let cancelled = false;
-    void Promise.resolve().then(() => { if (!cancelled) setStatus(active.brief.status); });
     void api().GET("/v1/sessions/{session_id}", { params: { path: { session_id: active.id } } })
       .then(({ data }) => {
         if (cancelled) return;
@@ -67,7 +63,6 @@ export default function ClosingPage() {
   }
 
   if (!session) return <main className="mx-auto max-w-3xl px-4 py-8">
-    {status && <div className="mb-5"><StatusBadge status={status} /></div>}
     {error ? <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p> : <p role="status">{t("closing.loading")}</p>}
   </main>;
 
@@ -77,7 +72,6 @@ export default function ClosingPage() {
         <p className="text-sm font-bold text-brand-800">{t("closing.eyebrow")}</p>
         <h1 className="mt-2 text-2xl font-bold text-stone-950 sm:text-3xl">{t("closing.title")}</h1>
       </div>
-      <StatusBadge status={session.case.status} />
     </header>
     <form onSubmit={(event) => void complete(event)} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-7">
       <label htmlFor="note" className="block font-semibold">{t("closing.note")}</label>

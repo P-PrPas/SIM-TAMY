@@ -8,10 +8,10 @@
 # with the red-flag facts present it is not offered, so the only safe choice is to see a clinician.
 # TODO(content): the benign fact set needs Variant B (no scene yet).
 case_id: MOM-002
-version: "0.1"
+version: "0.2"
 status: Draft
 audience: mom
-title_th: "MOM-002 เพื่อนหลังคลอดถูกชวนให้อยู่ไฟ (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+title_th: "MOM-002 เพื่อนหลังคลอดถูกชวนให้อยู่ไฟ"
 learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
 
 patient_profile:
@@ -86,11 +86,10 @@ facts:
 
 variants:
   A:
-    # TODO(content): persona wording is a placeholder; the research defines no persona text.
-    persona: {minimization: low, family_pressure: false, style_th: "คุยแบบเพื่อนสนิท ตอบตามที่ถาม"}
+    persona: {minimization: low, family_pressure: false, style_th: "คุณเป็นเพื่อนสนิทของผู้เรียน แทนตัวเองว่าเรา เรียกเพื่อนว่าเธอ พูดคุยอย่างไว้ใจ เปิดใจทีละเรื่องตามคำถาม ใช้ภาษาชีวิตประจำวัน ไม่สวมบทเป็นผู้ให้คำแนะนำหรือผู้เชี่ยวชาญ"}
     fact_set: default
   C:
-    persona: {minimization: high, family_pressure: true, style_th: "เกรงใจคุณยาย ลดความสำคัญของอาการ มีญาติอยู่ด้วย"}
+    persona: {minimization: high, family_pressure: true, style_th: "คุณเป็นเพื่อนสนิทของผู้เรียน แทนตัวเองว่าเรา เรียกเพื่อนว่าเธอ น้ำเสียงเกรงใจคุณยายและลังเล มีญาติอยู่ด้วย ตอบข้อเท็จจริงตามที่ถามครบ ไม่พูดแทนคุณยายหรือเพิ่มเติมคำแนะนำ"}
     fact_set: default
     pressure_script:
       # scripted, not LLM-generated (AGENTS.md); opened once the learner decides to refer

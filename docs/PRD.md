@@ -12,7 +12,7 @@
 > 1. **Engine ต้อง deterministic:** การเปลี่ยนสถานะเคสและการให้คะแนน **ห้ามใช้ LLM ตัดสิน**
 > 2. **LLM มี 3 หน้าที่เท่านั้น:** (a) ตีความข้อความผู้เรียนเป็น Action ID (b) เรียบเรียงคำพูดผู้ป่วยจาก "ข้อเท็จจริงที่อนุญาต" (c) เรียบเรียงคำอธิบาย Feedback จากหลักฐานที่ Engine สรุปแล้ว
 > 3. **ไม่มีเนื้อหาคลินิกในโค้ดหรือ Prompt:** เนื้อหาทั้งหมดอยู่ใน Content Files (`content/`) ที่ทีม Content เป็นเจ้าของ
-> 4. **ทุกอย่างที่แสดงต่อผู้ใช้ต้องมีป้ายสถานะเนื้อหา** (Draft / In Review / Approved) ตามสถานะใน Case File
+> 4. **เก็บสถานะเนื้อหาตามจริงใน Case File และเครื่องมือผู้สอน** โดยหน้าผู้เรียนไม่แสดงป้ายตรวจรับรองหรือ disclaimer ตามคำตัดสินเจ้าของผลิตภัณฑ์วันที่ 2026-10-18 การนำข้อความออกไม่ใช่การอนุมัติเนื้อหาและไม่เปลี่ยนขอบเขตเครื่องมือเพื่อการศึกษา
 > 5. **ใช้ข้อมูลสังเคราะห์เท่านั้น** ห้ามมีข้อมูลผู้ป่วยจริงในระบบ
 
 ---
@@ -126,7 +126,7 @@ Session ──1 Report          (scoring + debrief + glass box + replay)
 | ID | Requirement | P | AC |
 |---|---|---|---|
 | FR-CASE-01 | โหลด `content/cases/<case_id>/*.yaml` ตรวจด้วย Pydantic และมีคำสั่ง `make validate-content` | M | Given ไฟล์ที่ field ขาด/ชนิดผิด, When validate, Then exit code ≠ 0 และบอกไฟล์ + path ของ field ที่ผิด |
-| FR-CASE-02 | เคสมี `status` ∈ {Draft, In Review, Approved}; UI แสดงป้ายสถานะบนหน้า Briefing และรายงาน | M | Given เคส Draft, When เริ่มเคส, Then เห็นป้าย "ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ" |
+| FR-CASE-02 | เคสมี `status` ∈ {Draft, In Review, Approved}; เก็บสถานะจริงใน API/รายงานส่งออกและแสดงในเครื่องมือผู้สอน | M | Given เคส Draft, When ผู้เรียนเริ่มเคส, Then ไม่แสดงป้ายตรวจรับรองหรือเปลี่ยนสถานะเป็น Approved |
 | FR-CASE-03 | เลือก Variant ผ่าน param `variant` (A เป็นค่าเริ่มต้น) | M(A) S(C) C(B) | Given variant=C, When เริ่ม session, Then persona/context ตาม Variant C |
 | FR-CASE-04 | `make validate-content --strict` ล้มเหลวหาก hidden_fact / critical_action / rubric_item ใดไม่มี `source` | S | Given item ไม่มี source, When --strict, Then fail พร้อมรายการ |
 | FR-CASE-05 | Content Loader pin `case_version` (hash ของไฟล์) ลง session | M | Given แก้ไฟล์เคสระหว่างมี session ค้าง, Then session เดิมใช้เวอร์ชันที่ pin ไว้ |
@@ -205,7 +205,7 @@ Session ──1 Report          (scoring + debrief + glass box + replay)
 |---|---|---|---|
 | FR-GB-01 | Glass Box View หลังจบเคส: ซ้ายคือบทสนทนา ขวาคือ Hidden Facts (ปลดล็อกแล้ว/ยัง + turn ที่ปลดล็อก), Risk State timeline และ event สำคัญ | S | Given เคสจบ, Then เห็น fact ที่ไม่เคยถูกถามพร้อมป้าย "ไม่เคยถูกถาม" |
 | FR-GB-02 | Live Glass Box (ระหว่างเล่น) ด้วย feature flag `GLASS_BOX_LIVE` สำหรับ Demo/อาจารย์ | C | flag on → panel อัปเดตทุก turn |
-| FR-REP-01 | Consequence Replay: ไทม์ไลน์ผลจำลองจาก `outcome_scripts[terminal_state]` + marker "จุดที่พลาดโอกาสหยุด" (turn ที่ fact สำคัญพร้อมให้พบ/ถูกปลดล็อกแต่ยังไม่หยุด) พร้อม disclaimer | S | Given UnsafeProceed, Then แสดงฉากตาม script + marker อย่างน้อย 1 จุด |
+| FR-REP-01 | Consequence Replay: ไทม์ไลน์ผลจำลองจาก `outcome_scripts[terminal_state]` + marker "จุดที่พลาดโอกาสหยุด" (turn ที่ fact สำคัญพร้อมให้พบ/ถูกปลดล็อกแต่ยังไม่หยุด); เก็บ disclaimer ในข้อมูลส่งออก | S | Given UnsafeProceed, Then แสดงฉากตาม script + marker อย่างน้อย 1 จุด |
 
 ## 4.10 Instructor
 
@@ -237,7 +237,7 @@ Session ──1 Report          (scoring + debrief + glass box + replay)
 | ID | หน้าจอ | องค์ประกอบสำคัญ | สถานะ/กรณีขอบ |
 |---|---|---|---|
 | S1 | Join | ช่อง nickname, class code (optional), เลือกเคส (dev/demo), ปุ่มเริ่ม | รหัสห้องผิด → ข้อความไทยชัดเจน |
-| S2 | Briefing | ชื่อเคส เป้าหมายการเรียนรู้ ข้อมูลตั้งต้นผู้ป่วย **ป้ายสถานะเนื้อหา** Disclaimer "เพื่อการศึกษาเท่านั้น" | — |
+| S2 | Briefing | ชื่อเคส เป้าหมายการเรียนรู้ ข้อมูลตั้งต้นผู้ป่วย และข้อมูลความเป็นส่วนตัว | ไม่แสดงป้ายตรวจรับรองหรือ disclaimer |
 | S3 | Interview | แชท, การ์ดข้อมูลผู้ป่วยตั้งต้น, ตัวนับ turn, ปุ่ม "ตัดสินใจ", (Should) Quick Prompts แบบพับได้ | กำลังรอ AI: typing indicator; ผิดพลาด: ปุ่มลองใหม่ ไม่เสีย turn |
 | S4 | Decision Panel | ตัวเลือกจาก `decision_options` (radio) + ช่องเหตุผลสั้นๆ (optional ≤ 300 ตัวอักษร) + ยืนยัน 2 ขั้น | ยืนยันแล้วแก้ไม่ได้ |
 | S5 | Pressure | แชทต่อ โดยมี speaker ติดป้าย (ผู้ป่วย/ญาติ) แถบบอกสถานการณ์ | เฉพาะ Variant C |
@@ -253,7 +253,7 @@ Session ──1 Report          (scoring + debrief + glass box + replay)
 - **Accessibility:** contrast ≥ 4.5:1, ใช้งานด้วยคีย์บอร์ดได้, `aria-live` สำหรับข้อความใหม่ในแชท
 - **ความเร็วที่รับรู้:** แสดงข้อความผู้เรียนทันที (optimistic) แล้วรอคำตอบผู้ป่วย
 - **ห้ามเฉลย:** ระหว่างเล่น ไม่แสดง Hidden Facts, Risk State หรือคะแนน (ยกเว้น `GLASS_BOX_LIVE`)
-- **Banner คงที่:** "นี่คือการจำลองเพื่อการเรียนรู้ ไม่ใช่คำแนะนำทางการแพทย์"
+- **ข้อมูลขอบเขต:** หน้าผู้เรียนไม่แสดง banner/disclaimer ตามคำตัดสินเจ้าของผลิตภัณฑ์ 2026-10-18; ข้อมูลต้นฉบับและรายงานส่งออกยังคงเก็บข้อความและสถานะตามจริง
 
 ---
 
@@ -393,7 +393,7 @@ case_id: PP-001
 version: "0.1"            # semver ของเนื้อหา
 status: Draft             # Draft | In Review | Approved
 title_th: "..."
-audience: staff            # optional: dad | mom | staff. จัดกลุ่มรายการเคสในหน้า Join เท่านั้น ไม่มีผลต่อคะแนนหรือ engine
+audience: staff            # optional: dad | mom | staff. จัดกลุ่มรายการและกำหนดความสัมพันธ์ในการสนทนา ไม่มีผลต่อคะแนนหรือ engine
 learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
 
 patient_profile:           # แสดงต่อผู้เรียนตอนเริ่ม
@@ -743,7 +743,7 @@ Instructor session summaries include the pinned `case_status` and `case_status_l
 
 ```json
 {
-  "persona": {"style_th": "...", "minimization": "high", "mood": "worried"},
+  "persona": {"style_th": "...", "minimization": "high", "mood": "worried", "learner_audience": "dad"},
   "allowed_facts": [{"id": "H1", "text_th": "..."}],       // เฉพาะที่ปลดล็อกแล้ว และเกี่ยวกับคำถามนี้
   "must_convey_fact_ids": ["H1"],                           // fact ที่เพิ่งปลดล็อก ต้องพูดถึง
   "directive": "answer" | "clarify" | "deflect_smalltalk" | "react_to_decision",
@@ -1160,6 +1160,6 @@ generator:
 - [ ] Replay Mode ทำงานโดยปิดอินเทอร์เน็ต
 - [ ] มี API key/โมเดลสำรอง และตั้งค่า fallback แล้ว
 - [ ] วิดีโอสำรองของ Demo เต็มเส้นทาง
-- [ ] Banner "เพื่อการศึกษาเท่านั้น" และป้ายสถานะเนื้อหาแสดงครบ
+- [ ] หน้าผู้เรียนไม่แสดงป้ายตรวจรับรองหรือ disclaimer; เครื่องมือผู้สอนและข้อมูลส่งออกเก็บสถานะตามจริง
 - [ ] ทดสอบบนมือถืออย่างน้อย 1 เครื่อง
 - [ ] ตัวเลขที่จะพูดในการนำเสนอทุกตัวมาจากผลที่วัดได้จริง (Golden, latency, cost)

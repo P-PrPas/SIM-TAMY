@@ -89,7 +89,6 @@ main > header h1 { font-size: clamp(1.75rem, 3vw, 2.5rem); }
 .site-nav nav a:hover, .site-nav nav a[aria-current] { color: var(--color-brand-800); }
 .site-nav nav a[aria-current] { text-decoration: underline; text-underline-offset: 8px; text-decoration-color: var(--color-brand-400); }
 .site-nav nav .nav-instructor { border: 1px solid var(--color-line); border-radius: 10px; padding: 8px 17px; color: var(--color-ink); }
-.education-banner { padding: 10px 24px; font-size: 14px; text-align: center; color: var(--color-brand-800); background: var(--color-brand-50); border-bottom: 1px solid var(--color-brand-100); }
 .learning-progress { background: var(--color-surface); border-bottom: 1px solid var(--color-line); }
 .learning-progress ol { max-width: 960px; margin: auto; display: flex; justify-content: space-between; gap: 16px; padding: 20px 32px; }
 .learning-progress li { display: flex; align-items: center; gap: 10px; color: var(--color-muted); font-size: 14px; }
@@ -186,9 +185,9 @@ main > header h1 { font-size: clamp(1.75rem, 3vw, 2.5rem); }
 }
 .button-primary:active, .button-gold:active:not(:disabled) { transform: translateY(0) scale(.985); }
 
-@keyframes page-arrive { from { opacity: .6; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@keyframes hero-copy-arrive { from { opacity: .3; transform: translateY(22px); } to { opacity: 1; transform: none; } }
-@keyframes hero-art-arrive { from { opacity: .3; transform: translateY(28px) rotate(2deg) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes page-arrive { from { transform: translateY(6px); } to { transform: none; } }
+@keyframes hero-copy-arrive { from { transform: translateY(22px); } to { transform: none; } }
+@keyframes hero-art-arrive { from { transform: translateY(28px) rotate(2deg) scale(.97); } to { transform: none; } }
 @keyframes step-arrive { from { transform: scale(.85); } to { transform: none; } }
 @keyframes gold-sweep { to { transform: translateX(110%); } }
 @keyframes typing-pulse { 0%, 80%, 100% { opacity: .35; } 40% { opacity: 1; } }
@@ -210,7 +209,6 @@ main > header h1 { font-size: clamp(1.75rem, 3vw, 2.5rem); }
   .brand img { width: 40px; height: 40px; border-radius: 10px; }
   .site-nav nav { width: 100%; justify-content: space-between; gap: 8px; font-size: 14px; }
   .site-nav nav .nav-instructor { padding: 6px 10px; }
-  .education-banner { font-size: 12px; padding: 10px 20px; }
   .join-page { padding: 0 20px 24px; }
   .hero { grid-template-columns: 1fr; gap: 32px; padding: 36px 0; }
   .hero h1 { font-size: clamp(2.25rem, 8vw, 3rem); max-width: 540px; margin-top: 18px; }

@@ -4,12 +4,11 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { StatusBadge } from "@/components/status-badge";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
 import { appendOptimistic, failPending, resolvePending, retryPending, type ChatMessage } from "@/lib/chat-state";
 import { readSession, sanitizeMessage } from "@/lib/flow";
-import { t } from "@/lib/i18n";
+import { patientLabel, t } from "@/lib/i18n";
 
 type CaseBrief = components["schemas"]["CaseBrief"];
 type SessionView = components["schemas"]["SessionView"];
@@ -87,7 +86,6 @@ export default function ChatPage() {
   }
 
   if (!brief || !session) return <main className="mx-auto max-w-5xl px-4 py-8">
-    {brief && <div className="mb-5"><StatusBadge status={brief.status} /></div>}
     {error ? <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p> : <p role="status">{t("chat.loading")}</p>}
   </main>;
 
@@ -102,7 +100,6 @@ export default function ChatPage() {
         <p className="mt-1 text-stone-700">{brief.title_th}</p>
         {session.phase === "PRESSURE" && <p role="status" className="mt-2 font-semibold text-amber-900">{t("chat.pressure")}</p>}
       </div>
-      <StatusBadge status={session.case.status} />
     </header>
     <div className="grid gap-5 lg:grid-cols-[1fr_18rem]">
       <section aria-label={t("chat.title")} className="flex min-h-[60vh] flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
@@ -111,7 +108,7 @@ export default function ChatPage() {
         </div>}
         <ol aria-live="polite" aria-relevant="additions" className="flex-1 space-y-4 p-4 sm:p-6">
           {messages.map((message) => <li key={message.id} className={`max-w-[90%] rounded-2xl p-4 shadow-sm ${message.speaker === "learner" ? "ml-auto bg-brand-900 text-white" : "border border-stone-200 bg-stone-50 text-stone-950"}`}>
-            <p className="mb-1 text-sm font-bold">{t(`chat.${message.speaker}`)}</p>
+            <p className="mb-1 text-sm font-bold">{message.speaker === "patient" ? patientLabel(brief.audience) : t(`chat.${message.speaker}`)}</p>
             <p className="whitespace-pre-wrap break-words">{message.text}</p>
             {message.delivery === "failed" && <button type="button" onClick={() => retry(message)} disabled={inFlight} className="mt-3 rounded-lg bg-amber-300 px-3 py-2 text-sm font-bold text-stone-950 disabled:opacity-50">{t("chat.retry")}</button>}
           </li>)}

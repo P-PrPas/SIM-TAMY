@@ -187,6 +187,7 @@ def send_turn(
             history=history,
             persona_minimization=loaded.case.variants[variant].persona.minimization,
             persona_mood=new_state.last_directive.mood,
+            learner_audience=loaded.case.audience,
         )
         if voice is None:
             voice = Voice(

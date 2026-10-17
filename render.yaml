@@ -28,6 +28,8 @@ services:
         value: mock
       - key: ALLOW_DRAFT_CASES
         value: "true"
+      - key: ENABLE_REPLAY
+        value: "true"
       - key: INSTRUCTOR_SECRET
         sync: false
       - key: CORS_ORIGINS # the production web origin, e.g. https://sim-tamy.vercel.app

@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { StatusBadge } from "@/components/status-badge";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
-import { t } from "@/lib/i18n";
+import { patientLabel, t } from "@/lib/i18n";
 
 type Recording = components["schemas"]["Recording"];
 type Summary = components["schemas"]["RecordingListItem"];
@@ -28,6 +27,7 @@ export default function ReplayPage() {
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,7 +36,7 @@ export default function ReplayPage() {
     }).catch(() => { if (!cancelled) setError(t("replay.unavailable")); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [retryKey]);
 
   useEffect(() => {
     if (!recording || !playing || index >= recording.steps.length - 1) return;
@@ -81,17 +81,18 @@ export default function ReplayPage() {
         <p className="font-bold text-brand-800">{t("replay.label")}</p>
         <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{t("replay.title")}</h1>
       </div>
-      {recording && <StatusBadge status={recording.case.status} compact />}
     </header>
     <Link href="/" className="inline-flex rounded-lg border border-stone-500 px-3 py-2 font-semibold">{t("replay.back")}</Link>
-    {error && <p role="alert" className="mt-5 rounded-xl bg-rose-50 p-4 text-rose-950">{error}</p>}
+    {error && <div className="mt-5 rounded-xl bg-rose-50 p-4 text-rose-950">
+      <p role="alert">{error}</p>
+      <button type="button" onClick={() => { setError(""); setLoading(true); setRetryKey((key) => key + 1); }} className="mt-3 rounded-lg border border-rose-800 px-4 py-2 font-semibold">{t("join.retry")}</button>
+    </div>}
     {loading && <p role="status" className="mt-5">{t("replay.loading")}</p>}
     {!recording && !loading && !error && items.length === 0 && <p className="mt-5">{t("replay.empty")}</p>}
     {!recording && <ul className="mt-6 space-y-3">
       {items.map((item) => <li key={item.recording_id} className="rounded-xl border border-stone-300 bg-white p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <p className="font-semibold">{item.title_th}</p>
-          <StatusBadge status={item.status} compact />
         </div>
         {item.description_th && <p className="mt-1 text-stone-700">{item.description_th}</p>}
         <button type="button" onClick={() => void open(item.recording_id)} disabled={loading}
@@ -109,7 +110,7 @@ export default function ReplayPage() {
       <ol aria-live="polite" className="mt-5 space-y-3">
         {recording.steps.slice(0, index + 1).map((step, position) => <li key={position}
           className="rounded-xl border border-stone-300 bg-white p-4">
-          <p className="text-sm font-semibold text-brand-800">{step.speaker ? t(`chat.${step.speaker}`) : t(`replay.${step.type}`)}</p>
+          <p className="text-sm font-semibold text-brand-800">{step.speaker === "patient" ? patientLabel(recording.case.audience) : step.speaker ? t(`chat.${step.speaker}`) : t(`replay.${step.type}`)}</p>
           <p className="mt-1 whitespace-pre-wrap break-words">{stepLabel(step, recording)}</p>
         </li>)}
       </ol>
@@ -121,7 +122,6 @@ export default function ReplayPage() {
         </p>
         <p className="text-lg font-semibold">{t("report.score")}: {report.effective.total_score}</p>
         {report.debrief.paragraphs.map((paragraph, paragraphIndex) => <p key={paragraphIndex} className="whitespace-pre-wrap break-words">{paragraph.text_th}</p>)}
-        {report.disclaimers.map((disclaimer, disclaimerIndex) => <p key={disclaimerIndex} role="note" className="rounded-xl bg-amber-50 p-4 text-amber-950">{disclaimer}</p>)}
       </section>}
     </>}
   </main>;
