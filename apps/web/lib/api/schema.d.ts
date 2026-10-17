@@ -459,12 +459,16 @@ export interface components {
             id: string;
             label_th: string;
         };
+        /** @enum {string} */
+        Audience: "dad" | "mom" | "staff";
         CaseSummary: {
             case_id: string;
             version: string;
             title_th: string;
             status: components["schemas"]["CaseStatus"];
             status_label_th: string;
+            /** @description Who the course is for; groups the case list. Null for a case that does not say. */
+            audience?: components["schemas"]["Audience"] | null;
             variants_available: components["schemas"]["Variant"][];
         };
         CaseBrief: components["schemas"]["CaseSummary"] & {

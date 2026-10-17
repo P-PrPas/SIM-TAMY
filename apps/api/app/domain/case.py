@@ -10,6 +10,9 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 Phase = Literal["INTRO", "INTERVIEW", "PRESSURE", "CLOSING", "COMPLETED"]
 Status = Literal["Draft", "In Review", "Approved"]
 VariantId = Literal["A", "B", "C"]
+Audience = Literal[
+    "dad", "mom", "staff"
+]  # who the course is for; groups the case list, never scoring
 
 
 NonBlank = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
@@ -96,6 +99,7 @@ class Case(Model):
     version: str
     status: Status
     title_th: str
+    audience: Audience | None = None
     learning_objectives: list[str]
     patient_profile: PatientProfile
     facts: list[Fact]

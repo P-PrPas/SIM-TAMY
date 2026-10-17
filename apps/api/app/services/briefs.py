@@ -11,6 +11,7 @@ from typing import Any
 import yaml
 
 from app.api.v1.schemas import (
+    Audience,
     CaseBrief,
     CaseStatus,
     DecisionOption,
@@ -70,6 +71,7 @@ def case_brief(loaded: LoadedCase) -> CaseBrief:
         title_th=c.title_th,
         status=CaseStatus(c.status),
         status_label_th=status_label(c.status),
+        audience=Audience(c.audience) if c.audience else None,
         variants_available=playable_variants(loaded),
         patient_display_th=c.patient_profile.display_th,
         # ponytail: the Case schema stores objective ids only; the id doubles as the label

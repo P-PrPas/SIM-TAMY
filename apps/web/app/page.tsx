@@ -14,6 +14,8 @@ import { t } from "@/lib/i18n";
 type CaseSummary = components["schemas"]["CaseSummary"];
 type Variant = components["schemas"]["Variant"];
 
+const AUDIENCE_ORDER = ["dad", "mom", "staff"] as const;
+
 export default function JoinPage() {
   const router = useRouter();
   const [cases, setCases] = useState<CaseSummary[]>([]);
@@ -90,7 +92,16 @@ export default function JoinPage() {
             setCaseId(event.target.value);
             setVariant(cases.find((item) => item.case_id === event.target.value)?.variants_available[0] ?? "A");
           }} disabled={loading || cases.length === 0} className="w-full rounded-xl border border-slate-400 bg-white px-4 py-3 focus:outline-teal-700">
-            {cases.map((item) => <option key={item.case_id} value={item.case_id}>{item.title_th}</option>)}
+            {cases.some((item) => item.audience)
+              ? [...AUDIENCE_ORDER, null].map((audience) => {
+                const group = cases.filter((item) => (item.audience ?? null) === audience);
+                return group.length > 0 && (
+                  <optgroup key={audience ?? "other"} label={t(`audience.${audience ?? "other"}`)}>
+                    {group.map((item) => <option key={item.case_id} value={item.case_id}>{item.title_th}</option>)}
+                  </optgroup>
+                );
+              })
+              : cases.map((item) => <option key={item.case_id} value={item.case_id}>{item.title_th}</option>)}
           </select>
           {selectedCase && <div className="mt-3"><StatusBadge status={selectedCase.status} /></div>}
         </div>

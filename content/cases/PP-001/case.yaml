@@ -9,6 +9,7 @@ status: Draft
 # The title is shown in the CaseBrief before the learner asks anything, so it must not state a hidden fact.
 # The source calls this case "PN-R01 ขอฟื้นฟูหลังคลอด แต่มีเลือดออกมาก"; that internal name stays out of title_th.
 title_th: "PN-R01 ขอฟื้นฟูหลังคลอด (ฉบับร่าง ยังไม่ผ่านผู้เชี่ยวชาญ)"
+audience: staff
 learning_objectives: [risk_recognition, referral_decision, communication_under_pressure]
 
 patient_profile:
