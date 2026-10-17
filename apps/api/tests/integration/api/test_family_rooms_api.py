@@ -3,7 +3,9 @@
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
-from app.db.family import FamilyRoom
+from sqlalchemy import select
+
+from app.db.family import FamilyEvent, FamilyRoom
 from tests.integration.api.conftest import Api
 
 
@@ -61,6 +63,13 @@ def test_shared_completion_is_replayable_and_idempotent(api: Api):
     assert report["safety_status"] == "SAFETY_NOT_MET"
     assert len(report["evidence"]) == 4
     assert report == api.client.get(path, headers=father).json()["report"]
+    with api.db() as db:
+        indices = db.scalars(
+            select(FamilyEvent.idx)
+            .where(FamilyEvent.room_id == uuid.UUID(path.rsplit("/", 1)[1]))
+            .order_by(FamilyEvent.idx)
+        ).all()
+        assert list(indices) == [1, 2, 3, 4]
 
 
 def test_join_retry_capacity_out_of_turn_and_stale_decisions(api: Api):
