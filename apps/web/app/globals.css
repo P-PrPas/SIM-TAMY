@@ -3,3 +3,27 @@
 html {
   font-size: 16px; /* AGENTS.md: base font >= 16px */
 }
+
+body {
+  font-family: "Noto Sans Thai", "Sarabun", Tahoma, sans-serif;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  background-color: #f8fafc;
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid #0f766e;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

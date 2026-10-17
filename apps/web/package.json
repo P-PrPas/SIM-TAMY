@@ -12,7 +12,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:live": "playwright test --config playwright.live.config.ts",
-    "gen:api": "openapi-typescript ../../docs/openapi.yaml -o lib/api/schema.d.ts"
+    "gen:api": "openapi-typescript ../../docs/openapi.yaml -o lib/api/schema.d.ts",
+    "test:a11y": "playwright test e2e/a11y.spec.ts"
   },
   "dependencies": {
     "next": "^16.4.0",
@@ -29,6 +30,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitest/coverage-v8": "^5.0.3",
+    "axe-core": "^4.11.0",
     "eslint": "^9.39.0",
     "eslint-config-next": "^16.4.0",
     "jsdom": "^30.1.2",

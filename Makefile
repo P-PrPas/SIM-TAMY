@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e test-e2e-live validate-content leakcheck eval eval-pp001 bench rescore stats cost-report purge-old seed-demo demo
+.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e test-e2e-live validate-content leakcheck eval eval-pp001 bench rescore stats cost-report purge-old seed-demo loadcheck demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -88,6 +88,10 @@ cost-report:
 	cd $(API) && ../../$(PY) -m app.stats cost-report $(COST_ARGS)
 purge-old:
 	cd $(API) && ../../$(PY) -m app.purge_old
+# 20 learners at once against a running API; add LOAD_ARGS='--output docs/results/<name>.md' to save the report.
+loadcheck:
+	@test -n "$(URL)" || { echo "usage: make loadcheck URL=http://localhost:8000 [LOAD_ARGS='--sessions 20']"; exit 2; }
+	$(PY) scripts/loadcheck.py $(URL) $(LOAD_ARGS)
 # A demo class (DEMO01) with five completed, synthetic sessions, played through the real API (needs DATABASE_URL).
 seed-demo:
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.seed_demo
