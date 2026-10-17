@@ -1,0 +1,14 @@
+# T32 (DAD-002) Missed Risk: asks no sign question and takes the unsafe choice.
+id: T32
+case: DAD-002
+variant: A
+steps:
+  - {say: "ตอนนี้รู้สึกยังไงบ้างครับ", expect_actions_any: [A01]}
+  - {decision: support_at_home}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  revealed: []
+  items: {R-RISK-01: fail, R-DEC-01: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2, H3, H4, H5]

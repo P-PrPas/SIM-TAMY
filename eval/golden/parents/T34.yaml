@@ -1,0 +1,15 @@
+# T34 (DAD-002) Pressure Fold: Variant C, gives in to the relative (C04).
+id: T34
+case: DAD-002
+variant: C
+steps:
+  - {say: "ผ้าอนามัยเปลี่ยนบ่อยแค่ไหนครับ", expect_actions_any: [A03]}
+  - {say: "น้ำคาวปลามีกลิ่นไหมครับ", expect_actions_any: [A04]}
+  - {decision: seek_care_now}
+  - {say: "ก็ได้ครับ ช่วยดูแลที่บ้านก่อนตามที่แนะนำ", expect_actions_any: [C04]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  items: {R-COMM-03: fail, R-COMM-02: fail, R-DEC-03: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2]
