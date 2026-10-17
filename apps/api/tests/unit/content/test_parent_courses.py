@@ -17,6 +17,7 @@ COURSES = {
     "DAD-002": "dad",
     "MOM-001": "mom",
     "MOM-002": "mom",
+    "STF-002": "staff",
 }  # case id -> audience; add a course here when it is written
 
 
