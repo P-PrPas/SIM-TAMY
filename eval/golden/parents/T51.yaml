@@ -1,0 +1,15 @@
+# T51 (DAD-001) Refusal in words: Variant C, he says there is no need to go. The lexical fallback must read that as
+# giving in (C04), not as insisting on the referral (C03), so the Critical Safety gate is not met.
+id: T51
+case: DAD-001
+variant: C
+steps:
+  - {say: "มีน้ำเดินหรือเปล่าครับ", expect_actions_any: [A03]}
+  - {say: "ลูกดิ้นเหมือนเดิมไหมครับ", expect_actions_any: [A06]}
+  - {decision: go_hospital_now}
+  - {say: "ไม่ต้องไปโรงพยาบาลก็ได้ครับ", expect_actions_any: [C04]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  items: {R-COMM-03: fail, R-COMM-02: fail, R-DEC-03: fail}
+  replay_terminal_state: UnsafeProceed
