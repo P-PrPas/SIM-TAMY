@@ -14,7 +14,10 @@ from app.domain.state import AllowedFact, AllowedFacts
 from app.services.patient_voice import VoiceRequest
 
 CASES = Path(__file__).resolve().parents[5] / "content" / "cases"
-COURSES = {"DAD-001": "dad"}  # case id -> audience; add a course here when it is written
+COURSES = {
+    "DAD-001": "dad",
+    "MOM-001": "mom",
+}  # case id -> audience; add a course here when it is written
 
 
 @pytest.mark.parametrize("case_id", COURSES)

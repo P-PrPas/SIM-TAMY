@@ -1,0 +1,14 @@
+# T27 (MOM-001) Missed Risk: asks no danger-sign question and tells her to wait for the appointment.
+id: T27
+case: MOM-001
+variant: A
+steps:
+  - {say: "ช่วงนี้เป็นยังไงบ้างจ๊ะ", expect_actions_any: [A01]}
+  - {decision: self_care_and_keep_appointment}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  revealed: []
+  items: {R-RISK-01: fail, R-DEC-01: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2, H3, H4, H5]

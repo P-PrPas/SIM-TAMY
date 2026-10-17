@@ -1,0 +1,15 @@
+# T30 (MOM-001) Knew and waited: learns about the slower movement and the headache, then tells her to wait.
+id: T30
+case: MOM-001
+variant: A
+steps:
+  - {say: "ลูกดิ้นเหมือนเดิมไหมจ๊ะ", expect_actions_any: [A03]}
+  - {say: "ปวดหัวบ้างไหมจ๊ะ", expect_actions_any: [A04]}
+  - {decision: self_care_and_keep_appointment}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  revealed: [H1, H2]
+  items: {R-RISK-01: pass, R-DEC-01: fail, R-DEC-03: fail}
+  replay_terminal_state: UnsafeProceed
+  replay_missed_opportunities_include: [H1, H2]
