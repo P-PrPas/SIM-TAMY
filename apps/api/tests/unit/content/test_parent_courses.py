@@ -1,5 +1,6 @@
 """Parent and staff courses (research section 8): valid, still drafts, nothing leaks early."""
 
+import re
 from pathlib import Path
 
 import pytest
@@ -67,3 +68,40 @@ def test_course_every_fallback_passes_the_real_validator(case_id: str) -> None:
         )
         for line in fact.fallback_utterances_th:
             assert PatientValidator(request).check(line, case, [fact.id]) == [], (fact.id, line)
+
+
+def _validator(case_persona: str) -> PatientValidator:
+    request = VoiceRequest(
+        persona_style_th=case_persona,
+        allowed=AllowedFacts(facts=(), must_convey_fact_ids=()),
+        directive="answer",
+        learner_text="",
+    )
+    return PatientValidator(request)
+
+
+@pytest.mark.parametrize("case_id", COURSES)
+def test_course_no_clause_of_a_hidden_fact_slips_through_before_it_is_asked(case_id: str) -> None:
+    """A reply that says only part of a hidden fact ("ไหลออกมา...") must be rejected too."""
+    case = load_case(CASES / case_id).case
+    validator = _validator(case.variants["A"].persona.style_th)
+    for fact in (f for f in case.facts if isinstance(f, HiddenFact)):
+        for clause in (c for c in re.split(r"\s+|และ", fact.text_th) if len(c) >= 5):
+            reasons = validator.check(clause, case, [])
+            assert reasons and reasons[0].startswith("leak_term"), (fact.id, clause)
+
+
+@pytest.mark.parametrize("case_id", COURSES)
+def test_course_scripted_relative_lines_do_not_state_a_hidden_fact(case_id: str) -> None:
+    """The pressure script is shown without being asked for, so it must not give a fact away."""
+    case = load_case(CASES / case_id).case
+    hidden = [f for f in case.facts if isinstance(f, HiddenFact)]
+    for variant in case.variants.values():
+        for line in variant.pressure_script:
+            for fact in hidden:
+                assert not any(
+                    t in line.text_th for t in (*fact.leak_terms_th, *fact.keywords_th)
+                ), (
+                    fact.id,
+                    line.text_th,
+                )
