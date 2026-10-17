@@ -109,3 +109,19 @@ def test_course_scripted_relative_lines_do_not_state_a_hidden_fact(case_id: str)
                     fact.id,
                     line.text_th,
                 )
+
+
+# Partial replies a model could produce before the fact is asked; the Validator must reject each.
+PARTIAL_REPLIES = {
+    "MOM-001": ["ปวดศีรษะมากไม่ยอมหาย กินยาแล้วก็ไม่ดีขึ้น"],
+    "DAD-002": ["มีไข้ตั้งแต่เมื่อวาน", "ปวดศีรษะไม่หาย", "น้ำคาวปลาเหม็น", "ร้องไห้มาหลายวัน"],
+}
+
+
+@pytest.mark.parametrize("case_id", PARTIAL_REPLIES)
+def test_course_partial_replies_are_rejected_before_the_fact_is_asked(case_id: str) -> None:
+    case = load_case(CASES / case_id).case
+    validator = _validator(case.variants["A"].persona.style_th)
+    for reply in PARTIAL_REPLIES[case_id]:
+        reasons = validator.check(reply, case, [])
+        assert reasons and reasons[0].startswith("leak_term"), reply

@@ -1,0 +1,15 @@
+# T53 (DAD-002) Refusal in words: Variant C, he says there is no need to go. The lexical fallback must read that as
+# giving in (C04), not as insisting on the referral (C03).
+id: T53
+case: DAD-002
+variant: C
+steps:
+  - {say: "ผ้าอนามัยเปลี่ยนบ่อยแค่ไหนครับ", expect_actions_any: [A03]}
+  - {say: "มีไข้ไหมครับ", expect_actions_any: [A05]}
+  - {decision: seek_care_now}
+  - {say: "ไม่ต้องไปโรงพยาบาลก็ได้ครับ", expect_actions_any: [C04]}
+  - {complete: true}
+expect:
+  safety_status: SAFETY_NOT_MET
+  items: {R-COMM-03: fail, R-COMM-02: fail, R-DEC-03: fail}
+  replay_terminal_state: UnsafeProceed
