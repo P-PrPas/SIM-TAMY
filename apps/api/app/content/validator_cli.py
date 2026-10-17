@@ -3,6 +3,9 @@
 import argparse
 import sys
 
+from pydantic import ValidationError
+
+from app.content.family import load_stories
 from app.content.loader import ContentError, load_case
 from app.content.validate import check
 from app.core.config import get_settings
@@ -35,6 +38,12 @@ def main(argv: list[str] | None = None) -> int:
         failed |= bool(issues)
         if not issues:
             print(f"OK {d.name} {loaded.case_hash[:12]}")
+    try:
+        for story in load_stories(content_dir):
+            print(f"OK family/{story.id} {story.version} ({story.status})")
+    except (ValidationError, ValueError) as exc:
+        print(f"ERROR family stories: {exc}", file=sys.stderr)
+        failed = True
     return 1 if failed else 0
 
 

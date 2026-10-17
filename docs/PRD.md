@@ -1173,3 +1173,9 @@ generator:
 - [ ] หน้าผู้เรียนไม่แสดงป้ายตรวจรับรองหรือ disclaimer; เครื่องมือผู้สอนและข้อมูลส่งออกเก็บสถานะตามจริง
 - [ ] ทดสอบบนมือถืออย่างน้อย 1 เครื่อง
 - [ ] ตัวเลขที่จะพูดในการนำเสนอทุกตัวมาจากผลที่วัดได้จริง (Golden, latency, cost)
+
+
+## Family learning extension (product request 2026-10-18)
+
+- **FR-FAM-01**: Two-device turn-based Family Co-op with role-private briefs, a shared authored first-night story, persisted/idempotent decisions, and an evidence-linked four-domain formative report. Critical help-seeking failures gate the report independently of other indicators. Existing clinical Case/Rubric semantics are unchanged.
+- Contracts, authoring, limitations, deployment and retention: [FAMILY_SIMULATIONS.md](FAMILY_SIMULATIONS.md). Research is documented separately and does not constitute clinical approval.

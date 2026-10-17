@@ -1100,6 +1100,133 @@ paths:
       x-fr:
       - FR-INS-05
 
+  /v1/family/stories:
+    get:
+      tags:
+      - Family
+      summary: Stories
+      operationId: listFamilyStories
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/FamilyStoryCard'
+                type: array
+                title: Response Listfamilystories
+  /v1/family/rooms:
+    post:
+      tags:
+      - Family
+      summary: Create
+      operationId: createFamilyRoom
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyCreated'
+  /v1/family/rooms/{room_id}/join:
+    post:
+      tags:
+      - Family
+      summary: Join
+      operationId: joinFamilyRoom
+      parameters:
+      - name: room_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Room Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyJoin'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyView'
+  /v1/family/rooms/{room_id}:
+    get:
+      tags:
+      - Family
+      summary: Get
+      operationId: getFamilyRoom
+      parameters:
+      - name: room_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Room Id
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyView'
+  /v1/family/rooms/{room_id}/decisions:
+    post:
+      tags:
+      - Family
+      summary: Decide
+      operationId: decideFamilyRoom
+      parameters:
+      - name: room_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Room Id
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyDecision'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyView'
+
 components:
   securitySchemes:
     SessionToken:
@@ -2337,3 +2464,353 @@ components:
                 $ref: "#/components/schemas/RecordingStep"
             report:
               $ref: "#/components/schemas/ReportResponse"
+
+    FamilyCompetency:
+      properties:
+        skill:
+          type: string
+          enum:
+          - communication
+          - responsibility
+          - safety
+          - support
+          title: Skill
+        observed:
+          type: integer
+          title: Observed
+        opportunities:
+          type: integer
+          title: Opportunities
+      additionalProperties: false
+      type: object
+      required:
+      - skill
+      - observed
+      - opportunities
+      title: FamilyCompetency
+    FamilyCreate:
+      properties:
+        story_id:
+          type: string
+          maxLength: 64
+          pattern: ^[a-z0-9-]+$
+          title: Story Id
+        role:
+          type: string
+          enum:
+          - mother
+          - father
+          title: Role
+      additionalProperties: false
+      type: object
+      required:
+      - story_id
+      - role
+      title: FamilyCreate
+    FamilyCreated:
+      properties:
+        room_id:
+          type: string
+          format: uuid
+          title: Room Id
+        token:
+          type: string
+          title: Token
+        invite:
+          type: string
+          title: Invite
+      additionalProperties: false
+      type: object
+      required:
+      - room_id
+      - token
+      - invite
+      title: FamilyCreated
+    FamilyDecision:
+      properties:
+        choice_id:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: Choice Id
+        state_version:
+          type: integer
+          minimum: 0.0
+          title: State Version
+        client_turn_id:
+          type: string
+          format: uuid
+          title: Client Turn Id
+      additionalProperties: false
+      type: object
+      required:
+      - choice_id
+      - state_version
+      - client_turn_id
+      title: FamilyDecision
+    FamilyEvidence:
+      properties:
+        idx:
+          type: integer
+          title: Idx
+        text_th:
+          type: string
+          title: Text Th
+        feedback_th:
+          type: string
+          title: Feedback Th
+        source_ids:
+          items:
+            type: string
+          type: array
+          title: Source Ids
+        safe:
+          type: boolean
+          title: Safe
+      additionalProperties: false
+      type: object
+      required:
+      - idx
+      - text_th
+      - feedback_th
+      - source_ids
+      - safe
+      title: FamilyEvidence
+    FamilyExchange:
+      properties:
+        idx:
+          type: integer
+          title: Idx
+        role:
+          type: string
+          enum:
+          - mother
+          - father
+          title: Role
+        speaker_th:
+          type: string
+          title: Speaker Th
+        prompt_th:
+          type: string
+          title: Prompt Th
+        text_th:
+          type: string
+          title: Text Th
+        reply_th:
+          type: string
+          title: Reply Th
+      additionalProperties: false
+      type: object
+      required:
+      - idx
+      - role
+      - speaker_th
+      - prompt_th
+      - text_th
+      - reply_th
+      title: FamilyExchange
+    FamilyJoin:
+      properties:
+        invite:
+          type: string
+          maxLength: 128
+          minLength: 32
+          title: Invite
+        participant_token:
+          type: string
+          maxLength: 128
+          minLength: 32
+          title: Participant Token
+      additionalProperties: false
+      type: object
+      required:
+      - invite
+      - participant_token
+      title: FamilyJoin
+    FamilyOption:
+      properties:
+        id:
+          type: string
+          title: Id
+        text_th:
+          type: string
+          title: Text Th
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - text_th
+      title: FamilyOption
+    FamilyReport:
+      properties:
+        safety_status:
+          type: string
+          title: Safety Status
+        competencies:
+          items:
+            $ref: '#/components/schemas/FamilyCompetency'
+          type: array
+          title: Competencies
+        evidence:
+          items:
+            $ref: '#/components/schemas/FamilyEvidence'
+          type: array
+          title: Evidence
+        sources:
+          items:
+            $ref: '#/components/schemas/FamilySource'
+          type: array
+          title: Sources
+      additionalProperties: false
+      type: object
+      required:
+      - safety_status
+      - competencies
+      - evidence
+      - sources
+      title: FamilyReport
+    FamilyScene:
+      properties:
+        id:
+          type: string
+          title: Id
+        chapter_th:
+          type: string
+          title: Chapter Th
+        role:
+          type: string
+          enum:
+          - mother
+          - father
+          title: Role
+        speaker_th:
+          type: string
+          title: Speaker Th
+        prompt_th:
+          type: string
+          title: Prompt Th
+        choices:
+          items:
+            $ref: '#/components/schemas/FamilyOption'
+          type: array
+          title: Choices
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - chapter_th
+      - role
+      - speaker_th
+      - prompt_th
+      - choices
+      title: FamilyScene
+    FamilySource:
+      properties:
+        id:
+          type: string
+          minLength: 1
+          title: Id
+        title_th:
+          type: string
+          minLength: 1
+          title: Title Th
+        url:
+          type: string
+          pattern: ^https://
+          title: Url
+        category:
+          type: string
+          enum:
+          - guidance
+          - culture
+          - limited_evidence
+          title: Category
+          default: guidance
+        summary_th:
+          type: string
+          minLength: 1
+          title: Summary Th
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - title_th
+      - url
+      - summary_th
+      title: FamilySource
+    FamilyStoryCard:
+      properties:
+        id:
+          type: string
+          title: Id
+        title_th:
+          type: string
+          title: Title Th
+        description_th:
+          type: string
+          title: Description Th
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - title_th
+      - description_th
+      title: FamilyStoryCard
+    FamilyView:
+      properties:
+        room_id:
+          type: string
+          format: uuid
+          title: Room Id
+        story_id:
+          type: string
+          title: Story Id
+        title_th:
+          type: string
+          title: Title Th
+        role:
+          type: string
+          enum:
+          - mother
+          - father
+          title: Role
+        private_brief_th:
+          type: string
+          title: Private Brief Th
+        partner_joined:
+          type: boolean
+          title: Partner Joined
+        state_version:
+          type: integer
+          title: State Version
+        total_steps:
+          type: integer
+          title: Total Steps
+        scene:
+          anyOf:
+          - $ref: '#/components/schemas/FamilyScene'
+          - type: 'null'
+        transcript:
+          items:
+            $ref: '#/components/schemas/FamilyExchange'
+          type: array
+          title: Transcript
+        report:
+          anyOf:
+          - $ref: '#/components/schemas/FamilyReport'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      required:
+      - room_id
+      - story_id
+      - title_th
+      - role
+      - private_brief_th
+      - partner_joined
+      - state_version
+      - total_steps
+      - scene
+      - transcript
+      - report
+      title: FamilyView

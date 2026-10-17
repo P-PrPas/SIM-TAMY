@@ -22,6 +22,7 @@ export function SiteHeader() {
         <nav aria-label={t("nav.label")}>
           <Link href="/" aria-current={path === "/" ? "page" : undefined}>{t("nav.learn")}</Link>
           <Link href="/replay" aria-current={path === "/replay" ? "page" : undefined}>{t("nav.replay")}</Link>
+          <Link href="/family" aria-current={path === "/family" ? "page" : undefined}>{t("family.link")}</Link>
           <Link href="/instructor" className="nav-instructor" aria-current={path === "/instructor" ? "page" : undefined}>{t("instructor.link")}<span aria-hidden="true"> ↗</span></Link>
         </nav>
       </div>

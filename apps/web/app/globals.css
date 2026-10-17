@@ -84,7 +84,7 @@ main > header h1 { font-size: clamp(1.75rem, 3vw, 2.5rem); }
 .brand strong { display: block; font-size: 24px; line-height: 1.15; letter-spacing: -0.05em; }
 .brand-dot { color: var(--color-brand-600); }
 .brand small { display: block; font-size: 12px; color: var(--color-muted); margin-top: 5px; }
-.site-nav nav { display: flex; align-items: center; gap: 28px; }
+.site-nav nav { display: flex; flex-wrap: wrap; align-items: center; gap: 28px; }
 .site-nav nav a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 550; color: var(--color-muted); }
 .site-nav nav a:hover, .site-nav nav a[aria-current] { color: var(--color-brand-800); }
 .site-nav nav a[aria-current] { text-decoration: underline; text-underline-offset: 8px; text-decoration-color: var(--color-brand-400); }
