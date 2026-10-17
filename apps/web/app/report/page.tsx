@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "re
 import { useRouter } from "next/navigation";
 
 import { ConsequenceReplayPanel, GlassBoxPanel } from "@/components/report-panels";
+import { PilotFeedbackForm } from "@/components/pilot-feedback";
 import { ApiError } from "@/lib/api/client";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
@@ -176,6 +177,7 @@ export default function ReportPage() {
         </ul>}
       </section>}
     </section>
+    <PilotFeedbackForm key={report.session_id} sessionId={report.session_id} />
     {loading && <p role="status" className="mt-4">{t("report.loading")}</p>}
   </main>;
 }

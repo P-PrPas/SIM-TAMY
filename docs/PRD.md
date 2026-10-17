@@ -215,6 +215,7 @@ Session ──1 Report          (scoring + debrief + glass box + replay)
 | FR-INS-02 | ดูรายการ session ของ class และเปิดรายงานรายคน | S | รายการแสดงชื่อ เคส ผลความปลอดภัย คะแนน เวลา |
 | FR-INS-03 | Cohort analytics: ค่าเฉลี่ยรายสมรรถนะ, อัตราพลาด Critical แยกข้อ | C | — |
 | FR-INS-04 | อาจารย์ override ผล rubric item พร้อมเหตุผล (เก็บเป็น event แยก ไม่ทับต้นฉบับ) | C | — |
+| FR-INS-05 | เก็บความคิดเห็นแบบสมัครใจหลังจบการฝึก พร้อมความยินยอม ผู้สอนดูตามห้องเรียนและส่งออกได้ | S | หนึ่งคำตอบต่อ session; บทบาทระบุเอง; ค่าเฉลี่ยมาจากข้อมูลจริงและเป็น null เมื่อไม่มีตัวอย่าง; ลบตาม retention ของ session |
 
 ## 4.11 Platform
 
@@ -533,6 +534,14 @@ CREATE TABLE reports (
 
 CREATE TABLE score_overrides (          -- Could (FR-INS-04)
   id BIGSERIAL PRIMARY KEY, session_id UUID, rubric_item_id TEXT, new_result JSONB, reason TEXT, created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE pilot_feedback (           -- FR-INS-05; migration 0002
+  session_id UUID PRIMARY KEY REFERENCES sessions(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('learner','instructor','practitioner')),
+  usefulness INTEGER NOT NULL CHECK (usefulness BETWEEN 1 AND 5),
+  realism INTEGER NOT NULL CHECK (realism BETWEEN 1 AND 5),
+  comment TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
 

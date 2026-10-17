@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 
+import { InstructorPilot } from "@/components/pilot-feedback";
 import { StatusBadge } from "@/components/status-badge";
 import { ApiError } from "@/lib/api/client";
 import { instructorApi } from "@/lib/api/runtime";
@@ -166,6 +167,7 @@ export default function InstructorPage() {
               {analytics.critical_item_fail_rates.length > 0 && <div><h3 className="font-bold">{t("instructor.criticalRates")}</h3><ul className="mt-2 space-y-1">{analytics.critical_item_fail_rates.map((item) => <li key={item.item_id}>{item.label_th}: {Math.round(item.fail_rate * 100)}% ({t("instructor.sampleSize")}: {item.n})</li>)}</ul></div>}
             </div> : <p role="status" className="mt-4">{t("report.loading")}</p>}
           </section>
+          <InstructorPilot key={selected.code} secret={secret} classCode={selected.code} onOpenReport={(id) => void openReport(id)} />
           <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <h2 className="text-xl font-bold">{t("instructor.sessions")}</h2>
             {sessions.length === 0 ? <p className="mt-4">{t("instructor.noSessions")}</p> : <ul className="mt-4 space-y-4">
