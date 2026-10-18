@@ -15,7 +15,7 @@ export function SiteHeader() {
   return <>
     <header className="site-header">
       <div className="site-nav">
-        <Link href="/" className="brand" aria-label={t("app.title")}>
+        <Link href="/" className="brand">
           <Image src="/brand/logo.png" width={48} height={48} alt="" priority />
           <span><strong>SIM-TAMY<span className="brand-dot">.</span></strong><small>{t("brand.tagline")}</small></span>
         </Link>

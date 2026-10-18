@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./family.css";
 
 @theme {
   --color-brand-50: #fff9eb;
@@ -207,8 +208,10 @@ main > header h1 { font-size: clamp(1.75rem, 3vw, 2.5rem); }
   .site-nav { flex-wrap: wrap; gap: 12px; padding: 16px 20px; }
   .brand strong { font-size: 22px; }
   .brand img { width: 40px; height: 40px; border-radius: 10px; }
-  .site-nav nav { width: 100%; justify-content: space-between; gap: 8px; font-size: 14px; }
-  .site-nav nav .nav-instructor { padding: 6px 10px; }
+  .site-nav nav { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; font-size: 14px; }
+  .site-nav nav a { justify-content: center; text-align: center; min-height: 52px; }
+  .site-nav nav .nav-instructor { padding: 6px 4px; }
+  .site-nav nav .nav-instructor span { display: none; }
   .join-page { padding: 0 20px 24px; }
   .hero { grid-template-columns: 1fr; gap: 32px; padding: 36px 0; }
   .hero h1 { font-size: clamp(2.25rem, 8vw, 3rem); max-width: 540px; margin-top: 18px; }
