@@ -31,7 +31,7 @@ it("replays recorded wording with matched findings and sources, and starts a sep
   expect(screen.getByText("Recorded response")).not.toBeNull();
   expect(screen.getByText("Engine finding")).not.toBeNull();
   expect(screen.getByRole("link", { name: "Relevant source" }).getAttribute("href")).toBe("#source-REF");
-  fireEvent.click(screen.getByRole("button", { name: t("experience.next"), exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: t("experience.next") }));
   expect(screen.getByText("Later recorded response")).not.toBeNull();
   expect(screen.queryByText("Engine finding")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: t("experience.restart") }));
