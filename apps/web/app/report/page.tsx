@@ -154,9 +154,9 @@ export default function ReportPage() {
       {shown("timeline") && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         {title("timeline")}
         {report.timeline.length === 0 ? <p>{t("report.noTimeline")}</p> : <ol className="space-y-4">
-          {report.timeline.map((entry) => <li key={entry.event_id} className="border-l-4 border-brand-700 pl-4">
-            <p className="text-sm font-semibold text-stone-700">{t("report.turn")} {entry.turn_idx}</p>
-            <p className="mt-1 whitespace-pre-wrap break-words">{entry.summary_th}</p>
+          {report.timeline.map((entry, index) => <li key={entry.event_id} className="practice-event-card">
+            <span aria-hidden="true">{index + 1}</span><div><p className="text-sm font-semibold text-stone-700">{t("report.turn")} {entry.turn_idx}</p>
+            <p className="mt-1 whitespace-pre-wrap break-words">{entry.summary_th}</p></div>
           </li>)}
         </ol>}
       </section>}
