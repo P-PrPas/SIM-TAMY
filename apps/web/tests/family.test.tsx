@@ -37,7 +37,7 @@ it("creates a room, shows only its role brief, and preserves the decision ID on 
   fireEvent.click(await screen.findByRole("radio", { name: "Ask for rest" }));
   fireEvent.click(screen.getByRole("button", { name: t("experience.commit") }));
   fireEvent.click(await screen.findByRole("button", { name: t("family.retry") }));
-  await screen.findByText(t("family.partnerTurn"));
+  await screen.findByText(t("family.partnerTurn"), { selector: ".family-turn-status" });
   expect(sent).toHaveLength(2);
   expect(sent[0]).toBe(sent[1]);
 });

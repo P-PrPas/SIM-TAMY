@@ -10,6 +10,9 @@
 .practice-stage-window > i:nth-of-type(3) { right: 28%; top: 12%; }
 .practice-stage-art { position: absolute; bottom: 0; right: 1rem; width: 240px; pointer-events: none; }
 .practice-stage-art svg { display: block; width: 100%; height: auto; }
+.practice-stage-props { position: absolute; z-index: -1; bottom: 0; left: 40%; width: 95px; height: 95px; }
+.scene-variation-1 .practice-stage-window { background: var(--color-stone-100); }
+.scene-variation-2 .practice-stage-window > span { border-radius: 8px; background: var(--color-brand-50); }
 .practice-stage-caption { max-width: 56%; position: relative; padding-block: .5rem; }
 .practice-stage-caption > p { margin-bottom: 1rem; font-size: clamp(1.1rem, 2vw, 1.6rem); line-height: 1.5; font-weight: 750; color: var(--color-brand-950); text-wrap: balance; }
 .practice-speaker { display: inline-flex; gap: .65rem; align-items: center; padding: .7rem .9rem; border: 1px solid var(--color-brand-300); background: var(--color-canvas); border-radius: 1rem; box-shadow: 0 3px 0 var(--color-brand-200); }
@@ -27,6 +30,45 @@
 .practice-commit { display: flex; align-items: center; justify-content: center; gap: .8rem; margin-top: 1rem; min-height: 48px; width: 100%; }
 .practice-stage summary:focus-visible, .practice-options label:has(:focus-visible) { outline: 3px solid var(--color-brand-700); outline-offset: 3px; }
 .practice-activity fieldset:disabled label { cursor: default; }
+.practice-journal { margin-top: 1rem; padding: 1rem; border: 1px solid var(--color-brand-200); border-radius: 1rem; background: var(--color-brand-50); overflow-wrap: anywhere; }
+.practice-journal > summary { display: flex; gap: .6rem; align-items: center; font-weight: 700; cursor: pointer; color: var(--color-brand-900); }
+.practice-journal > summary > span:first-of-type { flex: 1; }
+.practice-journal > p { margin-top: .8rem; color: var(--color-muted); }
+.practice-journal ol { margin-top: 1rem; display: grid; gap: 1rem; }
+.practice-journal li { display: flex; gap: .6rem; }
+.practice-journal li > span { border-radius: 50%; width: 26px; height: 26px; flex-shrink: 0; display: grid; place-items: center; background: var(--color-brand-900); color: white; }
+.practice-journal li p { margin-top: .3rem; line-height: 1.8; }
+.practice-journal-next { padding-top: .8rem; border-top: 1px solid var(--color-line); font-weight: 650; }
+.practice-chapter { padding: 2rem; border: 1px solid var(--color-brand-300); border-radius: 1.25rem; background: var(--color-brand-50); text-align: center; }
+.practice-chapter > svg { margin: 0 auto 1rem; width: 38px; height: 38px; }
+.practice-chapter h2 { margin: .6rem 0; font-size: 1.4rem; font-weight: 750; }
+.practice-chapter > p { line-height: 1.8; }
+.practice-chapter button { margin-top: 1rem; display: inline-flex; gap: .7rem; align-items: center; }
+.practice-storyboard { margin: 1.5rem 0; overflow: hidden; border: 1px solid var(--color-brand-300); border-radius: 1.25rem; }
+.practice-storyboard > header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem; background: var(--color-brand-900); color: white; }
+.practice-storyboard header p { margin-bottom: .35rem; }
+.practice-storyboard h3 { font-size: 1.3rem; font-weight: 750; }
+.practice-storyboard > header h3 { color: var(--color-surface); }
+.practice-story-pages { display: flex; flex-wrap: wrap; gap: .65rem; padding: 1rem 1.25rem; }
+.practice-story-pages button { width: 44px; height: 44px; border: 1px solid var(--color-brand-300); border-radius: 50%; font-weight: 700; }
+.practice-story-pages button[aria-current] { background: var(--color-brand-900); color: white; border-color: var(--color-brand-900); }
+.practice-story-picture { display: flex; align-items: center; gap: 1rem; padding: 0 1.25rem 1rem; background: var(--color-brand-50); }
+.practice-story-picture svg { width: 120px; height: 110px; flex-shrink: 0; }
+.practice-story-picture p { min-width: 0; overflow-wrap: anywhere; line-height: 1.8; }
+.practice-story-picture strong { display: block; color: var(--color-brand-900); }
+.practice-story-beats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.practice-story-beats article { padding: 1.25rem; border-top: 1px solid var(--color-line); border-right: 1px solid var(--color-line); min-width: 0; }
+.practice-story-beats article > span { display: flex; gap: .5rem; align-items: center; font-weight: 700; margin-bottom: .6rem; color: var(--color-brand-900); }
+.practice-story-beats article p { line-height: 1.9; overflow-wrap: anywhere; }
+.practice-story-beats article.needs-review { background: var(--color-brand-50); }
+.practice-story-beats ul { margin-top: .75rem; font-size: 1rem; }
+.practice-story-beats a { text-decoration: underline; text-underline-offset: 3px; }
+.practice-story-controls { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: 1rem; border-top: 1px solid var(--color-line); }
+.practice-story-controls button { border: 1px solid var(--color-brand-300); border-radius: .7rem; padding: .65rem .9rem; min-height: 44px; }
+.practice-story-controls button:disabled { color: var(--color-muted); cursor: default; }
+.practice-restart { display: flex; gap: .7rem; align-items: center; justify-content: center; width: calc(100% - 2rem); margin: 0 1rem 1rem; }
+.practice-event-card { display: flex; gap: 1rem; padding: 1rem; background: var(--color-brand-50); border: 1px solid var(--color-brand-200); border-radius: 1rem; overflow-wrap: anywhere; }
+.practice-event-card > span { flex-shrink: 0; width: 2rem; height: 2rem; display: grid; place-items: center; background: var(--color-brand-900); color: white; border-radius: 50%; }
 @keyframes practice-scene-enter { from { transform: translateX(10px); } to { transform: translateX(0); } }
 @media (prefers-reduced-motion: no-preference) { .practice-stage-scene { animation: practice-scene-enter 280ms ease-out; } }
 @media (max-width: 600px) {
@@ -35,4 +77,9 @@
   .practice-stage-art { width: 155px; right: -1.25rem; }
   .practice-stage-caption > p { font-size: 1.05rem; }
   .practice-speaker { gap: .45rem; padding: .5rem; }
+  .practice-stage-props { display: none; }
+  .practice-story-beats { grid-template-columns: 1fr; }
+  .practice-story-picture { align-items: flex-start; gap: .6rem; padding-top: .5rem; }
+  .practice-story-picture svg { width: 80px; height: 90px; }
+  .practice-chapter { padding: 1.4rem; }
 }

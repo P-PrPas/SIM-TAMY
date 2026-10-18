@@ -1,11 +1,14 @@
 import type { components } from "@/lib/api/schema";
 import { t } from "@/lib/i18n";
 import { FamilyIcon } from "./family-art";
+import { FamilyStoryboard } from "./family-story";
 
 type Report = components["schemas"]["FamilyReport"];
 const icons = { communication: "chat", responsibility: "family", safety: "shield", support: "heart" };
 
-export function FamilyReportPanel({ report }: { report: Report }) {
+export function FamilyReportPanel({ report, turns, grandmother, onRestart }: {
+  report: Report; turns: components["schemas"]["FamilyView"]["transcript"]; grandmother: boolean; onRestart: () => void;
+}) {
   const needsReview = report.safety_status === "SAFETY_NOT_MET";
   return <section className="family-report" aria-labelledby="family-report-title">
     <header className="family-report-heading">
@@ -17,6 +20,7 @@ export function FamilyReportPanel({ report }: { report: Report }) {
       <p>{t(needsReview ? "family.safetyReview" : "family.safetyObserved")}</p>
     </div>
     <p className="family-report-note">{t("family.reportNote")}</p>
+    <FamilyStoryboard turns={turns} report={report} grandmother={grandmother} onRestart={onRestart} />
     <div className="family-competencies">{report.competencies.map((item) => <article key={item.skill}>
       <FamilyIcon name={icons[item.skill]} /><h3>{t(`family.skills.${item.skill}`)}</h3>
       {item.opportunities ? <>
