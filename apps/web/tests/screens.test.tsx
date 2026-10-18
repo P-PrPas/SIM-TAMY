@@ -196,7 +196,7 @@ describe("S3 Chat", () => {
     mocks.get.mockResolvedValue({ data: { ...sessionView, history: [{ idx: 1, speaker: "patient", text: "Partner reply" }] } });
     render(<ChatPage />);
     await screen.findByText("Partner reply");
-    expect(screen.getByText(t(label))).toBeTruthy();
+    expect(screen.getByText(t(label), { selector: "li p" })).toBeTruthy();
   });
 
   it("keeps review metadata out of a saved chat while it reloads", async () => {
