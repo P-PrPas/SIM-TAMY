@@ -31,6 +31,7 @@ test("two isolated devices complete a shared story and see the critical checkpoi
     const credentials = await Promise.all([page, partner].map((tab) => tab.evaluate(() =>
       JSON.parse(sessionStorage.getItem("sim-tamy-family:first-night")!) as { room_id: string; token: string },
     )));
+    await expect(page.locator(".parent-profile")).toHaveCount(0);
     for (let i = 0; i < 4; i++) {
       const actor = i % 2 === 0 ? page : partner;
       const saved = credentials[i % 2]!;
@@ -47,6 +48,13 @@ test("two isolated devices complete a shared story and see the critical checkpoi
     }
     await expect(page.getByRole("heading", { name: t("family.report") })).toBeVisible();
     await expect(partner.getByText(t("family.safetyReview"))).toBeVisible();
+    await expect(page.getByText(t("profiles.team"), { exact: true })).toBeVisible();
+    await page.locator(".practice-journal summary").click();
+    await expect(page.locator(".practice-journal li")).toHaveCount(4);
+    const oldRoom = credentials[0]!;
+    await page.getByRole("button", { name: `${t("experience.moment")} 2`, exact: true }).click();
+    await expect(page.locator(".practice-story-pages button[aria-current]")).toHaveText("2");
+    expect((await (await request.get(`http://127.0.0.1:8000/v1/family/rooms/${oldRoom.room_id}`, { headers: { Authorization: `Bearer ${oldRoom.token}` } })).json()).state_version).toBe(4);
     for (const tab of [page, partner]) {
       expect(await tab.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     }
@@ -54,7 +62,12 @@ test("two isolated devices complete a shared story and see the critical checkpoi
       await page.screenshot({ path: ".tmp/family-design/report-360.png", fullPage: true, animations: "disabled" });
       await page.setViewportSize({ width: 1280, height: 900 });
       await page.screenshot({ path: ".tmp/family-design/report-1280.png", fullPage: true, animations: "disabled" });
+      await page.locator(".parent-profile").screenshot({ path: ".tmp/family-design/profile-1280.png", animations: "disabled" });
     }
+    await page.getByRole("button", { name: t("experience.restart"), exact: true }).click();
+    await expect(page.getByRole("button", { name: t("family.create"), exact: true })).toBeEnabled();
+    const retained = await request.get(`http://127.0.0.1:8000/v1/family/rooms/${oldRoom.room_id}`, { headers: { Authorization: `Bearer ${oldRoom.token}` } });
+    expect((await retained.json()).report.safety_status).toBe("SAFETY_NOT_MET");
   } finally { await partnerContext.close(); }
 });
 
@@ -106,6 +119,7 @@ test("a parent resumes a three-chapter story and reaches its evidence report", a
   expect(chapters.size).toBe(3);
   await expect(page.getByRole("heading", { name: t("family.report") })).toBeVisible();
   await expect(page.getByRole("heading", { name: t("family.sources") })).toBeVisible();
+  await expect(page.getByText(t("profiles.personal"), { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
