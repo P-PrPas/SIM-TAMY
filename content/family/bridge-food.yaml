@@ -1,5 +1,5 @@
 id: bridge-food
-version: '1.1'
+version: '1.2'
 status: Draft
 mode: solo
 title_th: สำรับหลังคลอดที่คุยกันได้
@@ -10,28 +10,38 @@ roles:
   mother: คุณเป็นคุณแม่ในเรื่องสมมติ ยายอยากจัดอาหารตามที่บ้านเคยทำ คุณอยากได้รับการดูแลพร้อมบอกสิ่งที่สะดวกและอยากกิน โดยไม่รู้สึกว่าต้องทำตามเพื่อรักษาน้ำใจ
   father: คุณเป็นคุณพ่อในเรื่องสมมติ อยากช่วยเรื่องอาหารและค่าใช้จ่าย คุณจะคุยกับยายพร้อมถามความต้องการของคุณแม่ ไม่เลือกอาหารแทนเธอเพียงลำพัง
 sources:
-  - id: WHO-SUPPORT
-    title_th: องค์การอนามัยโลก — เคารพความต้องการและบริบทครอบครัว
-    url: https://www.who.int/news/item/30-03-2022-who-urges-quality-care-for-women-and-newborns-in-critical-first-weeks-after-childbirth
+  - id: NHS-FAMILY
+    title_th: NHS — คุยกับญาติให้ชัดว่าต้องการความช่วยเหลือแบบไหน
+    url: https://www.nhs.uk/baby/support-and-services/relationships-after-having-a-baby/
     category: guidance
-    summary_th: การดูแลหลังคลอดควรรับฟังผู้รับบริการและสนับสนุนครอบครัว ความเชื่อของยายในเรื่องนี้เป็นเรื่องสมมติของครอบครัวหนึ่ง ไม่ใช่ข้อสรุปของทุกวัฒนธรรมไทย
+    summary_th: หัวข้อ Relationships with family and friends แนะนำให้คุยกับญาติให้ชัดว่าต้องการความช่วยเหลือแบบไหน เพราะทุกคนกำลังปรับตัวกับบทบาทใหม่ในครอบครัว
+  - id: NHS-DIET
+    title_th: NHS — อาหารที่หลากหลายและการขอคำปรึกษาช่วงให้นม
+    url: https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/breastfeeding-and-lifestyle/diet/
+    category: guidance
+    summary_th: ย่อหน้าเปิด Breastfeeding and diet แนะนำอาหารที่ดีต่อสุขภาพและหลากหลายระหว่างให้นม พร้อมการขอคำปรึกษาเรื่องอาหาร เนื้อหาส่วนนี้ไม่ได้ศึกษาผลเพิ่มน้ำนมของเมนูใดเมนูหนึ่ง
   - id: UNICEF-FOOD
     title_th: ยูนิเซฟ — โภชนาการของมารดา
     url: https://www.unicef.org/nutrition/maternal
     category: guidance
     summary_th: เน้นอาหารที่มีคุณค่าทางโภชนาการ การพัก และการเข้าถึงคำปรึกษา โดยคำนึงถึงการเข้าถึงอาหารและบริบทสังคม ไม่รับรองว่าอาหารชนิดเดียวเพิ่มน้ำนมได้แน่นอน
-  - id: WHO-SHARED-CARE
-    title_th: องค์การอนามัยโลก — การมีส่วนร่วมในงานบ้านและการดูแลครอบครัว
-    url: https://www.who.int/news/item/26-09-2019-engaging-men-addressing-harmful-masculinities-to-improve-sexual-and-reproductive-health-and-rights
+  - id: NHS-PARTNER
+    title_th: NHS — บอกความต้องการและแบ่งงานดูแลลูกกับคู่ครอง
+    url: https://www.nhs.uk/baby/support-and-services/relationships-after-having-a-baby/
     category: guidance
-    summary_th: หัวข้อ Harmful masculinities and their consequences รองรับหลักการแบ่งภาระงานดูแลในครอบครัว ใช้ประกอบฉากแบ่งคนซื้อ ทำ และเก็บอาหาร ส่วน UNICEF รองรับด้านโภชนาการและการเข้าถึงอาหาร ไม่ได้กำหนดว่าใครต้องรับหน้าที่ใด
+    summary_th: หัวข้อ Take time to listen to your partner แนะนำให้บอกความรู้สึกและความต้องการตรง ๆ แทนการคาดว่าอีกคนจะรู้เอง พร้อมแบ่งงานบ้านและงานดูแลลูก
+  - id: NHS-QUESTIONS
+    title_th: NHS — เตรียมคำถามและชวนคนในครอบครัวไปปรึกษาด้วยกัน
+    url: https://www.nhs.uk/nhs-services/gps/what-to-ask-your-doctor/
+    category: guidance
+    summary_th: หัวข้อ Treatment และ Top tips แนะนำให้ถามเรื่องประโยชน์ ความเสี่ยง และทางเลือก จดคำถามกับรายการยาและอาหารเสริมไว้ล่วงหน้า และชวนคนที่ไว้ใจไปช่วยฟังหรือจดคำตอบ
 steps:
   - id: understand
     chapter_th: สำรับที่มาพร้อมความรัก
     role: mother
     speaker_th: ยายสาย
     prompt_th: ยายอยากทำอาหารแบบที่บ้านเราเคยทำให้แม่หลังคลอด แต่กลัวหนูไม่อยากกิน เราคุยกันก่อนดีไหม
-    source_ids: [WHO-SUPPORT]
+    source_ids: [NHS-FAMILY, NHS-DIET]
     choices:
       - id: invite-conversation
         text_th: ดีเลยยาย เราอยากรู้ว่าสำรับนี้สำคัญกับยายยังไง แล้วคุยกันด้วยว่าคุณแม่อยากกินอะไรและบ้านเราสะดวกแค่ไหน
@@ -48,7 +58,7 @@ steps:
     role: mother
     speaker_th: ยายสาย
     prompt_th: ถ้าจะช่วยเรื่องอาหาร เราแบ่งกันยังไงดี ยายก็ไม่สะดวกมาทุกวัน แล้วเรื่องงบต้องคุยกันด้วย
-    source_ids: [UNICEF-FOOD, WHO-SHARED-CARE]
+    source_ids: [UNICEF-FOOD, NHS-PARTNER]
     choices:
       - id: realistic-plan
         text_th: มาช่วยกันเลือกตามสิ่งที่หาได้และความต้องการคุณแม่ แล้วแบ่งคนซื้อ คนทำ และคนเก็บ ไม่ให้ใครต้องรับทั้งหมดคนเดียว
@@ -66,7 +76,7 @@ steps:
     speaker_th: ยายสาย
     prompt_th: มีคนบอกยายว่าอาหารอย่างเดียวก็ทำให้น้ำนมดีแน่นอน ถ้าคุณแม่กังวลเรื่องนี้ เราควรตอบเขายังไง
     critical: true
-    source_ids: [UNICEF-FOOD, WHO-SUPPORT]
+    source_ids: [NHS-DIET, NHS-QUESTIONS]
     choices:
       - id: support-and-ask
         text_th: เราช่วยดูแลเรื่องอาหารและพักได้ แต่ไม่รับรองผลจากอาหารชนิดเดียว ถ้าคุณแม่กังวล เราช่วยติดต่อบุคลากรสุขภาพให้ได้คำปรึกษาที่เหมาะกับเธอดีกว่า

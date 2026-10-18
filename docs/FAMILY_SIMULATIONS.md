@@ -20,6 +20,12 @@ Each response contains only its caller's private
 brief, the current scene and shared past exchanges. Feedback, source references
 and competency counts are returned only once the story is complete.
 
+Story references were rechecked at version 1.2 against directly read guidance sections;
+see [the claim-level source map](research/family-reference-recheck.md). New rooms use
+the new references. Existing rooms retain their original story/reference snapshot,
+so start a new round to verify updated sources after deployment. Historical reports
+and event logs are not rewritten. Reference provenance does not approve Draft content.
+
 The four competencies count observed authored choices / opportunities. These are
 formative indicators within this activity, not a validated readiness scale.
 Any missed critical help-seeking checkpoint yields `SAFETY_NOT_MET`, even if all
