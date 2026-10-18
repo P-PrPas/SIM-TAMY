@@ -63,3 +63,27 @@ it("lets a learner recover when a restored role token is no longer usable", asyn
   expect(sessionStorage.getItem("sim-tamy-family:first-night")).toBeNull();
   expect(await screen.findByRole("button", { name: t("family.create") })).not.toBeNull();
 });
+
+it.each([false, true])("copies an invitation or explains manual copying when clipboard fails: %s", async (fails) => {
+  const writeText = vi.fn<(text: string) => Promise<void>>().mockImplementation(() => fails ? Promise.reject(new Error("Clipboard unavailable")) : Promise.resolve());
+  Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+  sessionStorage.setItem("sim-tamy-family:first-night", JSON.stringify({ room_id: room.room_id, token: "host-token", invite: "test-invite" }));
+  vi.stubGlobal("fetch", vi.fn(async (request: Request) => Response.json(request.url.endsWith("/stories") ? [] : { ...room, partner_joined: false })));
+  render(<FamilySimulator storyId="first-night" />);
+  fireEvent.click(await screen.findByRole("button", { name: t("family.design.copy") }));
+  await screen.findByText(t(fails ? "family.design.copyManual" : "family.design.copySuccess"));
+  expect(writeText).toHaveBeenCalledOnce();
+  expect(writeText.mock.calls[0]?.[0]).toContain(`#room=${room.room_id}&invite=test-invite`);
+});
+
+it("keeps the latest reply visible and earlier conversation available on demand", async () => {
+  sessionStorage.setItem("sim-tamy-family:first-night", JSON.stringify({ room_id: room.room_id, token: "host-token" }));
+  const turn = { idx: 1, role: "mother", speaker_th: "Partner", prompt_th: "First prompt", text_th: "Earlier choice", reply_th: "Earlier reply" };
+  vi.stubGlobal("fetch", vi.fn(async (request: Request) => Response.json(request.url.endsWith("/stories") ? [] : { ...room, transcript: [turn, { ...turn, idx: 2, text_th: "Latest choice", reply_th: "Latest reply" }] })));
+  render(<FamilySimulator storyId="first-night" />);
+  expect(await screen.findByText("Latest reply")).not.toBeNull();
+  const earlier = screen.getByText("Earlier reply").closest("details");
+  expect(earlier?.open).toBe(false);
+  fireEvent.click(screen.getByText(t("family.design.history")));
+  await waitFor(() => expect(earlier?.open).toBe(true));
+});

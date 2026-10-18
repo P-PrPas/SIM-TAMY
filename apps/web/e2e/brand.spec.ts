@@ -9,7 +9,8 @@ for (const viewport of [{ width: 360, height: 780 }, { width: 844, height: 390 }
     await page.goto("/");
     await expect(page.locator("#case:enabled")).toBeVisible();
     await expect(page.getByRole("navigation", { name: t("nav.label") })).toBeVisible();
-    await expect(page.getByRole("link", { name: t("app.title"), exact: true })).toBeVisible();
+    await expect(page.locator("a.brand")).toBeVisible();
+    await expect(page.locator("a.brand")).toHaveAccessibleName(/SIM-TAMY/);
     await page.evaluate(() => document.fonts.ready);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(await page.locator(".hero-logo").evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
