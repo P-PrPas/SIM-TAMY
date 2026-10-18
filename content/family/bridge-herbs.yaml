@@ -1,5 +1,5 @@
 id: bridge-herbs
-version: '1.1'
+version: '1.2'
 status: Draft
 mode: solo
 title_th: สมุนไพรช่วงให้นม ถามก่อนด้วยความใส่ใจ
@@ -15,18 +15,28 @@ sources:
     url: https://www.ncbi.nlm.nih.gov/sites/books/NBK547438/pdf/Bookshelf_NBK547438.pdf
     category: limited_evidence
     summary_th: ข้อมูลความปลอดภัยระหว่างให้นมของผลิตภัณฑ์หลายชนิดมีจำกัด สูตรและปริมาณส่วนประกอบอาจแตกต่างกัน ผลของส่วนประกอบหนึ่งไม่แทนผลของผลิตภัณฑ์ผสม
-  - id: WHO-SUPPORT
-    title_th: องค์การอนามัยโลก — สนับสนุนครอบครัวและการเข้าถึงคำปรึกษา
-    url: https://www.who.int/news/item/30-03-2022-who-urges-quality-care-for-women-and-newborns-in-critical-first-weeks-after-childbirth
+  - id: NHS-CONSENT
+    title_th: NHS — ตัดสินใจโดยเข้าใจข้อมูลและไม่ถูกครอบครัวกดดัน
+    url: https://www.nhs.uk/tests-and-treatments/consent-to-treatment/
     category: guidance
-    summary_th: ให้ความสำคัญกับการมีส่วนตัดสินใจ การสนับสนุนคู่ครอง และการรับคำปรึกษาจากบุคลากรสุขภาพ
+    summary_th: หัวข้อ Defining consent อธิบายว่าการยินยอมควรเป็นการตัดสินใจโดยสมัครใจ หลังเข้าใจประโยชน์ ความเสี่ยง และทางเลือก โดยไม่ถูกเพื่อนหรือครอบครัวกดดัน
+  - id: NHS-HERBS
+    title_th: NHS — สมุนไพรช่วงให้นมและการปรึกษาแพทย์หรือเภสัชกร
+    url: https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/breastfeeding-and-lifestyle/medicines/
+    category: guidance
+    summary_th: หัวข้อ Is there anything I cannot take while I'm breastfeeding? ระบุว่าข้อมูลสมุนไพรยังไม่เพียงพอที่จะรับประกันความปลอดภัยระหว่างให้นม และชี้ช่องทางปรึกษาบุคลากรสุขภาพ ข้อจำกัดของข้อมูลนี้ไม่ได้หมายความว่าสมุนไพรทุกชนิดเป็นอันตราย
+  - id: NHS-QUESTIONS
+    title_th: NHS — เตรียมคำถามและชวนคนในครอบครัวไปปรึกษาด้วยกัน
+    url: https://www.nhs.uk/nhs-services/gps/what-to-ask-your-doctor/
+    category: guidance
+    summary_th: หัวข้อ Treatment และ Top tips แนะนำให้ถามเรื่องประโยชน์ ความเสี่ยง และทางเลือก จดคำถามกับรายการยาและอาหารเสริมไว้ล่วงหน้า และชวนคนที่ไว้ใจไปช่วยฟังหรือจดคำตอบ
 steps:
   - id: receive
     chapter_th: รับความหวังดีโดยไม่รีบรับรอง
     role: mother
     speaker_th: ยายสาย
     prompt_th: คนรู้จักฝากสมุนไพรมาให้ บอกว่าดีกับแม่ให้นม ยายยังไม่ได้ถามส่วนประกอบครบ หนูอยากดูก่อนไหม
-    source_ids: [LACTMED-SUPPLEMENTS, WHO-SUPPORT]
+    source_ids: [LACTMED-SUPPLEMENTS, NHS-CONSENT]
     choices:
       - id: thank-and-check
         text_th: ขอบคุณที่นึกถึงนะยาย เราขอดูฉลากกับข้อมูลก่อน ยังไม่อยากตัดสินใจจากคำบอกต่ออย่างเดียว
@@ -61,7 +71,7 @@ steps:
     speaker_th: ยายสาย
     prompt_th: ถ้าตอนนี้ยังตรวจข้อมูลไม่ครบ ยายจะบอกคนที่ฝากมายังไงให้เขารู้ว่าเราไม่ได้ไม่เห็นน้ำใจ
     critical: true
-    source_ids: [LACTMED-SUPPLEMENTS, WHO-SUPPORT]
+    source_ids: [NHS-HERBS, NHS-QUESTIONS, NHS-CONSENT]
     choices:
       - id: pause-and-support
         text_th: บอกว่าขอบคุณมาก แต่เรายังไม่เริ่มใช้จนได้คำปรึกษาจากบุคลากรที่เกี่ยวข้อง เราจะช่วยอธิบายด้วยกัน ไม่ปล่อยให้คุณแม่ต้องปฏิเสธอยู่คนเดียว

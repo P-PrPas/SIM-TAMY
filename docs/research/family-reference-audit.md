@@ -1,5 +1,8 @@
 # Family reference audit
 
+Superseded by the [claim-level recheck](family-reference-recheck.md). The references below
+were real, but several mappings were too broad; version 1.2 uses direct practical sections.
+
 Audited 2026-10-18. Scope: all six stories and all 22 decision steps under
 `content/family/`, which render the "sources of ideas and information" report.
 This is a reference audit, not clinical/cultural approval or an audit of the

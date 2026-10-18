@@ -1,5 +1,5 @@
 id: bridge-compress
-version: '1.1'
+version: '1.2'
 status: Draft
 mode: solo
 title_th: ประคบสมุนไพร ถามให้เข้าใจก่อนตัดสินใจ
@@ -15,23 +15,33 @@ sources:
     url: https://www.dtam.moph.go.th/wp-content/uploads/2023/11/DL0003-15062558-ICD-10-TM.pdf#page=77
     category: culture
     summary_th: หน้าเอกสาร 69 (หน้า PDF 77) รหัส 900-77-14 บันทึกชื่อการประคบสมุนไพรหลังคลอด ใช้อ้างอิงชื่อหัตถการ ไม่ได้ใช้รับรองผลิตภัณฑ์ ประสิทธิผล หรือวิธีสนทนากับคนในครอบครัว
+  - id: NHS-FAMILY
+    title_th: NHS — คุยกับญาติให้ชัดว่าต้องการความช่วยเหลือแบบไหน
+    url: https://www.nhs.uk/baby/support-and-services/relationships-after-having-a-baby/
+    category: guidance
+    summary_th: หัวข้อ Relationships with family and friends แนะนำให้คุยกับญาติให้ชัดว่าต้องการความช่วยเหลือแบบไหน เพราะทุกคนกำลังปรับตัวกับบทบาทใหม่ในครอบครัว
   - id: DTAM-TRIAL
     title_th: ฐานวิจัยกรมการแพทย์แผนไทยฯ — การศึกษาขิงและการประคบในมารดาหลังคลอด
     url: https://rdtam.dtam.moph.go.th/th/data_collections/3351
     category: limited_evidence
     summary_th: บทคัดย่อรายงานปริมาณน้ำนมระหว่างกลุ่มไม่ต่างอย่างมีนัยสำคัญทางสถิติ ผลจากการศึกษาหนึ่งไม่ยืนยันผลหรือความปลอดภัยของทุกวิธีและทุกคน
-  - id: WHO-SUPPORT
-    title_th: องค์การอนามัยโลก — การมีส่วนตัดสินใจในการดูแลหลังคลอด
-    url: https://www.who.int/news/item/30-03-2022-who-urges-quality-care-for-women-and-newborns-in-critical-first-weeks-after-childbirth
+  - id: NHS-QUESTIONS
+    title_th: NHS — เตรียมคำถามและชวนคนในครอบครัวไปปรึกษาด้วยกัน
+    url: https://www.nhs.uk/nhs-services/gps/what-to-ask-your-doctor/
     category: guidance
-    summary_th: การดูแลควรเคารพความต้องการของผู้รับบริการและเปิดทางเข้าถึงบุคลากรสุขภาพ
+    summary_th: หัวข้อ Treatment และ Top tips แนะนำให้ถามเรื่องประโยชน์ ความเสี่ยง และทางเลือก จดคำถามกับรายการยาและอาหารเสริมไว้ล่วงหน้า และชวนคนที่ไว้ใจไปช่วยฟังหรือจดคำตอบ
+  - id: NHS-CONSENT
+    title_th: NHS — ตัดสินใจโดยเข้าใจข้อมูลและไม่ถูกครอบครัวกดดัน
+    url: https://www.nhs.uk/tests-and-treatments/consent-to-treatment/
+    category: guidance
+    summary_th: หัวข้อ Defining consent อธิบายว่าการยินยอมควรเป็นการตัดสินใจโดยสมัครใจ หลังเข้าใจประโยชน์ ความเสี่ยง และทางเลือก โดยไม่ถูกเพื่อนหรือครอบครัวกดดัน
 steps:
   - id: listen
     chapter_th: เริ่มจากความห่วงใย
     role: mother
     speaker_th: ยายสาย
     prompt_th: ยายจำได้ว่าตอนมีคนประคบให้ ยายรู้สึกว่ามีคนดูแล เลยอยากหาลูกประคบมาให้ หนูคิดยังไง
-    source_ids: [DTAM-CULTURE, WHO-SUPPORT]
+    source_ids: [DTAM-CULTURE, NHS-FAMILY]
     choices:
       - id: listen-first
         text_th: เราเข้าใจว่ายายอยากให้ได้พักและมีคนดูแล ขอบคุณนะ ขอคุยรายละเอียดกันก่อนจะตัดสินใจได้ไหม
@@ -48,7 +58,7 @@ steps:
     role: mother
     speaker_th: ยายสาย
     prompt_th: คนขายบอกว่าประคบแล้วน้ำนมจะดี ยายก็ไม่รู้ว่าเขาอ้างอิงอะไร หนูอยากถามเรื่องไหนบ้าง
-    source_ids: [DTAM-TRIAL]
+    source_ids: [DTAM-TRIAL, NHS-QUESTIONS]
     choices:
       - id: examine-claim
         text_th: อยากรู้ส่วนประกอบ วิธีที่เขาหมายถึง และหลักฐานของคำกล่าวนั้นก่อน ผลจากวิธีหนึ่งอาจใช้แทนทุกผลิตภัณฑ์ไม่ได้
@@ -66,7 +76,7 @@ steps:
     speaker_th: ยายสาย
     prompt_th: ถ้ายังตอบเรื่องส่วนประกอบกับวิธีใช้ไม่ได้ครบ เราจะทำยังไงให้คุณแม่ไม่ต้องเกรงใจยาย
     critical: true
-    source_ids: [WHO-SUPPORT, DTAM-TRIAL]
+    source_ids: [DTAM-TRIAL, NHS-CONSENT, NHS-QUESTIONS]
     choices:
       - id: pause-consult
         text_th: เรายังไม่เริ่มจากข้อมูลที่ไม่ครบ ช่วยกันนำรายละเอียดไปถามผู้ประกอบวิชาชีพ และฟังว่าคุณแม่ต้องการหรือกังวลอะไรด้วย

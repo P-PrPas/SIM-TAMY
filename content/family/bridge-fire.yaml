@@ -1,5 +1,5 @@
 id: bridge-fire
-version: '1.1'
+version: '1.2'
 status: Draft
 mode: solo
 title_th: คุยกับยายเรื่องอยู่ไฟ ด้วยความเข้าใจ
@@ -15,18 +15,28 @@ sources:
     url: https://www.dtam.moph.go.th/wp-content/uploads/2023/11/DL0003-15062558-ICD-10-TM.pdf#page=77
     category: culture
     summary_th: หน้าเอกสาร 69 (หน้า PDF 77) รหัส 900-77-20 บันทึกชื่อการอยู่ไฟ ใช้อ้างอิงชื่อหัตถการในศาสตร์แผนไทย ไม่ได้ใช้ยืนยันผลทางคลินิก ข้อห้ามเฉพาะบุคคล หรือวิธีสนทนากับคนในครอบครัว
-  - id: WHO-SUPPORT
-    title_th: องค์การอนามัยโลก — การดูแลหลังคลอดที่เคารพผู้รับบริการและบริบทวัฒนธรรม
-    url: https://www.who.int/news/item/30-03-2022-who-urges-quality-care-for-women-and-newborns-in-critical-first-weeks-after-childbirth
+  - id: NHS-FAMILY
+    title_th: NHS — คุยกับญาติให้ชัดว่าต้องการความช่วยเหลือแบบไหน
+    url: https://www.nhs.uk/baby/support-and-services/relationships-after-having-a-baby/
     category: guidance
-    summary_th: ให้ความสำคัญกับการสนับสนุนครอบครัว การมีส่วนตัดสินใจ และการเข้าถึงบุคลากรสุขภาพ แหล่งนี้ไม่ใช่คำรับรองหัตถการอยู่ไฟเฉพาะบุคคล
+    summary_th: หัวข้อ Relationships with family and friends แนะนำให้คุยกับญาติให้ชัดว่าต้องการความช่วยเหลือแบบไหน เพราะทุกคนกำลังปรับตัวกับบทบาทใหม่ในครอบครัว
+  - id: NHS-QUESTIONS
+    title_th: NHS — เตรียมคำถามและชวนคนในครอบครัวไปปรึกษาด้วยกัน
+    url: https://www.nhs.uk/nhs-services/gps/what-to-ask-your-doctor/
+    category: guidance
+    summary_th: หัวข้อ Treatment และ Top tips แนะนำให้ถามเรื่องประโยชน์ ความเสี่ยง และทางเลือก จดคำถามกับรายการยาและอาหารเสริมไว้ล่วงหน้า และชวนคนที่ไว้ใจไปช่วยฟังหรือจดคำตอบ
+  - id: NHS-CONSENT
+    title_th: NHS — ตัดสินใจโดยเข้าใจข้อมูลและไม่ถูกครอบครัวกดดัน
+    url: https://www.nhs.uk/tests-and-treatments/consent-to-treatment/
+    category: guidance
+    summary_th: หัวข้อ Defining consent อธิบายว่าการยินยอมควรเป็นการตัดสินใจโดยสมัครใจ หลังเข้าใจประโยชน์ ความเสี่ยง และทางเลือก โดยไม่ถูกเพื่อนหรือครอบครัวกดดัน
 steps:
   - id: listen
     chapter_th: ฟังสิ่งที่ยายเป็นห่วง
     role: mother
     speaker_th: ยายสาย
     prompt_th: ตอนยายมีลูก ผู้ใหญ่ก็ช่วยดูแลกันเรื่องอยู่ไฟ ยายเลยอยากช่วยแบบที่เคยได้รับมา หนูรู้สึกยังไงบ้าง
-    source_ids: [DTAM-CULTURE, WHO-SUPPORT]
+    source_ids: [DTAM-CULTURE, NHS-FAMILY]
     choices:
       - id: hear-intention
         text_th: ขอบคุณที่เป็นห่วงนะยาย อยากฟังว่าสำหรับยาย เรื่องนี้ช่วยให้รู้สึกได้รับการดูแลยังไงบ้าง
@@ -43,7 +53,7 @@ steps:
     role: mother
     speaker_th: ยายสาย
     prompt_th: ยายเคยทำแล้วรู้สึกว่าดี แต่ก็ไม่รู้ว่าของหนูกับของยายเหมือนกันไหม เราจะคุยเรื่องนี้ต่อยังไงดี
-    source_ids: [DTAM-CULTURE, WHO-SUPPORT]
+    source_ids: [DTAM-CULTURE, NHS-QUESTIONS]
     choices:
       - id: clarify-details
         text_th: ประสบการณ์ยายสำคัญนะ แต่เราอยากจดก่อนว่าหมายถึงวิธีไหนและใครจะดูแล แล้วค่อยนำคำถามไปคุยกับผู้ประกอบวิชาชีพที่เกี่ยวข้อง
@@ -61,7 +71,7 @@ steps:
     speaker_th: ยายสาย
     prompt_th: ถ้าตอนนี้ยังไม่มั่นใจ ยายควรช่วยอะไรแทนดี จะได้ไม่รู้สึกว่ายายมารบกวน
     critical: true
-    source_ids: [WHO-SUPPORT]
+    source_ids: [NHS-CONSENT, NHS-QUESTIONS, NHS-FAMILY]
     choices:
       - id: seek-guidance
         text_th: ช่วยงานบ้านให้คุณแม่ได้พักก่อนดีไหม ส่วนเรื่องอยู่ไฟเรายังไม่เริ่มจนกว่าจะได้คุยกับผู้ประกอบวิชาชีพและฟังความต้องการของคุณแม่ด้วย

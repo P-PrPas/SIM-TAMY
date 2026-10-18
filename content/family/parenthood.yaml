@@ -1,5 +1,5 @@
 id: parenthood
-version: '1.1'
+version: '1.2'
 status: Draft
 mode: solo
 title_th: 100 วันแรก เรียนรู้ไปกับครอบครัว
@@ -9,28 +9,38 @@ roles:
   mother: คุณรับบทคุณแม่ในครอบครัวสมมติที่กำลังเตรียมต้อนรับลูก คุณอยากให้ทุกคนช่วยกันคิดและเคารพการตัดสินใจของคุณ เรื่องราวข้ามช่วงเวลาได้ ไม่ใช่ตารางติดตามสุขภาพรายวัน
   father: คุณรับบทคุณพ่อในครอบครัวสมมติที่กำลังเตรียมต้อนรับลูก คุณอยากช่วยคนรักและลูก แต่ยังต้องเรียนรู้การรับฟังและแบ่งหน้าที่ เรื่องราวข้ามช่วงเวลาได้ ไม่ใช่ตารางติดตามสุขภาพรายวัน
 sources:
-  - id: WHO-SUPPORT
-    title_th: องค์การอนามัยโลก — การมีส่วนร่วมและการสนับสนุนครอบครัวหลังคลอด
-    url: https://www.who.int/news/item/30-03-2022-who-urges-quality-care-for-women-and-newborns-in-critical-first-weeks-after-childbirth
+  - id: NHS-PARTNER
+    title_th: NHS — บอกความต้องการและแบ่งงานดูแลลูกกับคู่ครอง
+    url: https://www.nhs.uk/baby/support-and-services/relationships-after-having-a-baby/
     category: guidance
-    summary_th: สนับสนุนการมีส่วนร่วมของคู่ครอง การดูแลความรู้สึก และการเข้าถึงบุคลากรสุขภาพ แนวทางนี้ไม่ได้รับรองแบบจำลองชีวิต 100 วัน
-  - id: UNICEF-NIGHT
-    title_th: ยูนิเซฟ — การนอนของทารกและการขอคนช่วย
-    url: https://www.unicef.org/parenting/child-care/baby-sleep
+    summary_th: หัวข้อ Take time to listen to your partner แนะนำให้บอกความรู้สึกและความต้องการตรง ๆ แทนการคาดว่าอีกคนจะรู้เอง พร้อมแบ่งงานบ้านและงานดูแลลูก
+  - id: NHS-REST
+    title_th: NHS — แบ่งเวลาดูแลและขอคนที่ไว้ใจช่วยให้ได้พัก
+    url: https://www.nhs.uk/baby/support-and-services/sleep-and-tiredness-after-having-a-baby/
     category: guidance
-    summary_th: รูปแบบการนอนของทารกแตกต่างกันและผู้ดูแลสามารถขอคนที่ไว้ใจช่วยได้ เรื่องราวนี้ไม่ทำนายการนอนของเด็กจริง
-  - id: WHO-SHARED-CARE
-    title_th: องค์การอนามัยโลก — การมีส่วนร่วมในงานบ้านและการดูแลครอบครัว
-    url: https://www.who.int/news/item/26-09-2019-engaging-men-addressing-harmful-masculinities-to-improve-sexual-and-reproductive-health-and-rights
+    summary_th: หัวข้อ Share the nights if you can และ Ask friends and relatives for extra support แนะนำให้คู่ครองช่วยแบ่งงานดูแลลูก และขอญาติหรือเพื่อนที่ไว้ใจมาช่วยเพื่อให้ได้พัก ส่วน Where to get further help กล่าวถึงการขอคำปรึกษาเมื่อเหนื่อยจนรับมือไม่ไหว
+  - id: NHS-QUESTIONS
+    title_th: NHS — เตรียมคำถามและชวนคนในครอบครัวไปปรึกษาด้วยกัน
+    url: https://www.nhs.uk/nhs-services/gps/what-to-ask-your-doctor/
     category: guidance
-    summary_th: หัวข้อ Harmful masculinities and their consequences กล่าวถึงภาระที่ตกกับผู้หญิงจากการมีส่วนร่วมในงานบ้านและการดูแลลูกที่จำกัดของผู้ชาย ใช้รองรับหลักการแบ่งภาระ ส่วนแผนและการย้อนทบทวนข้อตกลงในแต่ละบทเป็นกิจกรรมที่เราออกแบบ ไม่ใช่โปรแกรมที่ WHO รับรอง
+    summary_th: หัวข้อ Treatment และ Top tips แนะนำให้ถามเรื่องประโยชน์ ความเสี่ยง และทางเลือก จดคำถามกับรายการยาและอาหารเสริมไว้ล่วงหน้า และชวนคนที่ไว้ใจไปช่วยฟังหรือจดคำตอบ
+  - id: NHS-FAMILY
+    title_th: NHS — คุยกับญาติให้ชัดว่าต้องการความช่วยเหลือแบบไหน
+    url: https://www.nhs.uk/baby/support-and-services/relationships-after-having-a-baby/
+    category: guidance
+    summary_th: หัวข้อ Relationships with family and friends แนะนำให้คุยกับญาติให้ชัดว่าต้องการความช่วยเหลือแบบไหน เพราะทุกคนกำลังปรับตัวกับบทบาทใหม่ในครอบครัว
+  - id: NHS-CONSENT
+    title_th: NHS — ตัดสินใจโดยเข้าใจข้อมูลและไม่ถูกครอบครัวกดดัน
+    url: https://www.nhs.uk/tests-and-treatments/consent-to-treatment/
+    category: guidance
+    summary_th: หัวข้อ Defining consent อธิบายว่าการยินยอมควรเป็นการตัดสินใจโดยสมัครใจ หลังเข้าใจประโยชน์ ความเสี่ยง และทางเลือก โดยไม่ถูกเพื่อนหรือครอบครัวกดดัน
 steps:
   - id: before-plan
     chapter_th: บทที่ 1 — ก่อนลูกลืมตาดูโลก
     role: mother
     speaker_th: คนรักของคุณ
     prompt_th: ของใช้เกือบครบแล้ว แต่เรายังไม่ได้คุยกันเลยว่าหลังกลับบ้านใครจะช่วยอะไร เราอยากรู้ว่าเธอคาดหวังอะไรจากเราบ้าง
-    source_ids: [WHO-SUPPORT, WHO-SHARED-CARE]
+    source_ids: [NHS-PARTNER]
     choices:
       - id: plan-together
         text_th: เรามาเขียนสิ่งที่ต้องทำแล้วแบ่งกันตามกำลังดีไหม ไม่ต้องเป๊ะตั้งแต่แรก แต่ขอให้มีเวลาคุยปรับกันด้วย
@@ -48,7 +58,7 @@ steps:
     role: mother
     speaker_th: คนรักของคุณ
     prompt_th: แล้วถ้าเราสองคนเหนื่อยหรือกังวลจนไม่รู้จะทำยังไง เรามีใครที่ขอให้ช่วยได้บ้าง
-    source_ids: [WHO-SUPPORT, UNICEF-NIGHT]
+    source_ids: [NHS-REST, NHS-QUESTIONS]
     choices:
       - id: name-support
         text_th: เราลองถามคนที่ไว้ใจว่าสะดวกช่วยอะไรได้บ้าง และเก็บช่องทางติดต่อทีมสุขภาพไว้ด้วยนะ
@@ -68,7 +78,7 @@ steps:
     prompt_th: กลับถึงบ้านแล้ว เราเริ่มจากหน้าที่ที่คุยกันไว้ก่อนนะ แต่คืนนี้มีอะไรอยากปรับจากแผนไหม
     prompt_if:
       no-plan: ลูกเพิ่งหลับ เราต่างคนต่างเดินหาของจนวุ่นไปหมด จำได้ไหมว่าก่อนคลอดเรายังไม่ได้แบ่งหน้าที่กัน คืนนี้อยากให้เราเริ่มช่วยตรงไหน
-    source_ids: [WHO-SUPPORT, WHO-SHARED-CARE]
+    source_ids: [NHS-PARTNER, NHS-REST]
     choices:
       - id: adjust-plan
         text_th: ตอนนี้เราต้องการพักกับคนช่วยคิด ช่วยรับเรื่องจัดของและอาหารไปก่อน แล้วเรามาทบทวนกันพรุ่งนี้ได้ไหม
@@ -87,7 +97,7 @@ steps:
     prompt_th: คืนนี้เราเริ่มล้ากันแล้ว คนที่เราคุยไว้ว่าจะช่วยสะดวกช่วงไหนนะ อยากให้เราลองติดต่อไหม
     prompt_if:
       no-support: เมื่อก่อนคลอดเราเลือกจะจัดการกันเอง แต่คืนนี้เราทั้งคู่เริ่มล้าแล้ว ลองคิดหาคนสำรองด้วยกันตอนนี้ได้ไหม
-    source_ids: [UNICEF-NIGHT]
+    source_ids: [NHS-REST]
     choices:
       - id: request-relief
         text_th: ลองถามเขาก่อนว่าสะดวกไหม เรามาตกลงสิ่งที่จะขอให้ช่วยให้ชัด แล้วไม่ต้องฝืนว่าเราต้องไหวตลอดก็ได้
@@ -106,7 +116,7 @@ steps:
     prompt_if:
       plan-repaired: คืนแรกหนูเริ่มแบ่งหน้าที่กันใหม่แล้ว ยายอยากช่วยต่อโดยไม่ไปจัดการแทนทั้งหมด พวกหนูอยากให้ยายช่วยตรงไหน
       no-plan: ยายเห็นว่ายังตกลงหน้าที่กันไม่ลงตัว เลยอยากเข้ามาจัดให้ทั้งหมด สมัยยายทำแบบนี้กัน พวกหนูอยากให้ยายช่วยตรงไหน
-    source_ids: [WHO-SUPPORT]
+    source_ids: [NHS-FAMILY]
     choices:
       - id: respectful-boundary
         text_th: ขอบคุณที่เป็นห่วงนะ เราอยากฟังว่ายายตั้งใจช่วยเรื่องอะไร แล้วมาคุยกันว่าอะไรเหมาะกับความต้องการของบ้านเราตอนนี้
@@ -123,7 +133,7 @@ steps:
     speaker_th: คนรักของคุณ
     prompt_th: มีคำแนะนำหลายทางจนเราเริ่มไม่แน่ใจ ถ้าเกี่ยวกับสุขภาพแม่หรือลูก เราจะตกลงกันยังไงโดยไม่ให้ใครรู้สึกถูกทิ้ง
     critical: true
-    source_ids: [WHO-SUPPORT]
+    source_ids: [NHS-QUESTIONS, NHS-CONSENT]
     choices:
       - id: verify-together
         text_th: เราฟังความเห็นทุกคน แต่เรื่องที่ไม่แน่ใจจะช่วยกันถามบุคลากรสุขภาพก่อน ไม่ให้อีกคนต้องตัดสินใจหรืออธิบายกับบ้านอยู่คนเดียว

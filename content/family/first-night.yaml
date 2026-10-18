@@ -1,5 +1,5 @@
 id: first-night
-version: '1.1'
+version: '1.2'
 status: Draft
 title_th: คืนแรกที่บ้าน เราเป็นทีมเดียวกัน
 description_th: ผลัดกันรับบทมะลิและนนท์ ฟังสิ่งที่อีกคนยังไม่ได้พูด แบ่งหน้าที่ และวางแผนขอความช่วยเหลือร่วมกัน
@@ -8,28 +8,33 @@ roles:
   mother: คุณคือมะลิ เพิ่งกลับบ้านพร้อมลูก คุณเหนื่อยและอยากพัก แต่กลัวนนท์จะคิดว่าคุณดูแลลูกไม่ไหว คุณอยากให้เขาถามก่อนว่าต้องการอะไร มากกว่ารอให้คุณสั่งทุกเรื่อง
   father: คุณคือนนท์ อยากช่วยมะลิแต่ไม่รู้จะเริ่มตรงไหน คุณจัดของและทำงานบ้านได้ พรุ่งนี้มีงานเช้า จึงอยากตกลงหน้าที่และคนสำรองให้ชัด แทนการเดาใจกัน
 sources:
-  - id: WHO-SUPPORT
-    title_th: องค์การอนามัยโลก — การดูแลแม่ เด็ก และครอบครัวหลังคลอด
-    url: https://www.who.int/news/item/30-03-2022-who-urges-quality-care-for-women-and-newborns-in-critical-first-weeks-after-childbirth
+  - id: NHS-PARTNER
+    title_th: NHS — บอกความต้องการและแบ่งงานดูแลลูกกับคู่ครอง
+    url: https://www.nhs.uk/baby/support-and-services/relationships-after-having-a-baby/
     category: guidance
-    summary_th: สนับสนุนการมีส่วนร่วมของคู่ครอง การดูแลทั้งร่างกายและความรู้สึก และการขอความช่วยเหลือจากบุคลากรสุขภาพ
-  - id: UNICEF-NIGHT
-    title_th: ยูนิเซฟ — การนอนของทารกและการขอคนช่วยดูแล
-    url: https://www.unicef.org/parenting/child-care/baby-sleep
+    summary_th: หัวข้อ Take time to listen to your partner แนะนำให้บอกความรู้สึกและความต้องการตรง ๆ แทนการคาดว่าอีกคนจะรู้เอง พร้อมแบ่งงานบ้านและงานดูแลลูก
+  - id: NHS-REST
+    title_th: NHS — แบ่งเวลาดูแลและขอคนที่ไว้ใจช่วยให้ได้พัก
+    url: https://www.nhs.uk/baby/support-and-services/sleep-and-tiredness-after-having-a-baby/
     category: guidance
-    summary_th: การนอนของทารกแต่ละคนต่างกัน ผู้ดูแลที่เหนื่อยหรือรับมือไม่ไหวควรขอความช่วยเหลือจากคนที่ไว้ใจ
-  - id: WHO-SHARED-CARE
-    title_th: องค์การอนามัยโลก — การมีส่วนร่วมในงานบ้านและการดูแลครอบครัว
-    url: https://www.who.int/news/item/26-09-2019-engaging-men-addressing-harmful-masculinities-to-improve-sexual-and-reproductive-health-and-rights
+    summary_th: หัวข้อ Share the nights if you can และ Ask friends and relatives for extra support แนะนำให้คู่ครองช่วยแบ่งงานดูแลลูก และขอญาติหรือเพื่อนที่ไว้ใจมาช่วยเพื่อให้ได้พัก ส่วน Where to get further help กล่าวถึงการขอคำปรึกษาเมื่อเหนื่อยจนรับมือไม่ไหว
+  - id: NHS-BABY-HELP
+    title_th: NHS — ขอความช่วยเหลือเมื่อกังวลว่าลูกไม่สบาย
+    url: https://www.nhs.uk/baby/health/when-to-get-urgent-medical-help-for-babies-and-children-under-5/
     category: guidance
-    summary_th: หัวข้อ Harmful masculinities and their consequences กล่าวถึงภาระที่ตกกับผู้หญิงจากการมีส่วนร่วมในงานบ้านและการดูแลลูกที่จำกัดของผู้ชาย ใช้รองรับหลักการแบ่งภาระ ส่วนหน้าที่และถ้อยคำในบทเป็นตัวอย่างที่เราออกแบบ ไม่ใช่สูตรแบ่งงานจาก WHO
+    summary_th: หัวข้อ Trust your instincts และ Urgent advice แนะนำให้ขอความช่วยเหลือทางการแพทย์เมื่อกังวลว่าลูกป่วยรุนแรง หรือไม่แน่ใจว่าควรทำอย่างไร
+  - id: NHS-QUESTIONS
+    title_th: NHS — เตรียมคำถามและชวนคนในครอบครัวไปปรึกษาด้วยกัน
+    url: https://www.nhs.uk/nhs-services/gps/what-to-ask-your-doctor/
+    category: guidance
+    summary_th: หัวข้อ Treatment และ Top tips แนะนำให้ถามเรื่องประโยชน์ ความเสี่ยง และทางเลือก จดคำถามกับรายการยาและอาหารเสริมไว้ล่วงหน้า และชวนคนที่ไว้ใจไปช่วยฟังหรือจดคำตอบ
 steps:
   - id: say-how-you-feel
     chapter_th: กลับถึงบ้าน
     role: mother
     speaker_th: นนท์
     prompt_th: ลูกเพิ่งหลับเอง เธอเงียบไปเลย เราทำอะไรไม่ถูก มีอะไรอยากให้เราช่วยตอนนี้ไหม
-    source_ids: [WHO-SUPPORT]
+    source_ids: [NHS-PARTNER]
     choices:
       - id: ask-rest
         text_th: เราดีใจที่ได้กลับบ้านนะ แต่ตอนนี้ล้ามาก ช่วยดูของที่ต้องใช้กับลูกให้หน่อยได้ไหม เราอยากพักสักช่วง
@@ -45,7 +50,7 @@ steps:
     role: father
     speaker_th: มะลิ
     prompt_th: ลูกตื่นอีกแล้ว เรารู้ว่าเธอก็เหนื่อย แต่ไม่อยากเป็นคนคิดทุกอย่างอยู่คนเดียวคืนนี้
-    source_ids: [WHO-SUPPORT, WHO-SHARED-CARE, UNICEF-NIGHT]
+    source_ids: [NHS-PARTNER, NHS-REST]
     choices:
       - id: share-load
         text_th: เราช่วยจัดของกับงานบ้านให้ แล้วผลัดกันอยู่เป็นเพื่อนลูกตามที่ตกลงกัน เธออยากให้เริ่มจากอะไรก่อน
@@ -65,7 +70,7 @@ steps:
     prompt_th: พรุ่งนี้เรามีงานเช้า ถ้าคืนนี้เราสองคนเหนื่อยจนไม่ไหว จะติดต่อใครให้ช่วยดี
     prompt_if:
       unshared-plan: เมื่อกี้เรายังไม่ได้ตกลงว่าใครช่วยอะไร คืนนี้ถ้าเหนื่อยจนคิดไม่ออก อยากให้เรารับเรื่องติดต่อคนช่วยไว้ก่อนไหม
-    source_ids: [UNICEF-NIGHT]
+    source_ids: [NHS-REST]
     choices:
       - id: trusted-backup
         text_th: ลองถามพี่สาวเราก่อนว่าเขาสะดวกช่วยช่วงไหน แล้วตกลงกันอีกทีนะ ไม่อยากให้ใครต้องฝืนจนไม่ไหว
@@ -85,7 +90,7 @@ steps:
     prompt_if:
       backup-ready: เรามีแผนขอคนช่วยแล้ว แต่ถ้าคนในบ้านบอกให้รอดูทั้งที่เรายังกังวลเรื่องอาการของตัวเองหรือลูก เธอจะช่วยเราขอคำปรึกษายังไง
     critical: true
-    source_ids: [WHO-SUPPORT]
+    source_ids: [NHS-BABY-HELP, NHS-QUESTIONS]
     choices:
       - id: contact-professional
         text_th: เราจะฟังเธอและช่วยติดต่อบุคลากรสุขภาพ ไม่ใช้ความมั่นใจของเราแทนการประเมิน แล้วช่วยจัดการเรื่องเดินทางถ้าต้องไป
