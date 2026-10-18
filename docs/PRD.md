@@ -1181,3 +1181,5 @@ generator:
 - Contracts, authoring, limitations, deployment and retention: [FAMILY_SIMULATIONS.md](FAMILY_SIMULATIONS.md). Research is documented separately and does not constitute clinical approval.
 
 - **FR-FAM-02**: Three linked solo Parenthood chapters with pinned, event-derived progress; earlier planning/support choices affect later authored dialogue, including opportunities to repair a plan. This is a narrative simulation, not a 100-day health prediction or clinical score.
+
+- **FR-FAM-03**: Four Generational Bridge scenarios train respectful cultural dialogue, verification and consent/help-seeking. Evidence categories distinguish tradition, guidance and limited evidence. All family dialogue uses content-authored canonical scripts without LLM calls; saved replies remain stable on retries and replay. No AI clinical clearance, procedure instructions or expert sign-off is implied.

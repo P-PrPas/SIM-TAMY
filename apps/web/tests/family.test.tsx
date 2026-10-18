@@ -51,3 +51,15 @@ it("restores a session and keeps the partner's choices out of the screen", async
   expect(screen.queryByText(room.private_brief_th)).toBeNull();
   expect(screen.queryByRole("button", { name: "Ask for rest" })).toBeNull();
 });
+
+it("lets a learner recover when a restored role token is no longer usable", async () => {
+  sessionStorage.setItem("sim-tamy-family:first-night", JSON.stringify({ room_id: room.room_id, token: "invalid-token" }));
+  vi.stubGlobal("fetch", vi.fn(async (request: Request) => request.url.endsWith("/stories")
+    ? Response.json([{ id: "first-night", title_th: "Family story", description_th: "Practice together", mode: "coop", chapters_th: [] }])
+    : Response.json({ error: { code: "UNAUTHORIZED" } }, { status: 401 })));
+  render(<FamilySimulator storyId="first-night" />);
+  await screen.findByText(t("family.unauthorized"));
+  fireEvent.click(screen.getByRole("button", { name: t("family.leave") }));
+  expect(sessionStorage.getItem("sim-tamy-family:first-night")).toBeNull();
+  expect(await screen.findByRole("button", { name: t("family.create") })).not.toBeNull();
+});

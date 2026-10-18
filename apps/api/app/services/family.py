@@ -58,7 +58,8 @@ def events(db: Session, row: FamilyRoom) -> list[FamilyEvent]:
 
 def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
     story = FamilyStory.model_validate(row.story)
-    choices = [event.choice_id for event in events(db, row)]
+    saved = events(db, row)
+    choices = [event.choice_id for event in saved]
     chosen = selections(story, choices)
     transcript = [
         FamilyExchange(
@@ -67,7 +68,7 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
             speaker_th=step.speaker_th,
             prompt_th=prompt(story, choices[:i]),
             text_th=choice.text_th,
-            reply_th=choice.reply_th,
+            reply_th=saved[i].reply_th or choice.reply_th,
         )
         for i, (step, choice) in enumerate(zip(story.steps, chosen, strict=False))
     ]
@@ -144,12 +145,14 @@ def decide(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyDecision)
         choose(story, [event.choice_id for event in saved], role, body.choice_id)
     except ValueError as exc:
         raise ApiError("DECISION_OPTION_INVALID", str(exc)) from exc
+    choice = selections(story, [event.choice_id for event in saved] + [body.choice_id])[-1]
     db.add(
         FamilyEvent(
             room_id=row.id,
             idx=len(saved) + 1,
             role=role,
             choice_id=body.choice_id,
+            reply_th=choice.reply_th,
             client_turn_id=body.client_turn_id,
         )
     )

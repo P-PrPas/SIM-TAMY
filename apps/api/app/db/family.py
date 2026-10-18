@@ -35,4 +35,5 @@ class FamilyEvent(Base):
     idx: Mapped[int] = mapped_column(Integer, primary_key=True)
     role: Mapped[str] = mapped_column(Text)
     choice_id: Mapped[str] = mapped_column(Text)
+    reply_th: Mapped[str | None] = mapped_column(Text)
     client_turn_id: Mapped[uuid.UUID] = mapped_column(Uuid)

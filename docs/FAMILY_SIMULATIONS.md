@@ -78,3 +78,25 @@ clinical outcomes or a real-time 100-day health tracker. All 64 paths are tested
 for both parent roles. Reload resumes the event-derived position and narrative.
 Future chapter titles are public, but future dialogue, flags and feedback remain
 server-side. The final report uses the same independent safety gate and citations.
+
+## Generational Bridge (FR-FAM-03)
+
+`/bridge` offers four complete, original three-turn stories: อยู่ไฟ, herbal
+compresses, postpartum food, and herbal products while breastfeeding. Each has a
+distinct grandmother motivation, a respectful listening choice, a verification
+choice and a critical consent/help-seeking decision. Sources identify cultural
+context, institutional guidance and limited evidence separately. Classification
+documents establish practice names, not efficacy; an inconclusive trial is not
+presented as proven benefit. No procedure, dosage or individual clearance is given.
+
+All three family experiences use their content-authored canonical replies directly.
+Family decisions make no LLM calls, including while the room row is locked.
+Persona and alternative wording remain content metadata for editorial review;
+they do not trigger generation or clinical synthesis.
+
+Migration `0004` adds a nullable reply column. Earlier events fall back to their
+pinned script. New exchanges persist the canonical wording in the decision transaction;
+retries and reads never regenerate a response. Previously persisted wording is
+retained for existing rooms.
+Only choice IDs drive the deterministic report. Retention also removes unlinked
+family LLM metadata. Expert review of all new scenarios remains outstanding.
