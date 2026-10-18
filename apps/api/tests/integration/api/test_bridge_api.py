@@ -1,4 +1,4 @@
-"""Grandmother responses are validated, persisted atomically and replayed without new LLM calls."""
+"""Grandmother scripts are persisted and replayed without any LLM calls."""
 
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -21,8 +21,8 @@ def test_bridge_uses_only_selected_reply_and_idempotently_persists_it(api: Api):
     with api.db() as db:
         story = db.get(FamilyRoom, room_id).story
     choice = story["steps"][0]["choices"][0]
-    accepted = choice["reply_alternatives_th"][0]
-    api.llm.generator_reply = accepted
+    accepted = choice["reply_th"]
+    api.llm.generator_reply = choice["reply_alternatives_th"][0]
     body = {"choice_id": choice["id"], "state_version": 0, "client_turn_id": str(uuid.uuid4())}
     response = api.client.post(path + "/decisions", json=body, headers=headers)
     assert response.status_code == 200, response.text
@@ -32,13 +32,13 @@ def test_bridge_uses_only_selected_reply_and_idempotently_persists_it(api: Api):
         api.client.post(path + "/decisions", json=body, headers=headers).json() == response.json()
     )
     assert api.client.get(path, headers=headers).json() == response.json()
-    assert api.llm.calls == calls == 1
+    assert api.llm.calls == calls == 0
     with api.db() as db:
         assert db.get(FamilyEvent, (room_id, 1)).reply_th == accepted
-        assert len(list(db.scalars(select(LlmCall).where(LlmCall.session_id == room_id)))) == 1
+        assert not list(db.scalars(select(LlmCall).where(LlmCall.session_id == room_id)))
 
 
-def test_unapproved_reply_falls_back_and_retention_removes_calls_and_events(api: Api):
+def test_script_ignores_provider_and_retention_removes_events(api: Api):
     saved = api.client.post(
         "/v1/family/rooms", json={"story_id": "bridge-fire", "role": "father"}
     ).json()
@@ -54,7 +54,7 @@ def test_unapproved_reply_falls_back_and_retention_removes_calls_and_events(api:
     assert response.status_code == 200, response.text
     assert response.json()["transcript"][0]["reply_th"] == choice["reply_th"]
     assert "unapproved medical claim" not in response.text
-    assert api.llm.calls == 3
+    assert api.llm.calls == 0
     with api.db() as db:
         db.get(FamilyRoom, room_id).created_at = datetime.now(UTC) - timedelta(days=31)
         db.flush()

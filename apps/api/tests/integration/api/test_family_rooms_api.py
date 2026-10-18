@@ -14,6 +14,7 @@ def create(api: Api):
         "/v1/family/rooms", json={"story_id": "first-night", "role": "mother"}
     )
     assert response.status_code == 201, response.text
+    assert response.headers["Cache-Control"] == "no-store"
     saved = response.json()
     path = f"/v1/family/rooms/{saved['room_id']}"
     host = {"Authorization": f"Bearer {saved['token']}"}
@@ -22,6 +23,7 @@ def create(api: Api):
         path + "/join", json={"invite": saved["invite"], "participant_token": partner_token}
     )
     assert joined.status_code == 200, joined.text
+    assert joined.headers["Cache-Control"] == "no-store"
     return saved, path, host, {"Authorization": f"Bearer {partner_token}"}
 
 
