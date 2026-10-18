@@ -1,5 +1,5 @@
 id: bridge-compress
-version: '1.0'
+version: '1.1'
 status: Draft
 mode: solo
 title_th: ประคบสมุนไพร ถามให้เข้าใจก่อนตัดสินใจ
@@ -12,9 +12,9 @@ roles:
 sources:
   - id: DTAM-CULTURE
     title_th: กรมการแพทย์แผนไทยฯ — บริบทการประคบสมุนไพรหลังคลอด
-    url: https://www.dtam.moph.go.th/wp-content/uploads/2023/11/DL0003-15062558-ICD-10-TM.pdf
+    url: https://www.dtam.moph.go.th/wp-content/uploads/2023/11/DL0003-15062558-ICD-10-TM.pdf#page=77
     category: culture
-    summary_th: เอกสารจำแนกหัตถการบันทึกชื่อการประคบสมุนไพรหลังคลอด เป็นบริบทของศาสตร์แผนไทย ไม่ใช่การอนุมัติให้ทำเองทุกสถานการณ์
+    summary_th: หน้าเอกสาร 69 (หน้า PDF 77) รหัส 900-77-14 บันทึกชื่อการประคบสมุนไพรหลังคลอด ใช้อ้างอิงชื่อหัตถการ ไม่ได้ใช้รับรองผลิตภัณฑ์ ประสิทธิผล หรือวิธีสนทนากับคนในครอบครัว
   - id: DTAM-TRIAL
     title_th: ฐานวิจัยกรมการแพทย์แผนไทยฯ — การศึกษาขิงและการประคบในมารดาหลังคลอด
     url: https://rdtam.dtam.moph.go.th/th/data_collections/3351
@@ -31,7 +31,7 @@ steps:
     role: mother
     speaker_th: ยายสาย
     prompt_th: ยายจำได้ว่าตอนมีคนประคบให้ ยายรู้สึกว่ามีคนดูแล เลยอยากหาลูกประคบมาให้ หนูคิดยังไง
-    source_ids: [DTAM-CULTURE]
+    source_ids: [DTAM-CULTURE, WHO-SUPPORT]
     choices:
       - id: listen-first
         text_th: เราเข้าใจว่ายายอยากให้ได้พักและมีคนดูแล ขอบคุณนะ ขอคุยรายละเอียดกันก่อนจะตัดสินใจได้ไหม

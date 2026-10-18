@@ -1,5 +1,5 @@
 id: bridge-herbs
-version: '1.0'
+version: '1.1'
 status: Draft
 mode: solo
 title_th: สมุนไพรช่วงให้นม ถามก่อนด้วยความใส่ใจ
@@ -15,11 +15,6 @@ sources:
     url: https://www.ncbi.nlm.nih.gov/sites/books/NBK547438/pdf/Bookshelf_NBK547438.pdf
     category: limited_evidence
     summary_th: ข้อมูลความปลอดภัยระหว่างให้นมของผลิตภัณฑ์หลายชนิดมีจำกัด สูตรและปริมาณส่วนประกอบอาจแตกต่างกัน ผลของส่วนประกอบหนึ่งไม่แทนผลของผลิตภัณฑ์ผสม
-  - id: LACTMED-GINGER
-    title_th: NIH LactMed — บททบทวนข้อมูลขิงระหว่างให้นม
-    url: https://www.ncbi.nlm.nih.gov/sites/books/NBK501786/pdf/Bookshelf_NBK501786.pdf
-    category: limited_evidence
-    summary_th: ข้อมูลมีข้อจำกัดและต้องพิจารณารูปแบบผลิตภัณฑ์ บริบท และปฏิกิริยาร่วม ไม่ใช้บททบทวนสารเดี่ยวรับรองสูตรผสมที่ไม่ทราบส่วนประกอบหรือกำหนดขนาดใช้เอง
   - id: WHO-SUPPORT
     title_th: องค์การอนามัยโลก — สนับสนุนครอบครัวและการเข้าถึงคำปรึกษา
     url: https://www.who.int/news/item/30-03-2022-who-urges-quality-care-for-women-and-newborns-in-critical-first-weeks-after-childbirth
@@ -48,7 +43,7 @@ steps:
     role: mother
     speaker_th: ยายสาย
     prompt_th: เขาบอกว่ามีส่วนผสมที่เคยมีงานวิจัย แต่ขวดนี้ผสมหลายอย่าง ยายไม่แน่ใจว่าใช้ข้อมูลเดียวกันได้ไหม
-    source_ids: [LACTMED-SUPPLEMENTS, LACTMED-GINGER]
+    source_ids: [LACTMED-SUPPLEMENTS]
     choices:
       - id: distinguish-product
         text_th: ข้อมูลของส่วนผสมหนึ่งอาจใช้ยืนยันทั้งสูตรไม่ได้ เราจดชื่อ ส่วนประกอบ และข้อมูลบนฉลากไปถามเภสัชกรหรือทีมสุขภาพกันก่อนดีกว่า

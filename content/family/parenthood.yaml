@@ -1,5 +1,5 @@
 id: parenthood
-version: '1.0'
+version: '1.1'
 status: Draft
 mode: solo
 title_th: 100 วันแรก เรียนรู้ไปกับครอบครัว
@@ -19,13 +19,18 @@ sources:
     url: https://www.unicef.org/parenting/child-care/baby-sleep
     category: guidance
     summary_th: รูปแบบการนอนของทารกแตกต่างกันและผู้ดูแลสามารถขอคนที่ไว้ใจช่วยได้ เรื่องราวนี้ไม่ทำนายการนอนของเด็กจริง
+  - id: WHO-SHARED-CARE
+    title_th: องค์การอนามัยโลก — การมีส่วนร่วมในงานบ้านและการดูแลครอบครัว
+    url: https://www.who.int/news/item/26-09-2019-engaging-men-addressing-harmful-masculinities-to-improve-sexual-and-reproductive-health-and-rights
+    category: guidance
+    summary_th: หัวข้อ Harmful masculinities and their consequences กล่าวถึงภาระที่ตกกับผู้หญิงจากการมีส่วนร่วมในงานบ้านและการดูแลลูกที่จำกัดของผู้ชาย ใช้รองรับหลักการแบ่งภาระ ส่วนแผนและการย้อนทบทวนข้อตกลงในแต่ละบทเป็นกิจกรรมที่เราออกแบบ ไม่ใช่โปรแกรมที่ WHO รับรอง
 steps:
   - id: before-plan
     chapter_th: บทที่ 1 — ก่อนลูกลืมตาดูโลก
     role: mother
     speaker_th: คนรักของคุณ
     prompt_th: ของใช้เกือบครบแล้ว แต่เรายังไม่ได้คุยกันเลยว่าหลังกลับบ้านใครจะช่วยอะไร เราอยากรู้ว่าเธอคาดหวังอะไรจากเราบ้าง
-    source_ids: [WHO-SUPPORT]
+    source_ids: [WHO-SUPPORT, WHO-SHARED-CARE]
     choices:
       - id: plan-together
         text_th: เรามาเขียนสิ่งที่ต้องทำแล้วแบ่งกันตามกำลังดีไหม ไม่ต้องเป๊ะตั้งแต่แรก แต่ขอให้มีเวลาคุยปรับกันด้วย
@@ -63,7 +68,7 @@ steps:
     prompt_th: กลับถึงบ้านแล้ว เราเริ่มจากหน้าที่ที่คุยกันไว้ก่อนนะ แต่คืนนี้มีอะไรอยากปรับจากแผนไหม
     prompt_if:
       no-plan: ลูกเพิ่งหลับ เราต่างคนต่างเดินหาของจนวุ่นไปหมด จำได้ไหมว่าก่อนคลอดเรายังไม่ได้แบ่งหน้าที่กัน คืนนี้อยากให้เราเริ่มช่วยตรงไหน
-    source_ids: [WHO-SUPPORT]
+    source_ids: [WHO-SUPPORT, WHO-SHARED-CARE]
     choices:
       - id: adjust-plan
         text_th: ตอนนี้เราต้องการพักกับคนช่วยคิด ช่วยรับเรื่องจัดของและอาหารไปก่อน แล้วเรามาทบทวนกันพรุ่งนี้ได้ไหม

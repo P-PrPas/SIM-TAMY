@@ -2,6 +2,11 @@
 
 Accessed: 2026-10-18. Status: **Draft; clinical and cultural expert review pending.**
 
+Follow-up: [reference audit](family-reference-audit.md) maps every current family
+decision step to its supporting source. The register below preserves the original
+research context; the Ginger monograph is no longer displayed in the unspecified
+herbal-product story. Version 1.1 uses the corrected mappings for new rooms.
+
 This note supports Family Co-op Simulator, 100 Days of Parenthood, and Generational Bridge. Sources were opened directly; search snippets alone are not treated as verified evidence. The dialogue below is original synthetic writing, not a quotation, clinical protocol, or evidence that these simulation scores predict family readiness.
 
 ## Verified source register

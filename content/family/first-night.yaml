@@ -1,5 +1,5 @@
 id: first-night
-version: '1.0'
+version: '1.1'
 status: Draft
 title_th: คืนแรกที่บ้าน เราเป็นทีมเดียวกัน
 description_th: ผลัดกันรับบทมะลิและนนท์ ฟังสิ่งที่อีกคนยังไม่ได้พูด แบ่งหน้าที่ และวางแผนขอความช่วยเหลือร่วมกัน
@@ -18,6 +18,11 @@ sources:
     url: https://www.unicef.org/parenting/child-care/baby-sleep
     category: guidance
     summary_th: การนอนของทารกแต่ละคนต่างกัน ผู้ดูแลที่เหนื่อยหรือรับมือไม่ไหวควรขอความช่วยเหลือจากคนที่ไว้ใจ
+  - id: WHO-SHARED-CARE
+    title_th: องค์การอนามัยโลก — การมีส่วนร่วมในงานบ้านและการดูแลครอบครัว
+    url: https://www.who.int/news/item/26-09-2019-engaging-men-addressing-harmful-masculinities-to-improve-sexual-and-reproductive-health-and-rights
+    category: guidance
+    summary_th: หัวข้อ Harmful masculinities and their consequences กล่าวถึงภาระที่ตกกับผู้หญิงจากการมีส่วนร่วมในงานบ้านและการดูแลลูกที่จำกัดของผู้ชาย ใช้รองรับหลักการแบ่งภาระ ส่วนหน้าที่และถ้อยคำในบทเป็นตัวอย่างที่เราออกแบบ ไม่ใช่สูตรแบ่งงานจาก WHO
 steps:
   - id: say-how-you-feel
     chapter_th: กลับถึงบ้าน
@@ -40,7 +45,7 @@ steps:
     role: father
     speaker_th: มะลิ
     prompt_th: ลูกตื่นอีกแล้ว เรารู้ว่าเธอก็เหนื่อย แต่ไม่อยากเป็นคนคิดทุกอย่างอยู่คนเดียวคืนนี้
-    source_ids: [WHO-SUPPORT, UNICEF-NIGHT]
+    source_ids: [WHO-SUPPORT, WHO-SHARED-CARE, UNICEF-NIGHT]
     choices:
       - id: share-load
         text_th: เราช่วยจัดของกับงานบ้านให้ แล้วผลัดกันอยู่เป็นเพื่อนลูกตามที่ตกลงกัน เธออยากให้เริ่มจากอะไรก่อน
