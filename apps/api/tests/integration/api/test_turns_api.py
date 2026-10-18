@@ -9,14 +9,16 @@ from typing import Any
 import pytest
 from sqlalchemy import select
 
-from app.ai.llm_client import LLMTimeout
-from app.api.deps import get_voice
+from app.ai.llm_client import LLMClient, LLMTimeout
+from app.ai.providers.mock import MockProvider
+from app.api.deps import get_llm_factory, get_voice
+from app.content.loader import load_case
 from app.db.models import Event, LearnerSession, LlmCall, Turn
 from app.domain.case import Case
 from app.domain.events import LoggedEvent
 from app.engine.scoring import View, score
 from app.services.patient_voice import CannedGenerator, FloorValidator, Voice, VoiceRequest, canned
-from tests.integration.api.conftest import Api, ask
+from tests.integration.api.conftest import CONTENT_DIR, Api, ask
 
 ASK_A03 = "สัญญาณทดสอบกเป็นยังไงบ้างคะ"
 ASK_A04 = "สัญญาณทดสอบขเป็นยังไงบ้างคะ"
@@ -77,6 +79,45 @@ def test_a_turn_unlocks_a_fact_and_answers_from_it(api: Api) -> None:
         "INTERVIEW",
     )
     assert state["_version"] == 1
+
+
+@pytest.mark.parametrize(
+    "case_id", ["DAD-001", "DAD-002", "MOM-001", "MOM-002", "PP-001", "STF-002"]
+)
+def test_unscripted_mock_chat_answers_questions_without_losing_actions(
+    api: Api, case_id: str
+) -> None:
+    app = api.client.app
+    app.dependency_overrides.pop(get_voice)  # type: ignore[attr-defined]
+    provider = MockProvider()
+    app.dependency_overrides[get_llm_factory] = lambda: (  # type: ignore[attr-defined]
+        lambda purpose, on_call: LLMClient(
+            provider, model="mock-model", timeout_s=1, on_call=on_call
+        )
+    )
+    loaded = load_case(CONTENT_DIR / "cases" / case_id)
+    created = api.create(case_id=case_id)
+    facts = [fact for fact in loaded.case.facts if fact.kind == "hidden"][:2]
+    if case_id == "DAD-001":
+        # Exact learner wording from the reported production screenshot.
+        response = turn(api, created, "ปวดท้องมั้ย")
+        assert response.status_code == 200
+        assert response.json()["replies"][0]["text"] != canned("smalltalk")
+        pain = next(
+            fact for fact in loaded.case.facts if fact.kind == "hidden" and "A05" in fact.unlock_on
+        )
+        assert pain.id in state_of(api, created)["revealed_fact_ids"]
+        assert any(keyword in response.json()["replies"][0]["text"] for keyword in pain.keywords_th)
+    for fact in facts:
+        action = next(action for action in loaded.actions if action.id in fact.unlock_on)
+        response = turn(api, created, action.examples_th[0])
+        assert response.status_code == 200
+        replies = response.json()["replies"]
+        assert replies
+        assert replies[0]["text"] != canned("smalltalk")
+        assert any(keyword in replies[0]["text"] for keyword in fact.keywords_th)
+        assert fact.id in state_of(api, created)["revealed_fact_ids"]
+    assert any(event.type == "LLM_FALLBACK_USED" for event in events_of(api, created))
 
 
 def test_production_voice_rejects_leak_and_logs_generator_calls(api: Api) -> None:

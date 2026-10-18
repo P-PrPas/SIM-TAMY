@@ -25,7 +25,7 @@ services:
           name: sim-tamy-db
           property: connectionString
       - key: LLM_PROVIDER
-        value: mock
+        sync: false # Preserve the provider selected in the dashboard on Blueprint updates.
       - key: ALLOW_DRAFT_CASES
         value: "true"
       - key: ENABLE_REPLAY

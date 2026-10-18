@@ -9,6 +9,7 @@ import pytest
 from app.ai.generator import PatientGenerator
 from app.ai.interpreter import HistoryTurn
 from app.ai.llm_client import LLMClient, LLMRequest, LLMResponse
+from app.ai.providers.mock import MockProvider
 from app.ai.validator import PatientValidator
 from app.content.loader import load_case
 from app.domain.state import AllowedFact, AllowedFacts
@@ -67,6 +68,15 @@ def test_generator_receives_the_course_audience_without_extra_case_facts() -> No
     prompt = json.loads(provider.requests[0].prompt)
     assert prompt["persona"]["learner_audience"] == "dad"
     assert H2.text_th not in provider.requests[0].prompt
+
+
+def test_unscripted_mock_answers_allowed_facts_instead_of_constant_smalltalk() -> None:
+    request = voice_request()
+    generator = PatientGenerator(LLMClient(MockProvider(), model="mock", timeout_s=1))
+    spoken = speak(request, CASE, ["H1"], Voice(generator, PatientValidator(request)))
+    assert spoken.text == H1.text_th
+    assert not spoken.rejected and not spoken.fallback
+    assert H2.text_th not in spoken.text
 
 
 def test_wrong_learner_title_regenerates_then_uses_a_validated_fallback() -> None:
