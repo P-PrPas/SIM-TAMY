@@ -62,7 +62,7 @@ test("all family entrances remain readable and keyboard accessible on mobile and
       await page.keyboard.press("Space");
       await expect(page.getByRole("radio", { name: new RegExp(t("family.father")) })).toBeChecked();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-      if (process.env.SIMTAMY_DESIGN_SHOTS) await page.screenshot({ path: `.tmp/family-design/${name}-${width}.png`, fullPage: true });
+      if (process.env.SIMTAMY_DESIGN_SHOTS) await page.screenshot({ path: `.tmp/family-design/${name}-${width}.png`, fullPage: true, style: "nextjs-portal { display: none; }" });
       await page.addScriptTag({ path: require.resolve("axe-core/axe.min.js") });
       const serious = await page.evaluate(async () => {
         const axe = (globalThis as unknown as { axe: { run: () => Promise<{ violations: Array<{ id: string; impact: string | null; nodes: Array<{ target: string[] }> }> }> } }).axe;
