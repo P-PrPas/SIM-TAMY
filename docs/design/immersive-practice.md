@@ -33,3 +33,19 @@ its engine finding by turn index and to its actual source IDs. Starting again
 returns to enrollment for a new room; the original room/events are not rewritten.
 Clinical report timeline cards also gain visual sequence markers using existing
 event data; parent profiles are not applied to clinical learners.
+
+## Parent / team profile
+
+A completed family report can show one of four practice approaches, a combined
+approach, or an exploration card. This is presentation of existing counts, not an
+MBTI implementation, psychometric test, stable personality trait or new score.
+Among domains with observations and opportunities, the greatest observed/opportunity
+ratio supplies the label. Equal greatest ratios produce the combined label; no
+observations produce exploration. Exact integer cross-products handle ties without
+an arbitrary domain priority. The expandable explanation exposes all original counts.
+
+Co-op labels describe the team's choices; solo labels describe that player's round.
+The existing safety status is shown first and remains unchanged. A profile cannot
+convert SAFETY_NOT_MET into a pass. Manual copy includes the round scope and any
+critical review notice; it excludes room IDs, tokens, briefs and conversation text.
+Copying is user initiated; there is no social posting or new external service.

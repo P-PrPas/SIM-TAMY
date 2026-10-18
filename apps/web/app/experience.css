@@ -68,9 +68,30 @@
 .practice-restart { display: flex; gap: .7rem; align-items: center; justify-content: center; width: calc(100% - 2rem); margin: 0 1rem 1rem; }
 .practice-event-card { display: flex; gap: 1rem; padding: 1rem; background: var(--color-brand-50); border: 1px solid var(--color-brand-200); border-radius: 1rem; overflow-wrap: anywhere; }
 .practice-event-card > span { flex-shrink: 0; width: 2rem; height: 2rem; display: grid; place-items: center; background: var(--color-brand-900); color: white; border-radius: 50%; }
+.parent-profile { position: relative; display: grid; grid-template-columns: 150px minmax(0, 1fr); align-items: start; gap: 1.5rem; padding: 2rem; margin: 1.5rem 0; border-radius: 1.5rem; border: 1px solid var(--color-brand-300); background: var(--color-brand-50); overflow: hidden; }
+.parent-profile-seal { position: relative; width: 140px; height: 160px; border-radius: 75px 75px 35px 35px; background: var(--color-brand-900); display: grid; place-items: center; color: var(--color-brand-100); border: 6px double var(--color-brand-300); }
+.parent-profile-seal > svg { width: 62px; height: 62px; stroke-width: 1.2; }
+.parent-profile-seal > span { position: absolute; width: 7px; height: 7px; background: var(--color-gold); border-radius: 50%; top: 24px; }
+.parent-profile-seal > span:last-child { top: auto; bottom: 24px; }
+.parent-profile-eyebrow { color: var(--color-brand-800); font-weight: 650; }
+.parent-profile h3 { font-size: clamp(1.6rem, 3vw, 2.3rem); line-height: 1.5; font-weight: 800; color: var(--color-brand-950); margin: .35rem 0 .7rem; text-wrap: balance; }
+.parent-profile-copy > p { line-height: 1.9; }
+.parent-profile-scope { color: var(--color-muted); margin-top: .7rem; }
+.parent-profile details { margin-top: 1rem; border-top: 1px solid var(--color-brand-200); padding-top: .8rem; }
+.parent-profile summary { font-weight: 700; cursor: pointer; min-height: 44px; }
+.parent-profile details p { margin-block: .5rem; line-height: 1.8; }
+.parent-profile li { display: flex; gap: .5rem; align-items: baseline; flex-wrap: wrap; padding-block: .5rem; border-bottom: 1px solid var(--color-line); }
+.parent-profile li > span:first-child { flex: 1; }
+.parent-profile-copy > button { display: inline-flex; gap: .65rem; align-items: center; border: 1px solid var(--color-brand-700); background: var(--color-surface); border-radius: .8rem; padding: .7rem 1rem; min-height: 44px; margin-top: 1rem; font-weight: 700; }
+.parent-profile textarea { width: 100%; min-height: 180px; padding: .8rem; margin-top: .6rem; border: 1px solid var(--color-brand-700); border-radius: .75rem; background: var(--color-surface); }
 @keyframes practice-scene-enter { from { transform: translateX(10px); } to { transform: translateX(0); } }
 @media (prefers-reduced-motion: no-preference) { .practice-stage-scene { animation: practice-scene-enter 280ms ease-out; } }
 @media (max-width: 600px) {
+  .parent-profile { grid-template-columns: 1fr; padding: 1.3rem; gap: 1rem; }
+  .parent-profile-seal { width: 80px; height: 90px; border-width: 4px; }
+  .parent-profile-seal > svg { width: 38px; height: 38px; }
+  .parent-profile-seal > span { top: 9px; width: 4px; height: 4px; }
+  .parent-profile-seal > span:last-child { bottom: 9px; }
   .practice-stage-scene { min-height: 165px; padding: 1rem; }
   .practice-stage-caption { max-width: 65%; }
   .practice-stage-art { width: 155px; right: -1.25rem; }

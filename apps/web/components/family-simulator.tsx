@@ -238,7 +238,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
           </section></FamilyChapterGate>}
         </div>
       </div>
-      {view.report && <FamilyReportPanel report={view.report} turns={view.transcript} grandmother={experience === "bridge"} onRestart={() => { setRole(view.role); leave(); }} />}
+      {view.report && <FamilyReportPanel report={view.report} turns={view.transcript} grandmother={experience === "bridge"} coop={experience === "coop"} onRestart={() => { setRole(view.role); leave(); }} />}
     </>}
   </main>;
 }
