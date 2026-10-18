@@ -34,6 +34,9 @@ subject to the normal retention policy; no historical events were edited or dele
    PostgreSQL with the unscripted Mock provider, production Generator/Validator,
    and two distinct content questions for each of six clinical courses.
    Golden T01–T10 passed in mock mode; all 128 web tests passed.
+8. Full API suite: 777 passed against isolated PostgreSQL. After the user supplied
+   a screenshot, the exact DAD-001 pain question was added to the HTTP regression;
+   all six course cases passed again, including the expected pain fact and reply.
 
 ## Why existing tests missed it
 

@@ -98,6 +98,16 @@ def test_unscripted_mock_chat_answers_questions_without_losing_actions(
     loaded = load_case(CONTENT_DIR / "cases" / case_id)
     created = api.create(case_id=case_id)
     facts = [fact for fact in loaded.case.facts if fact.kind == "hidden"][:2]
+    if case_id == "DAD-001":
+        # Exact learner wording from the reported production screenshot.
+        response = turn(api, created, "ปวดท้องมั้ย")
+        assert response.status_code == 200
+        assert response.json()["replies"][0]["text"] != canned("smalltalk")
+        pain = next(
+            fact for fact in loaded.case.facts if fact.kind == "hidden" and "A05" in fact.unlock_on
+        )
+        assert pain.id in state_of(api, created)["revealed_fact_ids"]
+        assert any(keyword in response.json()["replies"][0]["text"] for keyword in pain.keywords_th)
     for fact in facts:
         action = next(action for action in loaded.actions if action.id in fact.unlock_on)
         response = turn(api, created, action.examples_th[0])
