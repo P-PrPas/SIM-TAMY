@@ -1,6 +1,7 @@
 """Public family contracts deliberately omit private partner briefs and live feedback."""
 
 import uuid
+from typing import Literal
 
 from pydantic import Field
 
@@ -92,3 +93,5 @@ class FamilyStoryCard(Model):
     id: str
     title_th: str
     description_th: str
+    mode: Literal["coop", "solo"]
+    chapters_th: list[str]

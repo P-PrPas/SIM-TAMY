@@ -1234,6 +1234,13 @@ export interface components {
             title_th: string;
             /** Description Th */
             description_th: string;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "coop" | "solo";
+            /** Chapters Th */
+            chapters_th: string[];
         };
         /** FamilyView */
         FamilyView: {

@@ -44,6 +44,7 @@ class FamilyStory(Model):
     id: str = Field(pattern=r"^[a-z0-9-]+$")
     version: NonBlank
     status: Literal["Draft", "In Review", "Approved"]
+    mode: Literal["coop", "solo"] = "coop"
     title_th: NonBlank
     description_th: NonBlank
     roles: dict[FamilyRole, NonBlank]

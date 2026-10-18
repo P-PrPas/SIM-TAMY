@@ -29,7 +29,13 @@ Auth = Annotated[str | None, Header(alias="Authorization")]
 @router.get("/stories", operation_id="listFamilyStories", response_model=list[FamilyStoryCard])
 def stories() -> list[FamilyStoryCard]:
     return [
-        FamilyStoryCard(id=s.id, title_th=s.title_th, description_th=s.description_th)
+        FamilyStoryCard(
+            id=s.id,
+            title_th=s.title_th,
+            description_th=s.description_th,
+            mode=s.mode,
+            chapters_th=list(dict.fromkeys(step.chapter_th for step in s.steps)),
+        )
         for s in load_stories(get_settings().content_dir)
         if s.status == "Approved" or get_settings().allow_draft_cases
     ]
@@ -59,6 +65,8 @@ def create(body: FamilyCreate, db: Db) -> FamilyCreated:
 @router.post("/rooms/{room_id}/join", operation_id="joinFamilyRoom", response_model=FamilyView)
 def join(room_id: uuid.UUID, body: FamilyJoin, db: Db) -> FamilyView:
     row = family.room(db, room_id, lock=True)
+    if row.story.get("mode", "coop") == "solo":
+        raise ApiError("INVALID_PHASE", "individual story does not accept a partner")
     digest = hash_token(body.participant_token)
     if not hmac.compare_digest(row.invite_hash, hash_token(body.invite)) or digest == row.host_hash:
         raise ApiError("UNAUTHORIZED", "invalid invitation")

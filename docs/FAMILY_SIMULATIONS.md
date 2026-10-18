@@ -62,3 +62,19 @@ Contracts and generated frontend types: `docs/openapi.yaml`.
 Migration `0003` creates separate room/event tables. Standard Docker startup runs
 it automatically. No new package, service or credential is required. Requests
 use the standard error envelope; token/brief responses are `no-store`.
+
+## 100 Days of Parenthood (FR-FAM-02)
+
+`/parenthood` is the three-chapter MVP: before birth, the first night home, and
+family pressure. It is a solo, choice-led story with a scripted family partner;
+either parent role can play every turn. Individual rooms reject invitations to
+another participant. No new migration is required: mode and choices are pinned
+in the same story/event contracts.
+
+Earlier choices set content-owned flags. Later prompts explicitly recall an
+unmade plan or missing support network; making a new plan changes the later
+conversation again. This is authored narrative continuity, not a prediction of
+clinical outcomes or a real-time 100-day health tracker. All 64 paths are tested
+for both parent roles. Reload resumes the event-derived position and narrative.
+Future chapter titles are public, but future dialogue, flags and feedback remain
+server-side. The final report uses the same independent safety gate and citations.

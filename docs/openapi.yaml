@@ -2749,12 +2749,25 @@ components:
         description_th:
           type: string
           title: Description Th
+        mode:
+          type: string
+          enum:
+          - coop
+          - solo
+          title: Mode
+        chapters_th:
+          items:
+            type: string
+          type: array
+          title: Chapters Th
       additionalProperties: false
       type: object
       required:
       - id
       - title_th
       - description_th
+      - mode
+      - chapters_th
       title: FamilyStoryCard
     FamilyView:
       properties:

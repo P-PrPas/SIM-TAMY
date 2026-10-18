@@ -38,3 +38,25 @@ test("two isolated devices complete a shared story and see the critical checkpoi
     }
   } finally { await partnerContext.close(); }
 });
+
+test("a parent resumes a three-chapter story and reaches its evidence report", async ({ page, request }) => {
+  await page.goto("/parenthood");
+  await page.getByRole("button", { name: t("family.startSolo"), exact: true }).click();
+  await expect(page.getByText(t("family.private"), { exact: true })).toBeVisible();
+  const saved = await page.evaluate(() => JSON.parse(sessionStorage.getItem("sim-tamy-family:parenthood")!) as { room_id: string; token: string });
+  const url = `http://127.0.0.1:8000/v1/family/rooms/${saved.room_id}`;
+  const headers = { Authorization: `Bearer ${saved.token}` };
+  const path = ["postpone-plan", "keep-private", "adjust-plan", "request-relief", "respectful-boundary", "verify-together"];
+  const chapters = new Set<string>();
+  for (let i = 0; i < path.length; i++) {
+    const view = await (await request.get(url, { headers })).json() as components["schemas"]["FamilyView"];
+    chapters.add(view.scene!.chapter_th);
+    await page.getByRole("button", { name: view.scene!.choices.find((choice) => choice.id === path[i])!.text_th, exact: true }).click();
+    await expect.poll(async () => (await (await request.get(url, { headers })).json()).state_version).toBe(i + 1);
+    if (i === 1) await page.reload();
+  }
+  expect(chapters.size).toBe(3);
+  await expect(page.getByRole("heading", { name: t("family.report") })).toBeVisible();
+  await expect(page.getByRole("heading", { name: t("family.sources") })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});

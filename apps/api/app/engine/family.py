@@ -43,7 +43,9 @@ def selections(story: FamilyStory, choices: list[str]) -> list[FamilyChoice]:
 
 
 def choose(story: FamilyStory, choices: list[str], role: FamilyRole, choice_id: str) -> list[str]:
-    if len(choices) >= len(story.steps) or story.steps[len(choices)].role != role:
+    if len(choices) >= len(story.steps) or (
+        story.mode == "coop" and story.steps[len(choices)].role != role
+    ):
         raise ValueError("not this role's turn")
     updated = [*choices, choice_id]
     selections(story, updated)

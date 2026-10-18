@@ -1179,3 +1179,5 @@ generator:
 
 - **FR-FAM-01**: Two-device turn-based Family Co-op with role-private briefs, a shared authored first-night story, persisted/idempotent decisions, and an evidence-linked four-domain formative report. Critical help-seeking failures gate the report independently of other indicators. Existing clinical Case/Rubric semantics are unchanged.
 - Contracts, authoring, limitations, deployment and retention: [FAMILY_SIMULATIONS.md](FAMILY_SIMULATIONS.md). Research is documented separately and does not constitute clinical approval.
+
+- **FR-FAM-02**: Three linked solo Parenthood chapters with pinned, event-derived progress; earlier planning/support choices affect later authored dialogue, including opportunities to repair a plan. This is a narrative simulation, not a 100-day health prediction or clinical score.

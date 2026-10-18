@@ -20,7 +20,7 @@ it("creates a room, shows only its role brief, and preserves the decision ID on 
   const sent: string[] = [];
   vi.stubGlobal("fetch", vi.fn(async (request: Request) => {
     const path = new URL(request.url).pathname;
-    if (path.endsWith("/stories")) return Response.json([{ id: "first-night", title_th: "Family story", description_th: "Practice together" }]);
+    if (path.endsWith("/stories")) return Response.json([{ id: "first-night", title_th: "Family story", description_th: "Practice together", mode: "coop", chapters_th: ["First night"] }]);
     if (path.endsWith("/decisions")) {
       sent.push(await request.text());
       if (fail) { fail = false; return Response.json({ error: { code: "VALIDATION_ERROR" } }, { status: 500 }); }
