@@ -17,6 +17,8 @@ EXPECTED_TABLES = {
     "reports",
     "score_overrides",
     "pilot_feedback",
+    "family_rooms",
+    "family_events",
 }
 
 

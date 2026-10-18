@@ -427,6 +427,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/family/stories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stories */
+        get: operations["listFamilyStories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/family/rooms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create */
+        post: operations["createFamilyRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/family/rooms/{room_id}/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Join */
+        post: operations["joinFamilyRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/family/rooms/{room_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get */
+        get: operations["getFamilyRoom"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/family/rooms/{room_id}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide */
+        post: operations["decideFamilyRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1003,6 +1088,181 @@ export interface components {
             case: components["schemas"]["CaseBrief"];
             steps: components["schemas"]["RecordingStep"][];
             report: components["schemas"]["ReportResponse"];
+        };
+        /** FamilyCompetency */
+        FamilyCompetency: {
+            /**
+             * Skill
+             * @enum {string}
+             */
+            skill: "communication" | "responsibility" | "safety" | "support";
+            /** Observed */
+            observed: number;
+            /** Opportunities */
+            opportunities: number;
+        };
+        /** FamilyCreate */
+        FamilyCreate: {
+            /** Story Id */
+            story_id: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "mother" | "father";
+        };
+        /** FamilyCreated */
+        FamilyCreated: {
+            /**
+             * Room Id
+             * Format: uuid
+             */
+            room_id: string;
+            /** Token */
+            token: string;
+            /** Invite */
+            invite: string;
+        };
+        /** FamilyDecision */
+        FamilyDecision: {
+            /** Choice Id */
+            choice_id: string;
+            /** State Version */
+            state_version: number;
+            /**
+             * Client Turn Id
+             * Format: uuid
+             */
+            client_turn_id: string;
+        };
+        /** FamilyEvidence */
+        FamilyEvidence: {
+            /** Idx */
+            idx: number;
+            /** Text Th */
+            text_th: string;
+            /** Feedback Th */
+            feedback_th: string;
+            /** Source Ids */
+            source_ids: string[];
+            /** Safe */
+            safe: boolean;
+        };
+        /** FamilyExchange */
+        FamilyExchange: {
+            /** Idx */
+            idx: number;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "mother" | "father";
+            /** Speaker Th */
+            speaker_th: string;
+            /** Prompt Th */
+            prompt_th: string;
+            /** Text Th */
+            text_th: string;
+            /** Reply Th */
+            reply_th: string;
+        };
+        /** FamilyJoin */
+        FamilyJoin: {
+            /** Invite */
+            invite: string;
+            /** Participant Token */
+            participant_token: string;
+        };
+        /** FamilyOption */
+        FamilyOption: {
+            /** Id */
+            id: string;
+            /** Text Th */
+            text_th: string;
+        };
+        /** FamilyReport */
+        FamilyReport: {
+            /** Safety Status */
+            safety_status: string;
+            /** Competencies */
+            competencies: components["schemas"]["FamilyCompetency"][];
+            /** Evidence */
+            evidence: components["schemas"]["FamilyEvidence"][];
+            /** Sources */
+            sources: components["schemas"]["FamilySource"][];
+        };
+        /** FamilyScene */
+        FamilyScene: {
+            /** Id */
+            id: string;
+            /** Chapter Th */
+            chapter_th: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "mother" | "father";
+            /** Speaker Th */
+            speaker_th: string;
+            /** Prompt Th */
+            prompt_th: string;
+            /** Choices */
+            choices: components["schemas"]["FamilyOption"][];
+        };
+        /** FamilySource */
+        FamilySource: {
+            /** Id */
+            id: string;
+            /** Title Th */
+            title_th: string;
+            /** Url */
+            url: string;
+            /**
+             * Category
+             * @default guidance
+             * @enum {string}
+             */
+            category: "guidance" | "culture" | "limited_evidence";
+            /** Summary Th */
+            summary_th: string;
+        };
+        /** FamilyStoryCard */
+        FamilyStoryCard: {
+            /** Id */
+            id: string;
+            /** Title Th */
+            title_th: string;
+            /** Description Th */
+            description_th: string;
+        };
+        /** FamilyView */
+        FamilyView: {
+            /**
+             * Room Id
+             * Format: uuid
+             */
+            room_id: string;
+            /** Story Id */
+            story_id: string;
+            /** Title Th */
+            title_th: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "mother" | "father";
+            /** Private Brief Th */
+            private_brief_th: string;
+            /** Partner Joined */
+            partner_joined: boolean;
+            /** State Version */
+            state_version: number;
+            /** Total Steps */
+            total_steps: number;
+            scene: components["schemas"]["FamilyScene"] | null;
+            /** Transcript */
+            transcript: components["schemas"]["FamilyExchange"][];
+            report: components["schemas"]["FamilyReport"] | null;
         };
     };
     responses: {
@@ -2078,6 +2338,128 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationError"];
+        };
+    };
+    listFamilyStories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyStoryCard"][];
+                };
+            };
+        };
+    };
+    createFamilyRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FamilyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyCreated"];
+                };
+            };
+        };
+    };
+    joinFamilyRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FamilyJoin"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyView"];
+                };
+            };
+        };
+    };
+    getFamilyRoom: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyView"];
+                };
+            };
+        };
+    };
+    decideFamilyRoom: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FamilyDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyView"];
+                };
+            };
         };
     };
 }

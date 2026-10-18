@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.core.config import get_settings
+from app.db.family import FamilyRoom
 from app.db.models import LearnerSession, LlmCall, ScoreOverride
 from app.db.session import get_sessionmaker
 
@@ -67,11 +68,25 @@ def main() -> None:
         if args.dry_run:
             cutoff = datetime.now(UTC) - timedelta(days=days)
             count = db.scalar(select(func.count(LearnerSession.id)).where(_eligible(cutoff)))
-            print(f"Eligible sessions: {count}")
+            family_count = db.scalar(
+                select(func.count(FamilyRoom.id)).where(FamilyRoom.created_at < cutoff)
+            )
+            print(f"Eligible sessions: {count}; family rooms: {family_count}")
             return
         with db.begin():
             count = purge_expired(db, retention_days=days, now=datetime.now(UTC))
+            cutoff = datetime.now(UTC) - timedelta(days=days)
+            family_count = len(
+                list(
+                    db.scalars(
+                        delete(FamilyRoom)
+                        .where(FamilyRoom.created_at < cutoff)
+                        .returning(FamilyRoom.id)
+                    )
+                )
+            )
     print(f"Purged sessions: {count}")
+    print(f"Purged family rooms: {family_count}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,40 @@
+import { expect, test } from "@playwright/test";
+
+import type { components } from "../lib/api/schema";
+import { t } from "../lib/i18n";
+
+test("two isolated devices complete a shared story and see the critical checkpoint", async ({ page, browser, request }) => {
+  await page.goto("/family");
+  await page.getByRole("button", { name: t("family.create"), exact: true }).click();
+  await expect(page.locator("#family-share")).toHaveValue(/#room=/);
+  const link = await page.locator("#family-share").inputValue();
+  const partnerContext = await browser.newContext({ viewport: { width: 360, height: 780 } });
+  try {
+    const partner = await partnerContext.newPage();
+    await partner.goto(link);
+    await partner.getByRole("button", { name: t("family.join"), exact: true }).click();
+    await expect(partner.getByText(t("family.private"), { exact: true })).toBeVisible();
+    const credentials = await Promise.all([page, partner].map((tab) => tab.evaluate(() =>
+      JSON.parse(sessionStorage.getItem("sim-tamy-family:first-night")!) as { room_id: string; token: string },
+    )));
+    for (let i = 0; i < 4; i++) {
+      const actor = i % 2 === 0 ? page : partner;
+      const saved = credentials[i % 2]!;
+      const url = `http://127.0.0.1:8000/v1/family/rooms/${saved.room_id}`;
+      const options = { headers: { Authorization: `Bearer ${saved.token}` } };
+      const response = await request.get(url, options);
+      const view = await response.json() as components["schemas"]["FamilyView"];
+      expect(view.report).toBeNull();
+      const choices = view.scene!.choices;
+      const choice = i === 3 ? choices[choices.length - 1]! : choices[0]!;
+      await actor.getByRole("button", { name: choice.text_th, exact: true }).click();
+      await expect.poll(async () => (await (await request.get(url, options)).json()).state_version).toBe(i + 1);
+      if (i === 1) await page.reload();
+    }
+    await expect(page.getByRole("heading", { name: t("family.report") })).toBeVisible();
+    await expect(partner.getByText(t("family.safetyReview"))).toBeVisible();
+    for (const tab of [page, partner]) {
+      expect(await tab.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+  } finally { await partnerContext.close(); }
+});

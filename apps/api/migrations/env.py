@@ -2,6 +2,7 @@ from alembic import context
 from sqlalchemy import create_engine
 
 from app.core.config import get_settings
+from app.db import family  # noqa: F401 - register family tables with migration metadata
 from app.db.models import Base
 
 target_metadata = Base.metadata
