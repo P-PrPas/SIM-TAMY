@@ -16,13 +16,8 @@ from typing import Any
 import yaml
 
 from app.ai.llm_client import LLMProviderError, LLMRequest, LLMResponse
+from app.domain.state import AllowedFacts
 
-# Used when a script has no matching rule, so LLM_PROVIDER=mock works with no script at all.
-_BUILTIN: dict[str, list[dict[str, Any]]] = {
-    "interpreter": [
-        {"default": {"actions": [], "needs_clarification": False, "clarification_hint": None}}
-    ],
-}
 _FALLBACK_TEXT = "mock reply"
 _CANNED = Path(__file__).resolve().parents[1] / "prompts" / "canned_th.yaml"
 
@@ -43,16 +38,36 @@ class MockProvider:
         return cls(loaded)
 
     def complete(self, request: LLMRequest) -> LLMResponse:
-        rules = [*self.script.get(request.purpose, []), *_BUILTIN.get(request.purpose, [])]
+        rules = self.script.get(request.purpose, [])
         for rule in rules:
             if "default" in rule:
                 return _reply(rule["default"])
             if "match_contains" in rule and rule["match_contains"] in request.prompt:
                 return _reply(rule["return"])
         if request.json_schema is not None:
+            # An empty success suppresses the real lexical fallback and loses every Action.
             raise LLMProviderError("mock_no_rule", retryable=False)
         if request.purpose == "generator":
             lines = yaml.safe_load(_CANNED.read_text(encoding="utf-8"))
+            try:
+                payload = json.loads(request.prompt)
+            except json.JSONDecodeError:
+                payload = {}
+            if isinstance(payload, dict):
+                if payload.get("directive") == "clarify":
+                    return _reply(lines["clarify"])
+                if payload.get("directive") == "answer":
+                    allowed = AllowedFacts.model_validate(
+                        {
+                            "facts": payload.get("allowed_facts", []),
+                            "must_convey_fact_ids": payload.get("must_convey_fact_ids", []),
+                        }
+                    )
+                    wanted = set(allowed.must_convey_fact_ids)
+                    chosen = [fact for fact in allowed.facts if fact.id in wanted]
+                    text = " ".join(fact.text_th for fact in chosen or allowed.facts)
+                    if text:
+                        return _reply(text)
             return _reply(lines["smalltalk"])
         return LLMResponse(text=_FALLBACK_TEXT, prompt_tokens=0, completion_tokens=0)
 

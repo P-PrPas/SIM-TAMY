@@ -84,8 +84,10 @@ def test_interpreter_passes_clarification_through() -> None:
     assert result.needs_clarification and result.clarification_hint == "ถามอะไร"
 
 
-def test_interpreter_no_rule_match_uses_the_builtin_empty_default() -> None:
-    client = LLMClient(MockProvider(), model="m", timeout_s=1)
+def test_interpreter_explicit_empty_script_does_not_infer_actions() -> None:
+    client = LLMClient(
+        MockProvider({"interpreter": [{"default": {"actions": []}}]}), model="m", timeout_s=1
+    )
     assert interpret(client, ACTIONS, "สวัสดีค่ะ").actions == ()
 
 

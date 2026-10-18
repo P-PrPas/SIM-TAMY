@@ -48,15 +48,15 @@ def req(prompt: str = "p", purpose: str = "interpreter", schema: bool = True) ->
 
 
 def test_llm_client_mock_is_deterministic() -> None:
-    mock = MockProvider()
+    mock = MockProvider({"interpreter": [{"default": {"actions": []}}]})
     first = mock.complete(req("anything"))
     assert [mock.complete(req("anything")) for _ in range(5)] == [first] * 5
 
 
-def test_llm_client_mock_builtin_interpreter_default_is_valid() -> None:
+def test_unscripted_mock_interpreter_signals_the_lexical_fallback() -> None:
     client = LLMClient(MockProvider(), model="mock-model", timeout_s=1)
-    out = client.complete_structured(Actions, purpose="interpreter", system="s", prompt="x")
-    assert out == Actions()
+    with pytest.raises(LLMProviderError, match="mock_no_rule"):
+        client.complete_structured(Actions, purpose="interpreter", system="s", prompt="x")
 
 
 def test_llm_client_mock_script_first_match_wins_then_default() -> None:
@@ -276,10 +276,10 @@ def test_llm_client_backend_runs_offline_on_mock(monkeypatch: pytest.MonkeyPatch
     get_settings.cache_clear()
     llm_client._cached_provider.cache_clear()
     try:
-        c = get_llm_client("interpreter")
-        a = c.complete_structured(Actions, purpose="interpreter", system="s", prompt="same")
-        b = get_llm_client("interpreter").complete_structured(
-            Actions, purpose="interpreter", system="s", prompt="same"
+        c = get_llm_client("generator")
+        a = c.complete_text(purpose="generator", system="s", prompt="same")
+        b = get_llm_client("generator").complete_text(
+            purpose="generator", system="s", prompt="same"
         )
         assert a == b
     finally:
