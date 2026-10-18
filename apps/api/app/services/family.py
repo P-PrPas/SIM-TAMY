@@ -125,9 +125,7 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
     )
 
 
-def decide(
-    db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyDecision
-) -> FamilyView:
+def decide(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyDecision) -> FamilyView:
     saved = events(db, row)
     prior = next((event for event in saved if event.client_turn_id == body.client_turn_id), None)
     if prior:
