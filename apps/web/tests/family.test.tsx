@@ -103,7 +103,7 @@ it("stops polling after a decision completes the report", async () => {
   fireEvent.click(choice);
   fireEvent.click(screen.getByRole("button", { name: t("experience.commit") }));
   await screen.findByRole("heading", { name: t("family.report") });
-  expect(clearTimer).toHaveBeenCalledWith(timer);
+  await waitFor(() => expect(clearTimer).toHaveBeenCalledWith(timer));
   expect(startTimer.mock.calls.filter(([, delay]) => delay === 3000)).toHaveLength(1);
 });
 
