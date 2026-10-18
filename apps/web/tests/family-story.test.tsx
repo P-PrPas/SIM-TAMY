@@ -14,6 +14,17 @@ it("requires a deliberate chapter continuation without committing a new decision
   expect(screen.queryByRole("button", { name: "Decision" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: t("experience.enterChapter") }));
   expect(screen.getByRole("button", { name: "Decision" })).not.toBeNull();
+  expect(screen.getByRole("group", { name: "Second" })).toBe(document.activeElement);
+});
+
+it("does not block on stale chapter gates while waiting for the other participant", () => {
+  const { rerender } = render(<FamilyChapterGate chapter="First" active={false}><p>Waiting</p></FamilyChapterGate>);
+  rerender(<FamilyChapterGate chapter="Second" active={false}><p>Waiting</p></FamilyChapterGate>);
+  expect(screen.queryByRole("button", { name: t("experience.enterChapter") })).toBeNull();
+  rerender(<FamilyChapterGate chapter="Third" active><button>Current decision</button></FamilyChapterGate>);
+  expect(screen.getByRole("heading", { name: "Third" })).not.toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: t("experience.enterChapter") }));
+  expect(screen.getByRole("button", { name: "Current decision" })).not.toBeNull();
 });
 
 it("records only committed public statements with their actual actor", () => {

@@ -48,6 +48,7 @@
 .practice-storyboard > header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem; background: var(--color-brand-900); color: white; }
 .practice-storyboard header p { margin-bottom: .35rem; }
 .practice-storyboard h3 { font-size: 1.3rem; font-weight: 750; }
+.practice-storyboard > header h3 { color: var(--color-surface); }
 .practice-story-pages { display: flex; flex-wrap: wrap; gap: .65rem; padding: 1rem 1.25rem; }
 .practice-story-pages button { width: 44px; height: 44px; border: 1px solid var(--color-brand-300); border-radius: 50%; font-weight: 700; }
 .practice-story-pages button[aria-current] { background: var(--color-brand-900); color: white; border-color: var(--color-brand-900); }
