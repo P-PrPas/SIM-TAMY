@@ -57,8 +57,12 @@ redirect HTTP to HTTPS. Secrets are only in the Render dashboard.
 Add `LLM_API_KEY` (and `LLM_PROVIDER`, `LLM_MODEL_*`, `LLM_BASE_URL`) in the Render dashboard; never in
 `render.yaml`. Set `LLM_PROVIDER` back to `mock` to fall back to the deterministic provider.
 
-The Blueprint currently provisions `LLM_PROVIDER=mock`. A green deployment does not mean a real
-model is connected: check the public `/health` response's `llm_provider` and `commit` after rollout.
+The Blueprint leaves `LLM_PROVIDER` operator-managed (`sync: false`) so subsequent Blueprint
+syncs do not replace a dashboard-selected live provider with `mock`. New Blueprint creation
+prompts for this value. Existing services keep their current value; if an earlier sync already
+set it to `mock`, restore `openai_like` in the API service's Environment and redeploy.
+A green deployment does not mean a real model is connected: check the public `/health`
+response's `llm_provider` and `commit` after rollout.
 For live AI chat, set `LLM_PROVIDER=openai_like`, the provider's base URL and key, and all three
 `LLM_MODEL_INTERPRETER`, `LLM_MODEL_GENERATOR`, and `LLM_MODEL_DEBRIEF` values server-side, then
 restart and verify `/health` reports `openai_like`. Never paste the key into chat or the frontend.

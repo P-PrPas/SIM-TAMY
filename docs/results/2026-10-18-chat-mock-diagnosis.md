@@ -50,5 +50,27 @@ missing rules instead of requiring the broken implicit-empty success.
 ## Deployment limitation
 
 This patch improves offline fallback; it does not connect a real model or change
-Render's environment. Live AI chat requires server-side provider/model configuration
-and a post-deployment check. No real-provider quality, cost or latency is claimed.
+Render's running environment. No real-provider quality, cost or latency is claimed.
+
+## Operator follow-up: previously working live provider
+
+The operator confirmed that the key/models were already configured and live chat
+previously worked. Git history shows `LLM_PROVIDER: mock` in the Blueprint since
+`7a85fd2`; `e2b2504` later edited that Blueprint to enable replay. There are no
+changes to provider selection, turn routing, image startup or web API routing
+between `6fed131` and deployed `5217d87` (the latest #78–#85 feature stack).
+
+[Render's Blueprint specification](https://render.com/docs/blueprint-spec) says
+Blueprints can modify existing environment variables, whereas `sync: false`
+variables are ignored on subsequent updates. A Blueprint sync is therefore a
+plausible overwrite path. Without Render Environment/sync history, this is not
+proof of which deployment changed the value. Public health proves only the
+current provider is mock, not when or why it changed.
+
+The Blueprint now uses `sync: false` for provider selection, with a regression
+test that failed against the hard-coded value and passes after the change.
+This prevents subsequent Blueprint overwrites but does not restore a value already
+changed to mock. The operator must restore `LLM_PROVIDER=openai_like` on the actual
+API service and redeploy, retaining the existing key, base URL and model values,
+then verify health and a live synthetic chat. No credential needs to be re-entered
+if it remains configured. Existing development/mock defaults remain unchanged.

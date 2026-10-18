@@ -107,3 +107,13 @@ def test_env_example_has_no_trailing_comments() -> None:
     root = Path(__file__).resolve().parents[4]
     lines = (root / ".env.example").read_text().splitlines()
     assert [ln for ln in lines if ln and not ln.startswith("#") and " #" in ln] == []
+
+
+def test_render_preserves_the_operator_selected_llm_provider() -> None:
+    """Blueprint sync must not overwrite a working live provider with the demo default."""
+    import yaml
+
+    root = Path(__file__).resolve().parents[4]
+    service = yaml.safe_load((root / "render.yaml").read_text())["services"][0]
+    provider = next(item for item in service["envVars"] if item.get("key") == "LLM_PROVIDER")
+    assert provider == {"key": "LLM_PROVIDER", "sync": False}
