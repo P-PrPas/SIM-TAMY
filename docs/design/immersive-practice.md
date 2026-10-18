@@ -36,7 +36,7 @@ event data; parent profiles are not applied to clinical learners.
 
 ## Parent / team profile
 
-A completed family report can show one of four practice approaches, a combined
+A completed family report with SAFETY_MET can show one of four practice approaches, a combined
 approach, or an exploration card. This is presentation of existing counts, not an
 MBTI implementation, psychometric test, stable personality trait or new score.
 Among domains with observations and opportunities, the greatest observed/opportunity
@@ -45,6 +45,9 @@ observations produce exploration. Exact integer cross-products handle ties witho
 an arbitrary domain priority. The expandable explanation exposes all original counts.
 
 Co-op labels describe the team's choices; solo labels describe that player's round.
+Any safety status other than SAFETY_MET forces the exploration profile before
+domain proportions are considered. Its explanation identifies the critical review
+gate rather than claiming there were no observations. The same label is copied.
 The existing safety status is shown first and remains unchanged. A profile cannot
 convert SAFETY_NOT_MET into a pass. Manual copy includes the round scope and any
 critical review notice; it excludes room IDs, tokens, briefs and conversation text.

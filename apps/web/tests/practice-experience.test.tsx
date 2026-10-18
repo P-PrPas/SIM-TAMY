@@ -7,6 +7,15 @@ import { t } from "@/lib/i18n";
 
 afterEach(cleanup);
 
+it("can start collapsed to keep clinical chat in view and expand on demand", () => {
+  render(<PracticeStage chapter="Clinical practice" speaker="Patient" initiallyOpen={false} />);
+  const summary = screen.getByText(t("experience.scene")).closest("summary")!;
+  const details = summary.parentElement as HTMLDetailsElement;
+  expect(details.open).toBe(false);
+  fireEvent.click(summary);
+  expect(details.open).toBe(true);
+});
+
 it("keeps selection editable and commits only after explicit confirmation", () => {
   const commit = vi.fn();
   render(<PracticeChoice choices={[{ id: "a", text_th: "First response" }, { id: "b", text_th: "Second response" }]} disabled={false} onCommit={commit} />);

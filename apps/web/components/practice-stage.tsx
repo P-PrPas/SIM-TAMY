@@ -4,10 +4,10 @@ import { FamilyArtwork, FamilyIcon } from "./family-art";
 import { t } from "@/lib/i18n";
 
 /** A public conversation cue, never a visualization of risk or correctness. */
-export function PracticeStage({ chapter, speaker, family = false, grandmother = false, sceneIndex = 0 }: {
-  chapter: string; speaker: string; family?: boolean; grandmother?: boolean; sceneIndex?: number;
+export function PracticeStage({ chapter, speaker, family = false, grandmother = false, sceneIndex = 0, initiallyOpen = true }: {
+  chapter: string; speaker: string; family?: boolean; grandmother?: boolean; sceneIndex?: number; initiallyOpen?: boolean;
 }) {
-  return <details open className={`practice-stage ${family ? "is-family" : "is-conversation"}`}>
+  return <details open={initiallyOpen} className={`practice-stage ${family ? "is-family" : "is-conversation"}`}>
     <summary><span><FamilyIcon name="chat" />{t("experience.scene")}</span><FamilyIcon name="chevron" /></summary>
     <div className={`practice-stage-scene scene-variation-${sceneIndex % 3}`} key={chapter}>
       <div className="practice-stage-window" aria-hidden="true"><span /><i /><i /><i /></div>

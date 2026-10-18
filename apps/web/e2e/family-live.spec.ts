@@ -49,6 +49,8 @@ test("two isolated devices complete a shared story and see the critical checkpoi
     await expect(page.getByRole("heading", { name: t("family.report") })).toBeVisible();
     await expect(partner.getByText(t("family.safetyReview"))).toBeVisible();
     await expect(page.getByText(t("profiles.team"), { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: t("profiles.explorer.title") })).toBeVisible();
+    await expect(page.getByRole("heading", { name: t("profiles.safety.title") })).toHaveCount(0);
     await page.locator(".practice-journal summary").click();
     await expect(page.locator(".practice-journal li")).toHaveCount(4);
     const oldRoom = credentials[0]!;
