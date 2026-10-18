@@ -238,7 +238,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         </div>
       </div>
       <FamilyJournal turns={view.transcript} coop={experience === "coop"} waiting={t(view.report ? "family.finished" : !view.partner_joined ? "family.waitPartner" : view.scene?.role === view.role ? "family.yourTurn" : "family.partnerTurn")} />
-      {view.report && <FamilyReportPanel report={view.report} turns={view.transcript} grandmother={experience === "bridge"} onRestart={() => { setRole(view.role); leave(); }} />}
+      {view.report && <FamilyReportPanel report={view.report} turns={view.transcript} grandmother={experience === "bridge"} coop={experience === "coop"} onRestart={() => { setRole(view.role); leave(); }} />}
     </>}
   </main>;
 }
