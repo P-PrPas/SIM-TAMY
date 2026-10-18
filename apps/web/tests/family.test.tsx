@@ -34,7 +34,8 @@ it("creates a room, shows only its role brief, and preserves the decision ID on 
   await waitFor(() => expect((create as HTMLButtonElement).disabled).toBe(false));
   fireEvent.click(create);
   expect(await screen.findByText(room.private_brief_th)).not.toBeNull();
-  fireEvent.click(await screen.findByRole("button", { name: "Ask for rest" }));
+  fireEvent.click(await screen.findByRole("radio", { name: "Ask for rest" }));
+  fireEvent.click(screen.getByRole("button", { name: t("experience.commit") }));
   fireEvent.click(await screen.findByRole("button", { name: t("family.retry") }));
   await screen.findByText(t("family.partnerTurn"));
   expect(sent).toHaveLength(2);
@@ -49,7 +50,7 @@ it("restores a session and keeps the partner's choices out of the screen", async
   render(<FamilySimulator storyId="first-night" />);
   expect(await screen.findByText("Only father's context")).not.toBeNull();
   expect(screen.queryByText(room.private_brief_th)).toBeNull();
-  expect(screen.queryByRole("button", { name: "Ask for rest" })).toBeNull();
+  expect(screen.queryByRole("radio", { name: "Ask for rest" })).toBeNull();
 });
 
 it("lets a learner recover when a restored role token is no longer usable", async () => {
@@ -96,10 +97,11 @@ it("stops polling after a decision completes the report", async () => {
     : request.url.endsWith("/decisions") ? { ...room, scene: null, report: { safety_status: "SAFETY_MET", competencies: [], evidence: [], sources: [] } } : room));
   vi.stubGlobal("fetch", fetch);
   render(<FamilySimulator storyId="first-night" />);
-  const choice = await screen.findByRole("button", { name: "Ask for rest" });
+  const choice = await screen.findByRole("radio", { name: "Ask for rest" });
   const timer = startTimer.mock.results[startTimer.mock.calls.findIndex(([, delay]) => delay === 3000)]?.value;
   expect(timer).toBeDefined();
   fireEvent.click(choice);
+  fireEvent.click(screen.getByRole("button", { name: t("experience.commit") }));
   await screen.findByRole("heading", { name: t("family.report") });
   expect(clearTimer).toHaveBeenCalledWith(timer);
   expect(startTimer.mock.calls.filter(([, delay]) => delay === 3000)).toHaveLength(1);
@@ -116,7 +118,8 @@ it("joins and decides without randomUUID on an HTTP LAN browser", async () => {
   render(<FamilySimulator storyId="first-night" />);
   fireEvent.change(await screen.findByLabelText(t("family.invitation")), { target: { value: `http://192.168.1.2/family#room=${room.room_id}&invite=secret` } });
   fireEvent.click(screen.getByRole("button", { name: t("family.join") }));
-  fireEvent.click(await screen.findByRole("button", { name: "Ask for rest" }));
+  fireEvent.click(await screen.findByRole("radio", { name: "Ask for rest" }));
+  fireEvent.click(screen.getByRole("button", { name: t("experience.commit") }));
   await waitFor(() => expect(sent).toHaveLength(2));
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
   expect(sent[0]?.participant_token).toMatch(uuid);

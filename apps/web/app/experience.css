@@ -1,0 +1,38 @@
+.practice-stage { overflow: hidden; border: 1px solid var(--color-line); border-radius: 1.25rem; background: var(--color-brand-50); margin-block: 0 1.25rem; }
+.practice-stage > summary { display: flex; align-items: center; justify-content: space-between; padding: .8rem 1.15rem; cursor: pointer; color: var(--color-brand-900); font-weight: 700; }
+.practice-stage > summary > span { display: flex; align-items: center; gap: .6rem; }
+.practice-stage > summary::marker { content: ""; }
+.practice-stage-scene { position: relative; isolation: isolate; display: flex; align-items: center; min-height: 190px; padding: 1.3rem 1.7rem; border-top: 1px solid var(--color-line); overflow: hidden; }
+.practice-stage-window { position: absolute; inset: 0; z-index: -1; background: var(--color-brand-100); }
+.practice-stage-window > span { position: absolute; width: 150px; height: 180px; right: 9%; bottom: 0; border: 8px solid var(--color-brand-200); border-bottom: 0; border-radius: 90px 90px 0 0; background: var(--color-canvas); }
+.practice-stage-window > i { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--color-brand-400); top: 24%; right: 12%; }
+.practice-stage-window > i:nth-of-type(2) { right: 35%; top: 36%; width: 5px; height: 5px; }
+.practice-stage-window > i:nth-of-type(3) { right: 28%; top: 12%; }
+.practice-stage-art { position: absolute; bottom: 0; right: 1rem; width: 240px; pointer-events: none; }
+.practice-stage-art svg { display: block; width: 100%; height: auto; }
+.practice-stage-caption { max-width: 56%; position: relative; padding-block: .5rem; }
+.practice-stage-caption > p { margin-bottom: 1rem; font-size: clamp(1.1rem, 2vw, 1.6rem); line-height: 1.5; font-weight: 750; color: var(--color-brand-950); text-wrap: balance; }
+.practice-speaker { display: inline-flex; gap: .65rem; align-items: center; padding: .7rem .9rem; border: 1px solid var(--color-brand-300); background: var(--color-canvas); border-radius: 1rem; box-shadow: 0 3px 0 var(--color-brand-200); }
+.practice-speaker strong { display: block; color: var(--color-brand-950); }
+.practice-speaker > span { font-size: 1rem; color: var(--color-muted); }
+.practice-activity { margin-top: 1.3rem; }
+.practice-activity legend { font-size: 1.1rem; font-weight: 750; color: var(--color-brand-950); }
+.practice-activity fieldset > p { margin: .35rem 0 1rem; color: var(--color-muted); }
+.practice-options { display: grid; gap: .75rem; }
+.practice-options label { display: flex; align-items: flex-start; gap: .85rem; border: 1px solid var(--color-line); border-radius: 1rem; padding: 1rem; cursor: pointer; background: var(--color-canvas); line-height: 1.8; }
+.practice-options label.is-selected { border-color: var(--color-brand-700); background: var(--color-brand-50); box-shadow: inset 4px 0 var(--color-brand-700); }
+.practice-options input { width: 20px; height: 20px; flex-shrink: 0; margin-top: .25rem; accent-color: var(--color-brand-800); }
+.practice-options label > span { flex: 1; min-width: 0; }
+.practice-options label > svg { flex-shrink: 0; margin-top: .25rem; }
+.practice-commit { display: flex; align-items: center; justify-content: center; gap: .8rem; margin-top: 1rem; min-height: 48px; width: 100%; }
+.practice-stage summary:focus-visible, .practice-options label:has(:focus-visible) { outline: 3px solid var(--color-brand-700); outline-offset: 3px; }
+.practice-activity fieldset:disabled label { cursor: default; }
+@keyframes practice-scene-enter { from { transform: translateX(10px); } to { transform: translateX(0); } }
+@media (prefers-reduced-motion: no-preference) { .practice-stage-scene { animation: practice-scene-enter 280ms ease-out; } }
+@media (max-width: 600px) {
+  .practice-stage-scene { min-height: 165px; padding: 1rem; }
+  .practice-stage-caption { max-width: 65%; }
+  .practice-stage-art { width: 155px; right: -1.25rem; }
+  .practice-stage-caption > p { font-size: 1.05rem; }
+  .practice-speaker { gap: .45rem; padding: .5rem; }
+}

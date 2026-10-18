@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./family.css";
+@import "./experience.css";
 
 @theme {
   --color-brand-50: #fff9eb;
