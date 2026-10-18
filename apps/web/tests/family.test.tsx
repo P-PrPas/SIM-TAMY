@@ -13,7 +13,7 @@ const room = {
     prompt_th: "What help do you need?", choices: [{ id: "share", text_th: "Ask for rest" }] },
 };
 beforeEach(() => sessionStorage.clear());
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 it("creates a room, shows only its role brief, and preserves the decision ID on retry", async () => {
   let fail = true;
@@ -86,4 +86,39 @@ it("keeps the latest reply visible and earlier conversation available on demand"
   expect(earlier?.open).toBe(false);
   fireEvent.click(screen.getByText(t("family.design.history")));
   await waitFor(() => expect(earlier?.open).toBe(true));
+});
+
+it("stops polling after a decision completes the report", async () => {
+  const startTimer = vi.spyOn(window, "setInterval");
+  const clearTimer = vi.spyOn(window, "clearInterval");
+  sessionStorage.setItem("sim-tamy-family:first-night", JSON.stringify({ room_id: room.room_id, token: "host-token" }));
+  const fetch = vi.fn(async (request: Request) => Response.json(request.url.endsWith("/stories") ? []
+    : request.url.endsWith("/decisions") ? { ...room, scene: null, report: { safety_status: "SAFETY_MET", competencies: [], evidence: [], sources: [] } } : room));
+  vi.stubGlobal("fetch", fetch);
+  render(<FamilySimulator storyId="first-night" />);
+  const choice = await screen.findByRole("button", { name: "Ask for rest" });
+  const timer = startTimer.mock.results[startTimer.mock.calls.findIndex(([, delay]) => delay === 3000)]?.value;
+  expect(timer).toBeDefined();
+  fireEvent.click(choice);
+  await screen.findByRole("heading", { name: t("family.report") });
+  expect(clearTimer).toHaveBeenCalledWith(timer);
+  expect(startTimer.mock.calls.filter(([, delay]) => delay === 3000)).toHaveLength(1);
+});
+
+it("joins and decides without randomUUID on an HTTP LAN browser", async () => {
+  vi.stubGlobal("crypto", { getRandomValues: crypto.getRandomValues.bind(crypto) });
+  const sent: Record<string, unknown>[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (request: Request) => {
+    if (request.url.endsWith("/stories")) return Response.json([]);
+    if (request.method === "POST") sent.push(await request.json());
+    return Response.json(room);
+  }));
+  render(<FamilySimulator storyId="first-night" />);
+  fireEvent.change(await screen.findByLabelText(t("family.invitation")), { target: { value: `http://192.168.1.2/family#room=${room.room_id}&invite=secret` } });
+  fireEvent.click(screen.getByRole("button", { name: t("family.join") }));
+  fireEvent.click(await screen.findByRole("button", { name: "Ask for rest" }));
+  await waitFor(() => expect(sent).toHaveLength(2));
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+  expect(sent[0]?.participant_token).toMatch(uuid);
+  expect(sent[1]?.client_turn_id).toMatch(uuid);
 });

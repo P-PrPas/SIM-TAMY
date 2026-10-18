@@ -14,6 +14,16 @@ type Role = View["role"];
 type Credentials = { room_id: string; token: string; invite?: string };
 type Decision = components["schemas"]["FamilyDecision"];
 
+function newClientId() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  // getRandomValues remains available on HTTP LAN demos; never use Math.random for tokens.
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40;
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 export function FamilySimulator({ storyId, children }: { storyId: string; children?: ReactNode }) {
   const storageKey = `sim-tamy-family:${storyId}`;
   const [credentials, setCredentials] = useState<Credentials | null>(null);
@@ -28,6 +38,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
   const [copyFailed, setCopyFailed] = useState(false);
   const [card, setCard] = useState<components["schemas"]["FamilyStoryCard"] | null>(null);
   const requestInFlight = useRef(false);
+  const completed = Boolean(view?.report);
   const inviteLink = ready && credentials?.invite
     ? `${window.location.origin}${window.location.pathname}${window.location.search}#room=${credentials.room_id}&invite=${credentials.invite}` : "";
   const client = (saved = credentials) => createApi({
@@ -62,7 +73,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
   }, [storageKey, storyId]);
 
   useEffect(() => {
-    if (!credentials) return;
+    if (!credentials || completed) return;
     const saved = credentials;
     const controller = new AbortController();
     let loading = false;
@@ -80,7 +91,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
     void refresh();
     const timer = window.setInterval(() => void refresh(), 3000);
     return () => { controller.abort(); window.clearInterval(timer); };
-  }, [credentials]);
+  }, [credentials, completed]);
 
   async function start(join: boolean) {
     setBusy(true); setError("");
@@ -89,7 +100,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         const params = new URLSearchParams(new URL(invitation).hash.slice(1));
         const room_id = params.get("room") ?? "";
         const tokenKey = `${storageKey}:join-token`;
-        const token = sessionStorage.getItem(tokenKey) ?? crypto.randomUUID();
+        const token = sessionStorage.getItem(tokenKey) ?? newClientId();
         sessionStorage.setItem(tokenKey, token);
         const { data } = await client(null).POST("/v1/family/rooms/{room_id}/join", {
           params: { path: { room_id } }, body: { invite: params.get("invite") ?? "", participant_token: token },
@@ -107,7 +118,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
 
   async function decide(choiceId: string) {
     if (!view || !credentials || requestInFlight.current) return;
-    const body = pending ?? { choice_id: choiceId, state_version: view.state_version, client_turn_id: crypto.randomUUID() };
+    const body = pending ?? { choice_id: choiceId, state_version: view.state_version, client_turn_id: newClientId() };
     setPending(body); setBusy(true); setError(""); requestInFlight.current = true;
     try {
       const { data } = await client().POST("/v1/family/rooms/{room_id}/decisions", {
