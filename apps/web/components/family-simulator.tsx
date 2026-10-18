@@ -162,7 +162,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
       <div className="family-hero-copy">
         <p className="family-kicker">{t(`family.design.${experience}.kicker`)}</p>
         <h1>{card?.title_th ?? t(`family.design.${experience}.title`)}</h1>
-        <p className="family-description">{card?.description_th ?? t("family.description")}</p>
+        {!view && <p className="family-description">{card?.description_th ?? t("family.description")}</p>}
         {!view && <><div className="family-meta"><span><FamilyIcon name={experience === 'bridge' ? 'leaf' : 'family'} />{t(`family.design.${experience}.format`)}</span><span><FamilyIcon name="heart" />{t("family.design.noCompetition")}</span></div>
           <a href="#family-enrollment" className="button-primary family-hero-cta">{t("family.design.begin")}<FamilyIcon name="arrow" /></a>
         </>}
@@ -220,7 +220,6 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
             <button onClick={() => void copyInvitation()} className="button-primary"><FamilyIcon name={copied ? 'check' : 'copy'} />{t(copied ? 'family.design.copied' : 'family.design.copy')}</button>
             <p role="status">{copyFailed ? t('family.design.copyManual') : copied ? t('family.design.copySuccess') : ''}</p>
           </section>}
-          <FamilyJournal turns={view.transcript} coop={experience === "coop"} waiting={t(view.report ? "family.finished" : !view.partner_joined ? "family.waitPartner" : view.scene?.role === view.role ? "family.yourTurn" : "family.partnerTurn")} />
         </aside>
         <div className="family-room-main">
           <PracticeStage family grandmother={experience === "bridge"} sceneIndex={Math.max(0, card?.chapters_th.indexOf(view.scene?.chapter_th ?? "") ?? 0)} chapter={view.scene?.chapter_th ?? t("family.finished")} speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? t("family.conversation")} />
@@ -230,7 +229,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
             {pending && <div role="status" className="family-pending"><FamilyIcon name="chat" /><div><p>{view.scene?.choices.find((choice) => choice.id === pending.choice_id)?.text_th}</p><small>{t("family.sending")}</small></div></div>}
           </section>
           <p aria-live="polite" aria-atomic="true" className="family-turn-status"><span className={`family-status-dot ${waiting ? 'is-waiting' : ''}`} aria-hidden="true" />{view.report ? t("family.finished") : !view.partner_joined ? t("family.waitPartner") : view.scene?.role === view.role ? t("family.yourTurn") : t("family.partnerTurn")}</p>
-          {view.scene && <FamilyChapterGate key={view.room_id} chapter={view.scene.chapter_th}><section className="family-scene" aria-labelledby="family-scene-title">
+          {view.scene && <FamilyChapterGate key={view.room_id} chapter={view.scene.chapter_th} active={view.partner_joined && view.scene.role === view.role}><section className="family-scene" aria-labelledby="family-scene-title">
             <div className="family-scene-header"><span className="family-symbol"><FamilyIcon name={experience === 'bridge' ? 'leaf' : 'chat'} /></span><div><p className="family-kicker">{view.scene.chapter_th}</p><h2 id="family-scene-title">{view.scene.speaker_th}</h2></div></div>
             <p className="family-scene-prompt">{view.scene.prompt_th}</p>
             {view.scene.choices.length > 0 && <PracticeChoice key={`${view.room_id}:${view.state_version}`} choices={view.scene.choices} disabled={busy || !view.partner_joined || !!pending} onCommit={(id) => void decide(id)} />}
@@ -238,6 +237,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
           </section></FamilyChapterGate>}
         </div>
       </div>
+      <FamilyJournal turns={view.transcript} coop={experience === "coop"} waiting={t(view.report ? "family.finished" : !view.partner_joined ? "family.waitPartner" : view.scene?.role === view.role ? "family.yourTurn" : "family.partnerTurn")} />
       {view.report && <FamilyReportPanel report={view.report} turns={view.transcript} grandmother={experience === "bridge"} onRestart={() => { setRole(view.role); leave(); }} />}
     </>}
   </main>;
