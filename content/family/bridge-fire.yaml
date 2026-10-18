@@ -1,5 +1,5 @@
 id: bridge-fire
-version: '1.0'
+version: '1.1'
 status: Draft
 mode: solo
 title_th: คุยกับยายเรื่องอยู่ไฟ ด้วยความเข้าใจ
@@ -12,9 +12,9 @@ roles:
 sources:
   - id: DTAM-CULTURE
     title_th: กรมการแพทย์แผนไทยฯ — เอกสารจำแนกหัตถการแพทย์แผนไทย
-    url: https://www.dtam.moph.go.th/wp-content/uploads/2023/11/DL0003-15062558-ICD-10-TM.pdf
+    url: https://www.dtam.moph.go.th/wp-content/uploads/2023/11/DL0003-15062558-ICD-10-TM.pdf#page=77
     category: culture
-    summary_th: มีการบันทึกชื่อการอยู่ไฟเป็นการดูแลตามศาสตร์แผนไทย การมีชื่อในระบบจำแนกไม่ได้ยืนยันประสิทธิผลหรือความเหมาะสมสำหรับบุคคลใด
+    summary_th: หน้าเอกสาร 69 (หน้า PDF 77) รหัส 900-77-20 บันทึกชื่อการอยู่ไฟ ใช้อ้างอิงชื่อหัตถการในศาสตร์แผนไทย ไม่ได้ใช้ยืนยันผลทางคลินิก ข้อห้ามเฉพาะบุคคล หรือวิธีสนทนากับคนในครอบครัว
   - id: WHO-SUPPORT
     title_th: องค์การอนามัยโลก — การดูแลหลังคลอดที่เคารพผู้รับบริการและบริบทวัฒนธรรม
     url: https://www.who.int/news/item/30-03-2022-who-urges-quality-care-for-women-and-newborns-in-critical-first-weeks-after-childbirth
@@ -43,7 +43,7 @@ steps:
     role: mother
     speaker_th: ยายสาย
     prompt_th: ยายเคยทำแล้วรู้สึกว่าดี แต่ก็ไม่รู้ว่าของหนูกับของยายเหมือนกันไหม เราจะคุยเรื่องนี้ต่อยังไงดี
-    source_ids: [DTAM-CULTURE]
+    source_ids: [DTAM-CULTURE, WHO-SUPPORT]
     choices:
       - id: clarify-details
         text_th: ประสบการณ์ยายสำคัญนะ แต่เราอยากจดก่อนว่าหมายถึงวิธีไหนและใครจะดูแล แล้วค่อยนำคำถามไปคุยกับผู้ประกอบวิชาชีพที่เกี่ยวข้อง

@@ -1,5 +1,5 @@
 id: bridge-food
-version: '1.0'
+version: '1.1'
 status: Draft
 mode: solo
 title_th: สำรับหลังคลอดที่คุยกันได้
@@ -20,6 +20,11 @@ sources:
     url: https://www.unicef.org/nutrition/maternal
     category: guidance
     summary_th: เน้นอาหารที่มีคุณค่าทางโภชนาการ การพัก และการเข้าถึงคำปรึกษา โดยคำนึงถึงการเข้าถึงอาหารและบริบทสังคม ไม่รับรองว่าอาหารชนิดเดียวเพิ่มน้ำนมได้แน่นอน
+  - id: WHO-SHARED-CARE
+    title_th: องค์การอนามัยโลก — การมีส่วนร่วมในงานบ้านและการดูแลครอบครัว
+    url: https://www.who.int/news/item/26-09-2019-engaging-men-addressing-harmful-masculinities-to-improve-sexual-and-reproductive-health-and-rights
+    category: guidance
+    summary_th: หัวข้อ Harmful masculinities and their consequences รองรับหลักการแบ่งภาระงานดูแลในครอบครัว ใช้ประกอบฉากแบ่งคนซื้อ ทำ และเก็บอาหาร ส่วน UNICEF รองรับด้านโภชนาการและการเข้าถึงอาหาร ไม่ได้กำหนดว่าใครต้องรับหน้าที่ใด
 steps:
   - id: understand
     chapter_th: สำรับที่มาพร้อมความรัก
@@ -43,7 +48,7 @@ steps:
     role: mother
     speaker_th: ยายสาย
     prompt_th: ถ้าจะช่วยเรื่องอาหาร เราแบ่งกันยังไงดี ยายก็ไม่สะดวกมาทุกวัน แล้วเรื่องงบต้องคุยกันด้วย
-    source_ids: [UNICEF-FOOD]
+    source_ids: [UNICEF-FOOD, WHO-SHARED-CARE]
     choices:
       - id: realistic-plan
         text_th: มาช่วยกันเลือกตามสิ่งที่หาได้และความต้องการคุณแม่ แล้วแบ่งคนซื้อ คนทำ และคนเก็บ ไม่ให้ใครต้องรับทั้งหมดคนเดียว
