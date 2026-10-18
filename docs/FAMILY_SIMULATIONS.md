@@ -89,16 +89,14 @@ context, institutional guidance and limited evidence separately. Classification
 documents establish practice names, not efficacy; an inconclusive trial is not
 presented as proven benefit. No procedure, dosage or individual clearance is given.
 
-The existing Generator duty can choose between the selected reply's authored
-wording alternatives. It receives only the grandmother persona, chosen learner
-utterance and those allowed replies. An exact allowlist validator rejects every
-other output; after at most two regenerations or a provider failure the canonical
-script is used. No unrestricted AI conversation or clinical synthesis is claimed.
-Co-op and Parenthood remain fully scripted and make no LLM calls. Mock mode works
-without a key; real provider behaviour/latency still needs explicit validation.
+All three family experiences use their content-authored canonical replies directly.
+Family decisions make no LLM calls, including while the room row is locked.
+Persona and alternative wording remain content metadata for editorial review;
+they do not trigger generation or clinical synthesis.
 
 Migration `0004` adds a nullable reply column. Earlier events fall back to their
-pinned script. New exchanges persist the accepted wording and LLM call metadata
-in the decision transaction; retries and reads never regenerate a response.
+pinned script. New exchanges persist the canonical wording in the decision transaction;
+retries and reads never regenerate a response. Previously persisted wording is
+retained for existing rooms.
 Only choice IDs drive the deterministic report. Retention also removes unlinked
 family LLM metadata. Expert review of all new scenarios remains outstanding.
