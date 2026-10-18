@@ -8,6 +8,8 @@ import type { components } from "@/lib/api/schema";
 import { t } from "@/lib/i18n";
 import { FamilyArtwork, FamilyIcon } from "./family-art";
 import { FamilyReportPanel } from "./family-report";
+import { PracticeStage } from "./practice-stage";
+import { PracticeChoice } from "./practice-choice";
 
 type View = components["schemas"]["FamilyView"];
 type Role = View["role"];
@@ -219,6 +221,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
           </section>}
         </aside>
         <div className="family-room-main">
+          <PracticeStage family grandmother={experience === "bridge"} chapter={view.scene?.chapter_th ?? t("family.finished")} speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? t("family.conversation")} />
           {earlierTurns.length > 0 && <details className="family-history"><summary><FamilyIcon name="chat" />{t("family.design.history")}<span>{earlierTurns.length}</span><span className="family-disclosure" aria-hidden="true"><FamilyIcon name="chevron" /></span></summary><div>{earlierTurns.map((turn) => <Exchange key={turn.idx} turn={turn} includePrompt />)}</div></details>}
           <section role="log" aria-live="polite" aria-relevant="additions" aria-label={t("family.conversation")}>
             {lastTurn && <Exchange key={lastTurn.idx} turn={lastTurn} />}
@@ -228,7 +231,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
           {view.scene && <section className="family-scene" aria-labelledby="family-scene-title">
             <div className="family-scene-header"><span className="family-symbol"><FamilyIcon name={experience === 'bridge' ? 'leaf' : 'chat'} /></span><div><p className="family-kicker">{view.scene.chapter_th}</p><h2 id="family-scene-title">{view.scene.speaker_th}</h2></div></div>
             <p className="family-scene-prompt">{view.scene.prompt_th}</p>
-            {view.scene.choices.length > 0 && <div className="family-choices">{view.scene.choices.map((choice) => <button key={choice.id} disabled={busy || !view.partner_joined || !!pending} onClick={() => void decide(choice.id)}><span className="family-choice-mark" aria-hidden="true" /><span>{choice.text_th}</span><FamilyIcon name="arrow" /></button>)}</div>}
+            {view.scene.choices.length > 0 && <PracticeChoice key={`${view.room_id}:${view.state_version}`} choices={view.scene.choices} disabled={busy || !view.partner_joined || !!pending} onCommit={(id) => void decide(id)} />}
             {pending && !busy && <button className="button-primary family-retry" onClick={() => void decide(pending.choice_id)}>{t("family.retry")}</button>}
           </section>}
         </div>

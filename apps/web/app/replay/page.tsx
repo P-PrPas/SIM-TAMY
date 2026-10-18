@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api } from "@/lib/api/runtime";
 import type { components } from "@/lib/api/schema";
 import { patientLabel, t } from "@/lib/i18n";
+import { PracticeStage } from "@/components/practice-stage";
 
 type Recording = components["schemas"]["Recording"];
 type Summary = components["schemas"]["RecordingListItem"];
@@ -101,6 +102,7 @@ export default function ReplayPage() {
     </ul>}
     {recording && <>
       <p className="mt-5 text-lg font-semibold">{recording.title_th}</p>
+      <PracticeStage chapter={recording.case.title_th} speaker={patientLabel(recording.case.audience)} />
       <div className="mt-4 flex flex-wrap gap-2">
         {!done && <button type="button" onClick={() => setPlaying((value) => !value)}
           className="rounded-lg border border-brand-800 px-4 py-2 font-semibold text-brand-950">{t(playing ? "replay.pause" : "replay.resume")}</button>}

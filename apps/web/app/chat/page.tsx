@@ -1,5 +1,7 @@
 "use client";
 
+import { PracticeStage } from "@/components/practice-stage";
+
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -101,6 +103,7 @@ export default function ChatPage() {
         {session.phase === "PRESSURE" && <p role="status" className="mt-2 font-semibold text-amber-900">{t("chat.pressure")}</p>}
       </div>
     </header>
+    <PracticeStage chapter={brief.title_th} speaker={patientLabel(brief.audience)} />
     <div className="grid gap-5 lg:grid-cols-[1fr_18rem]">
       <section aria-label={t("chat.title")} className="flex min-h-[60vh] flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
         {session.phase !== "PRESSURE" && <div className="border-b border-stone-200 bg-stone-50 px-5 py-3 font-semibold text-stone-800">

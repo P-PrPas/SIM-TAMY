@@ -32,7 +32,8 @@ test("two isolated devices complete a shared story and see the critical checkpoi
       expect(view.report).toBeNull();
       const choices = view.scene!.choices;
       const choice = i === 3 ? choices[choices.length - 1]! : choices[0]!;
-      await actor.getByRole("button", { name: choice.text_th, exact: true }).click();
+      await actor.getByRole("radio", { name: choice.text_th, exact: true }).check();
+      await actor.getByRole("button", { name: t("experience.commit"), exact: true }).click();
       await expect.poll(async () => (await (await request.get(url, options)).json()).state_version).toBe(i + 1);
       if (i === 1) await page.reload();
     }
@@ -90,7 +91,8 @@ test("a parent resumes a three-chapter story and reaches its evidence report", a
   for (let i = 0; i < path.length; i++) {
     const view = await (await request.get(url, { headers })).json() as components["schemas"]["FamilyView"];
     chapters.add(view.scene!.chapter_th);
-    await page.getByRole("button", { name: view.scene!.choices.find((choice) => choice.id === path[i])!.text_th, exact: true }).click();
+    await page.getByRole("radio", { name: view.scene!.choices.find((choice) => choice.id === path[i])!.text_th, exact: true }).check();
+    await page.getByRole("button", { name: t("experience.commit"), exact: true }).click();
     await expect.poll(async () => (await (await request.get(url, { headers })).json()).state_version).toBe(i + 1);
     if (i === 1) await page.reload();
   }
@@ -111,7 +113,8 @@ test("all four grandmother topics finish with cited evidence and bounded dialogu
     for (let i = 0; i < 3; i++) {
       const view = await (await request.get(url, { headers })).json() as components["schemas"]["FamilyView"];
       expect(view.report).toBeNull();
-      await page.getByRole("button", { name: view.scene!.choices[0]!.text_th, exact: true }).click();
+      await page.getByRole("radio", { name: view.scene!.choices[0]!.text_th, exact: true }).check();
+      await page.getByRole("button", { name: t("experience.commit"), exact: true }).click();
       await expect.poll(async () => (await (await request.get(url, { headers })).json()).state_version).toBe(i + 1);
     }
     await expect(page.getByRole("heading", { name: t("family.sources") })).toBeVisible();
