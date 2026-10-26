@@ -6,7 +6,7 @@ from typing import Literal
 from pydantic import Field
 
 from app.domain.case import Model
-from app.domain.family import FamilyRole, FamilySkill, FamilySource
+from app.domain.family import EvidenceStatus, FamilyRole, FamilySkill, FamilySource
 
 
 class FamilyCreate(Model):
@@ -25,6 +25,47 @@ class FamilyDecision(Model):
     client_turn_id: uuid.UUID
 
 
+class FamilyShare(Model):
+    fact_id: str = Field(pattern=r"^[a-z0-9-]+$", max_length=64)
+    client_turn_id: uuid.UUID
+
+
+class FamilyCardSource(Model):
+    id: str
+    title_th: str
+    url: str
+
+
+class FamilyKnowledgeCard(Model):
+    tradition_th: str
+    learning_point_th: str
+    evidence_status: EvidenceStatus
+    precautions_th: list[str]
+    when_to_consult_th: str | None
+    sources: list[FamilyCardSource]
+
+
+class FamilyVoteChoice(Model):
+    role: FamilyRole
+    choice_id: str
+    text_th: str
+
+
+class FamilyVote(Model):
+    """Joint-step state. The partner's choice appears only once both have voted (disagreement)."""
+
+    my_choice_id: str | None
+    waiting_for_partner: bool
+    disagreement: list[FamilyVoteChoice] | None
+
+
+class FamilyFactView(Model):
+    id: str
+    role: FamilyRole
+    text_th: str
+    shared: bool
+
+
 class FamilyOption(Model):
     id: str
     text_th: str
@@ -37,6 +78,9 @@ class FamilyScene(Model):
     speaker_th: str
     prompt_th: str
     choices: list[FamilyOption]
+    joint: bool = False
+    vote: FamilyVote | None = None
+    card: FamilyKnowledgeCard | None = None
 
 
 class FamilyExchange(Model):
@@ -77,7 +121,11 @@ class FamilyView(Model):
     private_brief_th: str
     partner_joined: bool
     state_version: int
+    completed_steps: int = 0
     total_steps: int
+    partner_online: bool = False
+    my_facts: list[FamilyFactView] = []
+    shared_facts: list[FamilyFactView] = []
     scene: FamilyScene | None
     transcript: list[FamilyExchange]
     report: FamilyReport | None
