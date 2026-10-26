@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e test-e2e-live validate-content leakcheck eval eval-pp001 eval-parents bench rescore stats cost-report purge-old seed-demo loadcheck demo
+.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e test-e2e-live test-e2e-demo validate-content leakcheck eval eval-pp001 eval-parents bench rescore stats cost-report purge-old seed-demo demo-reset prestage loadcheck demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -58,6 +58,9 @@ test-e2e:
 
 test-e2e-live:
 	cd $(WEB) && npm run test:e2e:live
+# Stage golden path (solo + family co-op on two browser contexts) against a local API + PostgreSQL (DATABASE_URL), mock LLM.
+test-e2e-demo:
+	cd $(WEB) && npm run test:e2e:demo
 
 # STRICT=1 will also require `source` on clinical items (T-010).
 validate-content:
@@ -98,6 +101,14 @@ loadcheck:
 # A demo class (DEMO01) with five completed, synthetic sessions, played through the real API (needs DATABASE_URL).
 seed-demo:
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) -m app.seed_demo
+# Wipes and re-seeds ONLY the DEMO01 class. Refuses unless you state DATABASE_URL is a demo database: make demo-reset DEMO_DB=1
+demo-reset:
+	@test "$(DEMO_DB)" = 1 || { echo "refusing: this deletes the DEMO01 class; confirm the database is a demo one with DEMO_DB=1"; exit 2; }
+	cd $(API) && SIMTAMY_DEMO_DB=1 CONTENT_DIR=../../content ../../$(PY) -m app.seed_demo --reset
+# Read-only pre-stage check (health, web, cases, family stories, replay, CORS): make prestage URL=<api> WEB=<web> [WAIT=120]
+prestage:
+	@test -n "$(URL)" -a -n "$(WEB_URL)" || { echo "usage: make prestage URL=<api-url> WEB_URL=<web-url> [WAIT=120]"; exit 2; }
+	$(PY) scripts/prestage.py $(URL) $(WEB_URL) $(if $(WAIT),--wait $(WAIT))
 demo:
 	@sh scripts/demo.sh
 

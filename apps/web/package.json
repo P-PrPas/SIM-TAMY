@@ -12,6 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:live": "playwright test --config playwright.live.config.ts",
+    "test:e2e:demo": "playwright test --config playwright.demo.config.ts",
     "gen:api": "openapi-typescript ../../docs/openapi.yaml -o lib/api/schema.d.ts",
     "test:a11y": "playwright test e2e/a11y.spec.ts"
   },

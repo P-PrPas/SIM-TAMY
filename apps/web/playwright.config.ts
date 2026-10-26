@@ -5,7 +5,7 @@ const webUrl = "http://127.0.0.1:3100";
 
 export default defineConfig({
   testDir: "./e2e",
-  testIgnore: "**/*-live.spec.ts",
+  testIgnore: ["**/*-live.spec.ts", "**/competition-demo.spec.ts"],
   timeout: 30_000,
   workers: 1,
   use: {
