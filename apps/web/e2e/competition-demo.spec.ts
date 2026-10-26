@@ -36,7 +36,7 @@ async function audit(page: Page) {
     const axe = (globalThis as unknown as { axe: { run: () => Promise<{ violations: Array<{ id: string; impact: string | null; nodes: Array<{ target: unknown }> }> }> } }).axe;
     const serious = (await axe.run()).violations.filter((v) => v.impact === "serious" || v.impact === "critical")
       .map((v) => `${v.id}: ${JSON.stringify(v.nodes.map((n) => n.target))}`);
-    const small = [...document.querySelectorAll<HTMLElement>("button, input, select, textarea, [role=tab], [role=radio]")]
+    const small = [...document.querySelectorAll<HTMLElement>("button, a[href]:not(.sr-only), summary, input, select, textarea, [role=tab], [role=radio]")]
       .filter((el) => {
         const box = el.getBoundingClientRect();
         // radios/checkboxes are often visually hidden behind a larger label

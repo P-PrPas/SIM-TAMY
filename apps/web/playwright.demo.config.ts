@@ -11,6 +11,7 @@ export default defineConfig({
   timeout: 180_000,
   expect: { timeout: 15_000 }, // the first visit to a route in `next dev` compiles it
   workers: 1,
+  retries: process.env.CI ? 1 : 0, // first route visit in `next dev` can compile past the expect timeout
   use: {
     baseURL: webUrl,
     channel: process.env.CI ? "chromium" : "chrome",

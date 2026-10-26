@@ -11,11 +11,17 @@ prestage = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(prestage)
 
 API, WEB = "https://api.example", "https://web.example"
+CORS = "cors preflight (POST + Authorization)"
+PREFLIGHT = {
+    "access-control-allow-origin": WEB,
+    "access-control-allow-methods": "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT",
+    "access-control-allow-headers": "authorization,content-type",
+}
 
 
 def healthy(method: str, url: str, headers: dict[str, str]) -> tuple[int, dict[str, str], Any]:
     if method == "OPTIONS":
-        return 200, {"access-control-allow-origin": WEB}, None
+        return 200, PREFLIGHT, None
     body: dict[str, Any] = {
         API + "/health": {"status": "ok", "db": "ok", "llm_provider": "mock", "commit": "abc"},
         API + "/v1/cases": {"items": [{"case_id": "X"}]},
@@ -56,9 +62,25 @@ def test_a_cors_mismatch_fails() -> None:
         method: str, url: str, headers: dict[str, str]
     ) -> tuple[int, dict[str, str], Any]:
         if method == "OPTIONS":
-            return 200, {"access-control-allow-origin": "https://else.example"}, None
+            return 200, {**PREFLIGHT, "access-control-allow-origin": "https://else.example"}, None
         return healthy(method, url, headers)
 
     failed = [name for name, ok, _ in prestage.run(API, WEB, other_origin) if not ok]
 
-    assert failed == ["cors from web origin"]
+    assert failed == [CORS]
+
+
+def test_a_rejected_preflight_fails_even_with_a_matching_origin() -> None:
+    def rejected(method: str, url: str, headers: dict[str, str]) -> tuple[int, dict[str, str], Any]:
+        return (400, PREFLIGHT, None) if method == "OPTIONS" else healthy(method, url, headers)
+
+    assert [n for n, ok, _ in prestage.run(API, WEB, rejected) if not ok] == [CORS]
+
+
+def test_a_preflight_that_omits_the_real_request_headers_fails() -> None:
+    def partial(method: str, url: str, headers: dict[str, str]) -> tuple[int, dict[str, str], Any]:
+        if method == "OPTIONS":
+            return 200, {**PREFLIGHT, "access-control-allow-headers": "content-type"}, None
+        return healthy(method, url, headers)
+
+    assert [n for n, ok, _ in prestage.run(API, WEB, partial) if not ok] == [CORS]

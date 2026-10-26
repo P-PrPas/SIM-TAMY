@@ -127,6 +127,8 @@ jobs:
         working-directory: apps/web
       - run: npm run test:e2e:live
         working-directory: apps/web
+      - run: npm run test:e2e:demo
+        working-directory: apps/web
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

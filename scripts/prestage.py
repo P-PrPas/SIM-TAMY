@@ -3,9 +3,10 @@
     python scripts/prestage.py <api-url> <web-url> [--wait 120]
 
 Checks the API health (and times the first answer, which is the Render cold start), the web app,
-the case list, the family stories, the offline Replay gallery and the browser CORS preflight from
-the web origin. It only sends GET and one OPTIONS request: no session or room is created, so it
-leaves no data behind. It prints no token, key or response body; only names, counts and timings.
+the case list, the family stories, the offline Replay gallery and the browser CORS preflight
+(POST with Authorization) from the web origin. It only sends GET and one OPTIONS request: no session
+or room is created, so it leaves no data behind. It prints no token, key or response body; only
+names, counts and timings.
 Exit 0 only if every check passed.
 """
 
@@ -82,13 +83,26 @@ def run(api: str, web: str, fetch: Fetch, wait_s: float = 0) -> list[tuple[str, 
         f"HTTP {status}, {n} recordings",
     )
 
+    # The browser preflights the real calls: POST with a bearer token and a JSON body.
     status, got, _ = fetch(
         "OPTIONS",
-        f"{api}/health",
-        {"Origin": web, "Access-Control-Request-Method": "GET"},
+        f"{api}/v1/sessions",
+        {
+            "Origin": web,
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "authorization,content-type",
+        },
     )
     allowed = got.get("access-control-allow-origin")
-    record("cors from web origin", allowed in (web, "*"), f"HTTP {status}, allowed={allowed}")
+    methods = {m.strip().upper() for m in got.get("access-control-allow-methods", "").split(",")}
+    headers = {h.strip().lower() for h in got.get("access-control-allow-headers", "").split(",")}
+    ok = (
+        200 <= status < 300
+        and allowed in (web, "*")
+        and bool({"POST", "*"} & methods)
+        and ("*" in headers or {"authorization", "content-type"} <= headers)
+    )
+    record("cors preflight (POST + Authorization)", ok, f"HTTP {status}, allowed={allowed}")
     return results
 
 
