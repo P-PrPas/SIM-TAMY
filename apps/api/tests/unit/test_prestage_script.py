@@ -1,0 +1,64 @@
+"""scripts/prestage.py (C04): PASS only when every check holds, FAIL names the broken one."""
+
+import importlib.util
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[4]
+_spec = importlib.util.spec_from_file_location("prestage", ROOT / "scripts" / "prestage.py")
+assert _spec and _spec.loader
+prestage = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(prestage)
+
+API, WEB = "https://api.example", "https://web.example"
+
+
+def healthy(method: str, url: str, headers: dict[str, str]) -> tuple[int, dict[str, str], Any]:
+    if method == "OPTIONS":
+        return 200, {"access-control-allow-origin": WEB}, None
+    body: dict[str, Any] = {
+        API + "/health": {"status": "ok", "db": "ok", "llm_provider": "mock", "commit": "abc"},
+        API + "/v1/cases": {"items": [{"case_id": "X"}]},
+        API + "/v1/family/stories": [{"id": "s"}],
+        API + "/v1/replay/recordings": {"items": [{"recording_id": "r"}]},
+    }
+    return (200, {}, body[url]) if url in body else (200, {}, b"<html>")
+
+
+def test_everything_healthy_passes() -> None:
+    results = prestage.run(API, WEB, healthy)
+
+    assert len(results) == 6 and all(ok for _, ok, _ in results)
+
+
+def test_a_broken_family_endpoint_is_named() -> None:
+    def broken(method: str, url: str, headers: dict[str, str]) -> tuple[int, dict[str, str], Any]:
+        if url.endswith("/family/stories"):
+            return 500, {}, None
+        return healthy(method, url, headers)
+
+    failed = [name for name, ok, _ in prestage.run(API, WEB, broken) if not ok]
+
+    assert failed == ["family stories load"]
+
+
+def test_an_unreachable_api_fails_without_raising() -> None:
+    def down(method: str, url: str, headers: dict[str, str]) -> tuple[int, dict[str, str], Any]:
+        return (200, {}, b"<html>") if url == WEB else (0, {}, None)
+
+    failed = [name for name, ok, _ in prestage.run(API, WEB, down) if not ok]
+
+    assert "api health" in failed and "web reachable" not in failed
+
+
+def test_a_cors_mismatch_fails() -> None:
+    def other_origin(
+        method: str, url: str, headers: dict[str, str]
+    ) -> tuple[int, dict[str, str], Any]:
+        if method == "OPTIONS":
+            return 200, {"access-control-allow-origin": "https://else.example"}, None
+        return healthy(method, url, headers)
+
+    failed = [name for name, ok, _ in prestage.run(API, WEB, other_origin) if not ok]
+
+    assert failed == ["cors from web origin"]

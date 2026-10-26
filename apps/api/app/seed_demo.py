@@ -4,8 +4,12 @@ The sessions are not hand-written rows: five golden conversations are played thr
 (offline lexical Interpreter, no LLM), so every report is a genuine engine result that
 `make rescore` reproduces. Re-running is a no-op once the class has sessions. The static recorded
 session for Replay Mode is `recordings/dev001-engineering.json` (T-073); it needs no database.
+
+`make demo-reset` (C04) deletes the DEMO01 class and its sessions, then seeds it again. It touches
+nothing else and refuses to run unless `SIMTAMY_DEMO_DB=1` states that this database is a demo one.
 """
 
+import argparse
 import os
 import sys
 from collections.abc import Sequence
@@ -15,15 +19,16 @@ from unittest import mock
 import yaml
 from alembic.config import Config
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, delete, select
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import Session
 
 from app.ai.llm_client import LLMClient
 from app.api.deps import get_llm_factory, get_store
 from app.content.loader import load_case
 from app.core.config import get_settings
 from app.db.migrate import migrate
-from app.db.models import ClassRoom, LearnerSession
+from app.db.models import ClassRoom, LearnerSession, LlmCall, ScoreOverride
 from app.db.session import get_engine, get_sessionmaker
 from app.golden import REPO_DIR, Env, LexicalProvider, Outcome, load_golden, run_golden
 from app.main import create_app
@@ -106,9 +111,45 @@ def seed(golden_dir: Path | None = None) -> list[Outcome]:
                 cached.cache_clear()
 
 
+DEMO_DB_ENV = "SIMTAMY_DEMO_DB"
+
+
+def reset_class(db: Session) -> int:
+    """Delete the DEMO01 class and its sessions in the caller's transaction; the sessions deleted.
+
+    Same shape as the retention purge: the parent session goes and its turns, events and report
+    cascade. Rows of other classes, family rooms and anything without this class code stay.
+    """
+    room = db.scalar(select(ClassRoom).where(ClassRoom.code == CLASS_CODE))
+    if room is None:
+        return 0
+    ids = list(db.scalars(select(LearnerSession.id).where(LearnerSession.class_id == room.id)))
+    if ids:
+        db.execute(delete(LlmCall).where(LlmCall.session_id.in_(ids)))
+        db.execute(delete(ScoreOverride).where(ScoreOverride.session_id.in_(ids)))
+        db.execute(delete(LearnerSession).where(LearnerSession.id.in_(ids)))
+    db.delete(room)
+    return len(ids)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
-    del argv
+    parser = argparse.ArgumentParser(description="Seed the DEMO01 class")
+    parser.add_argument(
+        "--reset", action="store_true", help=f"delete DEMO01 first (needs {DEMO_DB_ENV}=1)"
+    )
+    args = parser.parse_args([] if argv is None else argv)
+    if args.reset and os.environ.get(DEMO_DB_ENV) != "1":
+        print(
+            f"refusing to reset: set {DEMO_DB_ENV}=1 to confirm DATABASE_URL is a demo database",
+            file=sys.stderr,
+        )
+        return 3
     try:
+        if args.reset:
+            _reachable()
+            migrate(Config("alembic.ini"))  # a fresh database has no tables to clear yet
+            with get_sessionmaker().begin() as db:
+                print(f"reset: removed {reset_class(db)} sessions of class {CLASS_CODE}")
         outcomes = seed()
     except OperationalError:  # its message carries the connection string: print none of it
         print(
@@ -126,4 +167,4 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

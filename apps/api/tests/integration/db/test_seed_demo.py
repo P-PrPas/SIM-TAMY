@@ -134,3 +134,34 @@ def test_no_database_is_a_quiet_failure(
 
     err = capsys.readouterr().err
     assert "not reachable" in err and "topsecret" not in err
+
+
+def test_reset_refuses_without_the_demo_flag_and_deletes_nothing(
+    database: str, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    seed()
+    monkeypatch.delenv("SIMTAMY_DEMO_DB", raising=False)
+
+    assert main(["--reset"]) == 3
+
+    assert "SIMTAMY_DEMO_DB=1" in capsys.readouterr().err
+    assert len(sessions_of(database)) == len(SCENARIOS)
+
+
+def test_reset_replaces_only_the_demo_class(database: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    seed()
+    engine = create_engine(database)
+    try:
+        with Session(engine) as db, db.begin():
+            db.add(ClassRoom(code="REAL01", name="not demo"))
+            old_ids = set(db.scalars(select(LearnerSession.id)))
+        monkeypatch.setenv("SIMTAMY_DEMO_DB", "1")
+
+        assert main(["--reset"]) == 0
+
+        with Session(engine) as db:
+            assert db.scalar(select(ClassRoom).where(ClassRoom.code == "REAL01")) is not None
+            new_ids = set(db.scalars(select(LearnerSession.id)))
+            assert len(new_ids) == len(SCENARIOS) and not new_ids & old_ids  # re-seeded
+    finally:
+        engine.dispose()
