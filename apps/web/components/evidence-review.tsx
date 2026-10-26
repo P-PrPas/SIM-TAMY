@@ -8,6 +8,9 @@ export function EvidenceReview({ report, onSelectTurn }: { report: Report; onSel
     <p className="text-sm font-bold text-brand-800">{t("evidenceReview.eyebrow")}</p>
     <h2 className="mt-2 text-xl font-bold">{t("evidenceReview.title")}</h2>
     <p className="mt-3 text-stone-700">{t("evidenceReview.source")} {report.engine_version} · {t("evidenceReview.rubric")} {report.rubric_version}</p>
+    <p className="mt-1 break-all text-sm text-stone-700" data-testid="report-trace">
+      {t("evidenceReview.session")} {report.session_id} · {t("evidenceReview.caseVersion")} {report.case.case_id} {report.case.version} · {t("evidenceReview.caseHash")} {report.case.hash.slice(0, 12)}
+    </p>
     {report.overrides.length > 0 && <p className="mt-3">{t("evidenceReview.original")}</p>}
     {report.items.length === 0 ? <p className="mt-4">{t("evidenceReview.empty")}</p> : <ul className="mt-5 space-y-4">
       {report.items.map((item) => {

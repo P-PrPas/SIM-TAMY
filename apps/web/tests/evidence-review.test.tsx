@@ -38,3 +38,15 @@ it("does not render history from an active session", async () => {
   await screen.findByRole("alert");
   expect(screen.queryByText("Private active text")).toBeNull();
 });
+
+it("shows the session, case version, case hash and rubric version the score is traced to", async () => {
+  get.mockResolvedValue({ data: { status: "completed", history: [] } });
+  const report: components["schemas"]["ReportResponse"] = { ...syntheticReport, variant: "A", safety_status: "SAFETY_MET", effective: { safety_status: "SAFETY_MET", total_score: 50 }, case: { ...syntheticReport.case, status: "Draft", hash: "0123456789abcdef0123" }, competencies: [], findings: [], timeline: [], items: [], debrief: { source: "template", paragraphs: [] } };
+  render(<GlassBoxPanel report={report} />);
+  const trace = (await screen.findByTestId("report-trace")).textContent ?? "";
+  expect(trace).toContain(report.session_id);
+  expect(trace).toContain(`${report.case.case_id} ${report.case.version}`);
+  expect(trace).toContain("0123456789ab");
+  expect(trace).not.toContain("0123456789abc");
+  expect(screen.getByText(new RegExp(`${t("evidenceReview.rubric")} ${report.rubric_version}`))).toBeTruthy();
+});
