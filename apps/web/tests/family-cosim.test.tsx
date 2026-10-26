@@ -21,7 +21,7 @@ beforeEach(() => sessionStorage.setItem("sim-tamy-family:golden-first-night", JS
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); sessionStorage.clear(); });
 
 function serve(handler: (request: Request) => Response | Promise<Response>) {
-  vi.stubGlobal("fetch", vi.fn(async (request: Request) => request.url.endsWith("/stories") ? Response.json([]) : handler(request)));
+  vi.stubGlobal("fetch", vi.fn(async (request: Request) => request.url.endsWith("/stories") ? Response.json([{ id: "golden-first-night", title_th: "t", description_th: "d", mode: "coop", chapters_th: [] }]) : handler(request)));
 }
 
 it("shows own facts with a share action, the shared timeline, presence, card and progress by completed steps", async () => {
@@ -75,4 +75,10 @@ it("shows the partner as offline when presence is false", async () => {
   serve(async () => Response.json({ ...base, partner_online: false }));
   render(<FamilySimulator storyId="golden-first-night" />);
   expect(await screen.findByText(t("family.cosim.presence.offline"))).not.toBeNull();
+});
+
+it("tells the learner when the story is not offered by the API", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json([])));
+  render(<FamilySimulator storyId="golden-first-night" />);
+  expect(await screen.findByText(t("family.cosim.unavailable"))).toBeTruthy();
 });

@@ -73,13 +73,19 @@ def test_share_acl_private_facts_stay_private_until_shared(api: Api):
     assert after[0]["my_facts"][0]["shared"] and not after[0]["my_facts"][1]["shared"]
     # retry with the same ID and re-sharing the same fact are both harmless no-ops
     assert api.client.post(path + "/shares", json=body, headers=mother).json() == after[0]
-    assert share(api, path, mother, "m-feed")[0].status_code == 200
+    again, again_body = share(api, path, mother, "m-feed")
+    assert again.status_code == 200
+    assert [f["id"] for f in get(api, path, father)["shared_facts"]] == ["m-feed"]
     with api.db() as db:
         kinds = db.scalars(
             select(FamilyEvent.kind).where(FamilyEvent.room_id == uuid.UUID(path[-36:]))
         ).all()
-    assert list(kinds) == ["share"]
+    assert list(kinds) == ["share", "share"]  # the repeat is logged so its ID is bound
     assert share(api, path, mother, "m-sleepy", body["client_turn_id"])[0].status_code == 409
+    # an ID first used on a repeated share cannot be reused for a different fact
+    other = share(api, path, mother, "m-sleepy", again_body["client_turn_id"])[0]
+    assert other.status_code == 409
+    assert [f["id"] for f in get(api, path, father)["shared_facts"]] == ["m-feed"]
 
 
 def test_joint_vote_hides_partner_choice_then_locks_on_match(api: Api):

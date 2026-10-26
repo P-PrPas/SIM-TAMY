@@ -42,6 +42,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [card, setCard] = useState<components["schemas"]["FamilyStoryCard"] | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
   const requestInFlight = useRef(false);
   const completed = Boolean(view?.report);
   const inviteLink = ready && credentials?.invite
@@ -72,7 +73,11 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
     });
     void createApi({ baseUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000" })
       .GET("/v1/family/stories", { signal: controller.signal })
-      .then(({ data }) => setCard(data?.find((s) => s.id === storyId) ?? null))
+      .then(({ data }) => {
+        const found = data?.find((s) => s.id === storyId) ?? null;
+        setCard(found);
+        setUnavailable(Boolean(data) && !found);
+      })
       .catch((cause: unknown) => { if (!controller.signal.aborted) message(cause); });
     return () => controller.abort();
   }, [storageKey, storyId]);
@@ -194,6 +199,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         <span aria-hidden="true">{index + 1}</span><p>{chapter}</p>
       </li>)}
     </ol>}
+    {unavailable && <div role="alert" className="family-error"><FamilyIcon name="shield" /><p>{t("family.cosim.unavailable")}</p></div>}
     {error && <div role="alert" className="family-error"><FamilyIcon name="shield" /><p>{error}</p></div>}
     {!ready ? <p role="status" className="family-loading">{t("family.loading")}</p> : !credentials ? <div id="family-enrollment" className="family-enrollment">
       <form onSubmit={(event) => { event.preventDefault(); void start(false); }} className="family-start-panel">

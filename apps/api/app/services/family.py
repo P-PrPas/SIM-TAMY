@@ -276,16 +276,16 @@ def share(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyShare) -> 
     fact = next((f for f in story.facts if f.id == body.fact_id and f.role == role), None)
     if fact is None:  # unknown or the other role's: deliberately indistinguishable
         raise ApiError("DECISION_OPTION_INVALID", "fact cannot be shared")
-    if fact.id not in state.facts:  # re-sharing is a no-op, not an error
-        db.add(
-            FamilyEvent(
-                room_id=row.id,
-                idx=len(saved) + 1,
-                role=role,
-                kind="share",
-                choice_id=fact.id,
-                client_turn_id=body.client_turn_id,
-            )
+    # A repeat share is recorded too (replay dedupes it) so its client_turn_id stays bound.
+    db.add(
+        FamilyEvent(
+            room_id=row.id,
+            idx=len(saved) + 1,
+            role=role,
+            kind="share",
+            choice_id=fact.id,
+            client_turn_id=body.client_turn_id,
         )
-        db.flush()
+    )
+    db.flush()
     return view(db, row, role)
