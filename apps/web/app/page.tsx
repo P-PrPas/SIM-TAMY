@@ -92,6 +92,10 @@ export default function JoinPage() {
         <div><h2>{t(`join.feature${number}Title`)}</h2><p>{t(`join.feature${number}Text`)}</p></div>
       </article>)}
     </section>
+    <section className="family-featured" aria-labelledby="featured-title">
+      <div><p className="eyebrow">{t("family.cosim.featured.kicker")}</p><h2 id="featured-title">{t("family.cosim.featured.title")}</h2><p>{t("family.cosim.featured.text")}</p></div>
+      <Link href="/golden" className="button-primary">{t("family.cosim.featured.cta")}<span aria-hidden="true"> →</span></Link>
+    </section>
     <section id="practice" className="practice-section" aria-labelledby="practice-title">
       <div className="section-heading"><div><p className="eyebrow">{t("join.sectionEyebrow")}</p><h2 id="practice-title">{t("join.sectionTitle")}</h2></div><p>{t("join.sectionDescription")}</p></div>
       <form onSubmit={(event) => void start(event)} className="enrollment-form">

@@ -106,3 +106,31 @@ retries and reads never regenerate a response. Previously persisted wording is
 retained for existing rooms.
 Only choice IDs drive the deterministic report. Retention also removes unlinked
 family LLM metadata. Expert review of all new scenarios remains outstanding.
+
+## Co-sim: joint decisions, shared facts, presence, knowledge cards (Sprint B)
+
+All additions are optional in the story schema, so existing stories and pinned rooms are unchanged.
+
+- **Joint decision (B03).** A step with `joint: true` needs both roles. `POST /decisions` is reused:
+  each role's choice is stored as a `vote` event. A role never sees the partner's vote before
+  casting its own. If the two votes match the decision locks and the story advances; if not, the
+  scene reports `vote.disagreement` (both choices, only after both voted) and both vote again.
+  Never random. `state_version` counts all events except one pending vote, so the partner's
+  vote does not make the other role's view stale. A `critical` joint step feeds the same
+  Critical Safety gate.
+- **Share fact (B02).** `facts[]` (id, role, text, skills) are content-defined items from a role's
+  private brief. `POST /shares {fact_id, client_turn_id}` appends a `share` event. Only the
+  owning role may share a fact; the API returns the caller's own `my_facts` and the `shared_facts`
+  timeline, never the partner's unshared facts. Re-sharing is a no-op. A `prompt_if` key
+  `fact:<id>` recalls a shared fact. Skills (including `shared_decision`) are counted from events.
+- **Presence (CO-03).** Migration `0005` adds `host_seen_at` / `partner_seen_at` (updated on GET,
+  share and decision). The view exposes only `partner_online` (seen within 10 s), no timestamps.
+- **Knowledge cards (B05).** A step may carry `card` (tradition, learning point, `evidence_status`
+  one of `traditional_practice | supported_by_guidance | insufficient_evidence | caution`,
+  precautions, when to consult, source IDs). The UI renders an expandable card for the current
+  step. The four bridge stories now carry cards; their dialogue is unchanged.
+- **Golden story.** `golden-first-night` is the featured entry (`/golden`, linked from the home
+  page); the other modules stay separate. Research notes: `docs/research/golden-first-night.md`.
+  It is Draft, gives no diagnosis or treatment, and claims no expert review.
+
+Event kinds: `decision`, `vote`, `share` (column `family_events.kind`, default `decision`).
