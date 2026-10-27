@@ -84,3 +84,21 @@ def test_a_preflight_that_omits_the_real_request_headers_fails() -> None:
         return healthy(method, url, headers)
 
     assert [n for n, ok, _ in prestage.run(API, WEB, partial) if not ok] == [CORS]
+
+
+def test_a_wildcard_does_not_stand_in_for_authorization() -> None:
+    def wildcard(method: str, url: str, headers: dict[str, str]) -> tuple[int, dict[str, str], Any]:
+        if method == "OPTIONS":
+            return 204, {**PREFLIGHT, "access-control-allow-headers": "*"}, None
+        return healthy(method, url, headers)
+
+    assert [n for n, ok, _ in prestage.run(API, WEB, wildcard) if not ok] == [CORS]
+
+
+def test_a_wildcard_may_cover_content_type_beside_authorization() -> None:
+    def named(method: str, url: str, headers: dict[str, str]) -> tuple[int, dict[str, str], Any]:
+        if method == "OPTIONS":
+            return 200, {**PREFLIGHT, "access-control-allow-headers": "authorization, *"}, None
+        return healthy(method, url, headers)
+
+    assert all(ok for _, ok, _ in prestage.run(API, WEB, named))

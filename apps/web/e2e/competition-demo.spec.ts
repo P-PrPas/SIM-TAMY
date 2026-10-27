@@ -31,6 +31,9 @@ async function noOverflow(page: Page) {
 // (touch-target guidance; WCAG 2.2 AA minimum is 24) on the page as it currently renders.
 async function audit(page: Page) {
   await noOverflow(page);
+  // Buttons fade colors; axe must see the settled state the user ends up with, not a mid-fade blend.
+  await page.evaluate(() => Promise.all(document.getAnimations()
+    .filter((animation) => animation instanceof CSSTransition).map((animation) => animation.finished.catch(() => undefined))));
   await page.addScriptTag({ path: require.resolve("axe-core/axe.min.js") });
   const found = await page.evaluate(async () => {
     const axe = (globalThis as unknown as { axe: { run: () => Promise<{ violations: Array<{ id: string; impact: string | null; nodes: Array<{ target: unknown }> }> }> } }).axe;
@@ -179,7 +182,61 @@ test("family co-op: desktop host and 360px mobile partner finish a shared story"
   }
 });
 
-// TODO(Sprint B): the golden-first-night story and joint decision land with Sprint B. Fill this in
-// against its real UI (create room, both roles reach the joint decision, report) once it merges;
-// it is deliberately not guessed here.
-test.fixme("family co-op: golden-first-night joint decision (Sprint B)", async () => {});
+type Saved = { room_id: string; token: string };
+
+test("family co-op: golden-first-night private facts, disagreement and joint decision", async ({ browser }) => {
+  const hostContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const partnerContext = await browser.newContext({ viewport: { width: 360, height: 780 } });
+  try {
+    const host = await hostContext.newPage();
+    const partner = await partnerContext.newPage();
+    await requireMockApi(host);
+
+    await host.goto("/golden");
+    await host.getByRole("button", { name: t("family.create"), exact: true }).click();
+    await partner.goto(await host.locator("#family-share").inputValue());
+    await partner.getByRole("button", { name: t("family.join"), exact: true }).click();
+    await expect(partner.getByText(t("family.private"), { exact: true })).toBeVisible();
+    await expect(host.getByText(t("family.cosim.presence.online"))).toBeVisible();
+    await audit(partner);
+
+    const [mother, father] = (await Promise.all([host, partner].map((tab) => tab.evaluate(() =>
+      JSON.parse(sessionStorage.getItem("sim-tamy-family:golden-first-night")!) as Saved)))) as [Saved, Saved];
+    const read = async (tab: Page, saved: Saved) => (await (await tab.request.get(`${apiUrl}/v1/family/rooms/${saved.room_id}`,
+      { headers: { Authorization: `Bearer ${saved.token}` } })).json()) as components["schemas"]["FamilyView"];
+    const choose = async (tab: Page, saved: Saved, id: string) =>
+      chooseReply(tab, (await read(tab, saved)).scene!.choices.find((choice) => choice.id === id)!.text_th);
+    const completed = async () => (await read(host, mother)).completed_steps;
+
+    // Each parent holds a private fact; sharing one moves it into the other parent's view.
+    const motherFact = (await read(host, mother)).my_facts!.find((fact) => fact.id === "m-feed")!.text_th;
+    await expect(partner.getByText(motherFact)).toHaveCount(0);
+    await host.getByText(motherFact).locator("xpath=..").getByRole("button", { name: t("family.cosim.facts.share") }).click();
+    await expect(partner.locator(".family-timeline").getByText(motherFact)).toBeVisible();
+
+    await choose(host, mother, "say-what-you-see");
+    await expect.poll(completed).toBe(1);
+    await choose(partner, father, "share-and-listen");
+    await expect.poll(completed).toBe(2);
+    await choose(host, mother, "listen-then-ask");
+    await expect.poll(async () => (await read(host, mother)).scene?.joint).toBe(true);
+
+    // The joint decision: different picks show a disagreement notice, the same pick locks it.
+    await choose(host, mother, "contact-health-service");
+    await choose(partner, father, "wait-until-morning");
+    await expect(partner.getByRole("alert").filter({ hasText: t("family.cosim.joint.needAgree") })).toBeVisible();
+    await audit(partner);
+    await choose(host, mother, "contact-health-service");
+    await choose(partner, father, "contact-health-service");
+    await expect.poll(async () => (await read(host, mother)).scene?.id).toBe("consequence");
+    await choose(partner, father, "report-observations");
+    await expect.poll(completed).toBe(5);
+    await choose(host, mother, "agree-share-and-ask");
+
+    for (const tab of [host, partner]) await expect(tab.getByRole("heading", { name: t("family.report") })).toBeVisible();
+    await audit(partner);
+  } finally {
+    await hostContext.close();
+    await partnerContext.close();
+  }
+});

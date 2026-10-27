@@ -100,7 +100,9 @@ def run(api: str, web: str, fetch: Fetch, wait_s: float = 0) -> list[tuple[str, 
         200 <= status < 300
         and allowed in (web, "*")
         and bool({"POST", "*"} & methods)
-        and ("*" in headers or {"authorization", "content-type"} <= headers)
+        # `*` never covers Authorization (Fetch spec), so it must be listed by name.
+        and "authorization" in headers
+        and bool({"content-type", "*"} & headers)
     )
     record("cors preflight (POST + Authorization)", ok, f"HTTP {status}, allowed={allowed}")
     return results
