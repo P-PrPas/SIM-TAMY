@@ -45,6 +45,17 @@ describe("S1 Join and S2 Briefing", () => {
     expect(screen.getByRole("option", { name: t("join.variantC") })).toHaveProperty("value", "C");
   });
 
+  it("features the golden story only when the API lists it", async () => {
+    const stories = (ids: string[]) => ({ data: ids.map((id) => ({ id })) });
+    for (const [ids, expected] of [[["golden-first-night"], true], [["first-night"], false]] as const) {
+      mocks.get.mockImplementation(async (path: string) => path === "/v1/family/stories" ? stories([...ids]) : { data: { items: [caseSummary] } });
+      render(<JoinPage />);
+      await waitFor(() => expect(document.querySelector("#case option")).not.toBeNull());
+      await waitFor(() => expect(screen.queryByText(t("family.cosim.featured.title")) !== null).toBe(expected));
+      cleanup();
+    }
+  });
+
   it("shows the empty state when only the engineering fixture is available", async () => {
     mocks.get.mockResolvedValue({ data: { items: [{ ...caseSummary, case_id: "DEV-001" }] } });
     render(<JoinPage />);
@@ -128,11 +139,16 @@ describe("S1 Join and S2 Briefing", () => {
   });
 
   it("lets the learner retry a failed case list load", async () => {
-    mocks.get.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce({ data: { items: [caseSummary] } });
+    let caseCalls = 0;
+    mocks.get.mockImplementation(async (path: string) => {
+      if (path === "/v1/family/stories") return { data: [] };
+      if (++caseCalls === 1) throw new Error("offline");
+      return { data: { items: [caseSummary] } };
+    });
     render(<JoinPage />);
     fireEvent.click(await screen.findByRole("button", { name: t("join.retry") }));
     await waitFor(() => expect(document.querySelector("#case option")).not.toBeNull());
-    expect(mocks.get).toHaveBeenCalledTimes(2);
+    expect(caseCalls).toBe(2);
   });
 
   it("does not start when the case list is empty", async () => {

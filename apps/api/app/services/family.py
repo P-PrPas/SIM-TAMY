@@ -9,21 +9,37 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.v1.family_schemas import (
+    FamilyCardSource,
     FamilyCompetency,
     FamilyDecision,
     FamilyEvidence,
     FamilyExchange,
+    FamilyFactView,
+    FamilyKnowledgeCard,
     FamilyOption,
     FamilyReport,
     FamilyScene,
+    FamilyShare,
     FamilyView,
+    FamilyVote,
+    FamilyVoteChoice,
 )
 from app.core.config import get_settings
 from app.core.errors import ApiError
 from app.core.security import hash_token
 from app.db.family import FamilyEvent, FamilyRoom
 from app.domain.family import FamilyRole, FamilyStory
-from app.engine.family import assess, choose, prompt, selections
+from app.engine.family import (
+    FamilyEventRecord,
+    Progress,
+    assess,
+    choose,
+    prompt,
+    replay,
+    selections,
+)
+
+ONLINE_WINDOW = timedelta(seconds=10)  # roughly three missed 3s polls
 
 
 def room(db: Session, room_id: uuid.UUID, *, lock: bool = False) -> FamilyRoom:
@@ -56,34 +72,54 @@ def events(db: Session, row: FamilyRoom) -> list[FamilyEvent]:
     )
 
 
+def progress(story: FamilyStory, saved: list[FamilyEvent]) -> Progress:
+    records = [
+        FamilyEventRecord(e.kind, cast(FamilyRole, e.role), e.choice_id, e.reply_th) for e in saved
+    ]
+    try:
+        return replay(story, records)
+    except ValueError as exc:  # corrupt log: never guess a state
+        raise ApiError("INTERNAL_ERROR", "room history is inconsistent") from exc
+
+
+def touch(row: FamilyRoom, role: FamilyRole) -> None:
+    """Record that this role is polling; the partner only ever sees an online boolean."""
+    now = datetime.now(UTC)
+    if role == row.host_role:
+        row.host_seen_at = now
+    else:
+        row.partner_seen_at = now
+
+
+def partner_online(row: FamilyRoom, role: FamilyRole) -> bool:
+    seen = row.partner_seen_at if role == row.host_role else row.host_seen_at
+    return bool(seen and datetime.now(UTC) - seen <= ONLINE_WINDOW)
+
+
 def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
     story = FamilyStory.model_validate(row.story)
-    saved = events(db, row)
-    choices = [event.choice_id for event in saved]
+    state = progress(story, events(db, row))
+    choices = state.choices
     chosen = selections(story, choices)
     transcript = [
         FamilyExchange(
             idx=i + 1,
             role=role if story.mode == "solo" else step.role,
             speaker_th=step.speaker_th,
-            prompt_th=prompt(story, choices[:i]),
+            prompt_th=prompt(story, choices[:i], state.step_facts[i]),
             text_th=choice.text_th,
-            reply_th=saved[i].reply_th or choice.reply_th,
+            reply_th=state.replies[i] or choice.reply_th,
         )
         for i, (step, choice) in enumerate(zip(story.steps, chosen, strict=False))
     ]
     report = None
     scene = None
     if len(chosen) == len(story.steps):
-        assessment = assess(story, choices)
+        assessment = assess(story, choices, state.facts)
         report = FamilyReport(
             safety_status="SAFETY_MET" if assessment.safety_met else "SAFETY_NOT_MET",
             competencies=[
-                FamilyCompetency(
-                    skill=skill,
-                    observed=counts[0],
-                    opportunities=counts[1],
-                )
+                FamilyCompetency(skill=skill, observed=counts[0], opportunities=counts[1])
                 for skill, counts in assessment.competencies.items()
             ],
             evidence=[
@@ -100,16 +136,48 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
         )
     else:
         step = story.steps[len(chosen)]
+        vote = None
+        if step.joint:
+            texts = {c.id: c.text_th for c in step.choices}
+            own = state.votes.get(role)
+            vote = FamilyVote(
+                my_choice_id=own,
+                waiting_for_partner=own is not None,
+                disagreement=[
+                    FamilyVoteChoice(role=cast(FamilyRole, r), choice_id=c, text_th=texts[c])
+                    for r, c in sorted(state.split.items())
+                ]
+                if state.split
+                else None,
+            )
+        mine = story.mode == "solo" or step.joint or step.role == role
+        by_id = {src.id: src for src in story.sources}
         scene = FamilyScene(
             id=step.id,
             chapter_th=step.chapter_th,
-            role=role if story.mode == "solo" else step.role,
+            role=role if story.mode == "solo" or step.joint else step.role,
             speaker_th=step.speaker_th,
-            prompt_th=prompt(story, choices),
+            prompt_th=prompt(story, choices, state.facts),
             choices=[FamilyOption(id=c.id, text_th=c.text_th) for c in step.choices]
-            if story.mode == "solo" or step.role == role
+            if mine and not (vote and vote.my_choice_id)
             else [],
+            joint=step.joint,
+            vote=vote,
+            card=FamilyKnowledgeCard(
+                tradition_th=step.card.tradition_th,
+                learning_point_th=step.card.learning_point_th,
+                evidence_status=step.card.evidence_status,
+                precautions_th=step.card.precautions_th,
+                when_to_consult_th=step.card.when_to_consult_th,
+                sources=[
+                    FamilyCardSource(id=i, title_th=by_id[i].title_th, url=by_id[i].url)
+                    for i in step.card.source_ids
+                ],
+            )
+            if step.card
+            else None,
         )
+    shared = [fact for _, fact in state.shared]
     return FamilyView(
         room_id=row.id,
         story_id=story.id,
@@ -117,42 +185,105 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
         role=role,
         private_brief_th=story.roles[role],
         partner_joined=story.mode == "solo" or bool(row.partner_hash),
-        state_version=len(chosen),
+        state_version=state.version,
+        completed_steps=len(chosen),
         total_steps=len(story.steps),
+        partner_online=story.mode == "coop" and partner_online(row, role),
+        my_facts=[
+            FamilyFactView(id=f.id, role=f.role, text_th=f.text_th, shared=f.id in shared)
+            for f in story.facts
+            if f.role == role
+        ],
+        shared_facts=[
+            FamilyFactView(id=f.id, role=f.role, text_th=f.text_th, shared=True)
+            for fact_id in shared
+            for f in story.facts
+            if f.id == fact_id
+        ],
         scene=scene,
         transcript=transcript,
         report=report,
     )
 
 
+def _prior(saved: list[FamilyEvent], turn_id: uuid.UUID) -> FamilyEvent | None:
+    return next((event for event in saved if event.client_turn_id == turn_id), None)
+
+
 def decide(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyDecision) -> FamilyView:
+    """One endpoint for both turn decisions and joint votes; the current step decides which."""
     saved = events(db, row)
-    prior = next((event for event in saved if event.client_turn_id == body.client_turn_id), None)
+    prior = _prior(saved, body.client_turn_id)
     if prior:
-        if (prior.role, prior.choice_id, prior.idx) != (
-            role,
-            body.choice_id,
-            body.state_version + 1,
-        ):
+        # A pending vote does not move state_version, so only decisions pin the event position.
+        same = (prior.role, prior.choice_id) == (role, body.choice_id) and (
+            prior.kind == "vote" or prior.idx == body.state_version + 1
+        )
+        if prior.kind == "share" or not same:
             raise ApiError("IDEMPOTENCY_CONFLICT", "decision ID reused")
         return view(db, row, role)
     story = FamilyStory.model_validate(row.story)
     if story.mode == "coop" and not row.partner_hash:
         raise ApiError("INVALID_PHASE", "waiting for partner")
-    if body.state_version != len(saved):
+    state = progress(story, saved)
+    if body.state_version != state.version:
         raise ApiError("TURN_IN_PROGRESS", "room changed; refresh before deciding")
-    try:
-        choose(story, [event.choice_id for event in saved], role, body.choice_id)
-    except ValueError as exc:
-        raise ApiError("DECISION_OPTION_INVALID", str(exc)) from exc
-    choice = selections(story, [event.choice_id for event in saved] + [body.choice_id])[-1]
+    if len(state.choices) >= len(story.steps):
+        raise ApiError("DECISION_OPTION_INVALID", "not this role's turn")
+    step = story.steps[len(state.choices)]
+    if step.joint:
+        if role in state.votes:
+            raise ApiError("INVALID_PHASE", "vote already submitted; waiting for partner")
+        if not any(c.id == body.choice_id for c in step.choices):
+            raise ApiError("DECISION_OPTION_INVALID", "unknown decision")
+        kind, reply = "vote", None
+    else:
+        try:
+            choose(story, state.choices, role, body.choice_id)
+        except ValueError as exc:
+            raise ApiError("DECISION_OPTION_INVALID", str(exc)) from exc
+        kind = "decision"
+        reply = next(c for c in step.choices if c.id == body.choice_id).reply_th
     db.add(
         FamilyEvent(
             room_id=row.id,
             idx=len(saved) + 1,
             role=role,
+            kind=kind,
             choice_id=body.choice_id,
-            reply_th=choice.reply_th,
+            reply_th=reply,
+            client_turn_id=body.client_turn_id,
+        )
+    )
+    db.flush()
+    return view(db, row, role)
+
+
+def share(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyShare) -> FamilyView:
+    """Move one fact from the caller's own private brief into the shared timeline."""
+    saved = events(db, row)
+    prior = _prior(saved, body.client_turn_id)
+    if prior:
+        if (prior.role, prior.kind, prior.choice_id) != (role, "share", body.fact_id):
+            raise ApiError("IDEMPOTENCY_CONFLICT", "share ID reused")
+        return view(db, row, role)
+    story = FamilyStory.model_validate(row.story)
+    if story.mode == "coop" and not row.partner_hash:
+        raise ApiError("INVALID_PHASE", "waiting for partner")
+    state = progress(story, saved)
+    if len(state.choices) >= len(story.steps):
+        raise ApiError("INVALID_PHASE", "story is complete")
+    fact = next((f for f in story.facts if f.id == body.fact_id and f.role == role), None)
+    if fact is None:  # unknown or the other role's: deliberately indistinguishable
+        raise ApiError("DECISION_OPTION_INVALID", "fact cannot be shared")
+    # A repeat share is recorded too (replay dedupes it) so its client_turn_id stays bound.
+    db.add(
+        FamilyEvent(
+            room_id=row.id,
+            idx=len(saved) + 1,
+            role=role,
+            kind="share",
+            choice_id=fact.id,
             client_turn_id=body.client_turn_id,
         )
     )

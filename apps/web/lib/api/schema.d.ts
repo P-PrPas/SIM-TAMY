@@ -512,6 +512,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/family/rooms/{room_id}/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Share */
+        post: operations["shareFamilyFact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -526,6 +543,81 @@ export interface components {
             realism_avg: number | null;
             /** Items */
             items: components["schemas"]["PilotFeedback"][];
+        };
+        /** FamilyCardSource */
+        FamilyCardSource: {
+            /** Id */
+            id: string;
+            /** Title Th */
+            title_th: string;
+            /** Url */
+            url: string;
+        };
+        /** FamilyFactView */
+        FamilyFactView: {
+            /** Id */
+            id: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "mother" | "father";
+            /** Text Th */
+            text_th: string;
+            /** Shared */
+            shared: boolean;
+        };
+        /** FamilyKnowledgeCard */
+        FamilyKnowledgeCard: {
+            /** Tradition Th */
+            tradition_th: string;
+            /** Learning Point Th */
+            learning_point_th: string;
+            /**
+             * Evidence Status
+             * @enum {string}
+             */
+            evidence_status: "traditional_practice" | "supported_by_guidance" | "insufficient_evidence" | "caution";
+            /** Precautions Th */
+            precautions_th: string[];
+            /** When To Consult Th */
+            when_to_consult_th: string | null;
+            /** Sources */
+            sources: components["schemas"]["FamilyCardSource"][];
+        };
+        /** FamilyShare */
+        FamilyShare: {
+            /** Fact Id */
+            fact_id: string;
+            /**
+             * Client Turn Id
+             * Format: uuid
+             */
+            client_turn_id: string;
+        };
+        /**
+         * FamilyVote
+         * @description Joint-step state. The partner's choice appears only once both have voted (disagreement).
+         */
+        FamilyVote: {
+            /** My Choice Id */
+            my_choice_id: string | null;
+            /** Waiting For Partner */
+            waiting_for_partner: boolean;
+            /** Disagreement */
+            disagreement: components["schemas"]["FamilyVoteChoice"][] | null;
+        };
+        /** FamilyVoteChoice */
+        FamilyVoteChoice: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "mother" | "father";
+            /** Choice Id */
+            choice_id: string;
+            /** Text Th */
+            text_th: string;
         };
         /** PilotFeedback */
         PilotFeedback: {
@@ -1095,7 +1187,7 @@ export interface components {
              * Skill
              * @enum {string}
              */
-            skill: "communication" | "responsibility" | "safety" | "support";
+            skill: "communication" | "responsibility" | "safety" | "support" | "shared_decision";
             /** Observed */
             observed: number;
             /** Opportunities */
@@ -1208,6 +1300,13 @@ export interface components {
             prompt_th: string;
             /** Choices */
             choices: components["schemas"]["FamilyOption"][];
+            /**
+             * Joint
+             * @default false
+             */
+            joint: boolean;
+            vote?: components["schemas"]["FamilyVote"] | null;
+            card?: components["schemas"]["FamilyKnowledgeCard"] | null;
         };
         /** FamilySource */
         FamilySource: {
@@ -1264,8 +1363,28 @@ export interface components {
             partner_joined: boolean;
             /** State Version */
             state_version: number;
+            /**
+             * Completed Steps
+             * @default 0
+             */
+            completed_steps: number;
             /** Total Steps */
             total_steps: number;
+            /**
+             * Partner Online
+             * @default false
+             */
+            partner_online: boolean;
+            /**
+             * My Facts
+             * @default []
+             */
+            my_facts: components["schemas"]["FamilyFactView"][];
+            /**
+             * Shared Facts
+             * @default []
+             */
+            shared_facts: components["schemas"]["FamilyFactView"][];
             scene: components["schemas"]["FamilyScene"] | null;
             /** Transcript */
             transcript: components["schemas"]["FamilyExchange"][];
@@ -2455,6 +2574,34 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["FamilyDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyView"];
+                };
+            };
+        };
+    };
+    shareFamilyFact: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FamilyShare"];
             };
         };
         responses: {

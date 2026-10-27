@@ -11,11 +11,13 @@ import { FamilyReportPanel } from "./family-report";
 import { PracticeStage } from "./practice-stage";
 import { PracticeChoice } from "./practice-choice";
 import { FamilyChapterGate, FamilyJournal } from "./family-story";
+import { FamilyFacts, FamilyKnowledgeCard, FamilyVoteStatus } from "./family-cosim";
 
 type View = components["schemas"]["FamilyView"];
 type Role = View["role"];
 type Credentials = { room_id: string; token: string; invite?: string };
 type Decision = components["schemas"]["FamilyDecision"];
+const GOLDEN_STORY = "golden-first-night";
 
 function newClientId() {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -40,6 +42,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [card, setCard] = useState<components["schemas"]["FamilyStoryCard"] | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
   const requestInFlight = useRef(false);
   const completed = Boolean(view?.report);
   const inviteLink = ready && credentials?.invite
@@ -70,7 +73,11 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
     });
     void createApi({ baseUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000" })
       .GET("/v1/family/stories", { signal: controller.signal })
-      .then(({ data }) => setCard(data?.find((s) => s.id === storyId) ?? null))
+      .then(({ data }) => {
+        const found = data?.find((s) => s.id === storyId) ?? null;
+        setCard(found);
+        setUnavailable(Boolean(data) && !found);
+      })
       .catch((cause: unknown) => { if (!controller.signal.aborted) message(cause); });
     return () => controller.abort();
   }, [storageKey, storyId]);
@@ -135,6 +142,18 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
     } finally { setBusy(false); requestInFlight.current = false; }
   }
 
+  async function shareFact(factId: string) {
+    if (!view || !credentials || requestInFlight.current) return;
+    setBusy(true); setError(""); requestInFlight.current = true;
+    try {
+      const { data } = await client().POST("/v1/family/rooms/{room_id}/shares", {
+        params: { path: { room_id: credentials.room_id } }, body: { fact_id: factId, client_turn_id: newClientId() },
+      });
+      if (!data) throw new Error("Missing updated room");
+      setView(data);
+    } catch (cause) { message(cause); } finally { setBusy(false); requestInFlight.current = false; }
+  }
+
   function leave() {
     sessionStorage.removeItem(storageKey); sessionStorage.removeItem(`${storageKey}:join-token`);
     setCredentials(null); setView(null); setPending(null); setError("");
@@ -146,15 +165,20 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
     catch { setCopyFailed(true); }
   }
 
-  const experience = storyId === "first-night" ? "coop" : storyId === "parenthood" ? "journey" : "bridge";
+  const experience = storyId === "first-night" || storyId === GOLDEN_STORY ? "coop" : storyId === "parenthood" ? "journey" : "bridge";
   const lastTurn = view?.transcript.at(-1);
   const earlierTurns = view?.transcript.slice(0, -1) ?? [];
-  const waiting = view && (!view.partner_joined || view.scene?.role !== view.role);
+  const voted = Boolean(view?.scene?.vote?.my_choice_id);
+  const myTurn = Boolean(view?.scene && view.scene.role === view.role && !voted);
+  const waiting = view && (!view.partner_joined || !myTurn);
+  const status = view?.report ? "family.finished" : !view?.partner_joined ? "family.waitPartner"
+    : voted ? "family.cosim.joint.waiting" : myTurn ? "family.yourTurn" : "family.partnerTurn";
+  const done = view ? view.completed_steps ?? view.state_version : 0;
 
   return <main className={`family-page ${view ? "is-active" : ""}`}>
     <Link href="/" className="family-back"><span aria-hidden="true">←</span>{t("family.home")}</Link>
     <nav aria-label={t("family.courses")} className="family-course-nav">
-      {([['first-night', '/family', 'family', 'link'], ['parenthood', '/parenthood', 'journey', 'journey'], ['bridge', '/bridge', 'bridge', 'bridge']] as const).map(([id, href, icon, label]) => <Link key={id} href={href} aria-current={(storyId === id || (id === 'bridge' && experience === 'bridge')) ? "page" : undefined}>
+      {([[GOLDEN_STORY, '/golden', 'heart', 'golden'], ['first-night', '/family', 'family', 'link'], ['parenthood', '/parenthood', 'journey', 'journey'], ['bridge', '/bridge', 'bridge', 'bridge']] as const).map(([id, href, icon, label]) => <Link key={id} href={href} aria-current={(storyId === id || (id === 'bridge' && experience === 'bridge')) ? "page" : undefined}>
         <FamilyIcon name={icon} /><span>{t(`family.design.nav.${label}`)}</span>
       </Link>)}
     </nav>
@@ -175,6 +199,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         <span aria-hidden="true">{index + 1}</span><p>{chapter}</p>
       </li>)}
     </ol>}
+    {unavailable && <div role="alert" className="family-error"><FamilyIcon name="shield" /><p>{t("family.cosim.unavailable")}</p></div>}
     {error && <div role="alert" className="family-error"><FamilyIcon name="shield" /><p>{error}</p></div>}
     {!ready ? <p role="status" className="family-loading">{t("family.loading")}</p> : !credentials ? <div id="family-enrollment" className="family-enrollment">
       <form onSubmit={(event) => { event.preventDefault(); void start(false); }} className="family-start-panel">
@@ -205,15 +230,17 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
     </div> : !view ? <div className="family-loading"><p role="status">{t("family.loading")}</p><button onClick={leave} className="button-text">{t("family.leave")}</button></div> : <>
       <div className="family-session-bar">
         <span className="family-role-badge"><FamilyIcon name="family" />{t(`family.${view.role}`)}</span>
-        <div className="family-session-progress"><span>{view.state_version} / {view.total_steps} {t("family.decisions")}</span><progress value={view.state_version} max={view.total_steps} aria-label={t("family.decisions")} /></div>
+        <div className="family-session-progress"><span>{done} / {view.total_steps} {t("family.decisions")}</span><progress value={done} max={view.total_steps} aria-label={t("family.decisions")} /></div>
         <button onClick={leave} disabled={busy} className="family-leave">{t("family.leave")}</button>
       </div>
       <div className="family-room-grid">
         <aside className="family-room-sidebar">
           <details open className="family-private"><summary><FamilyIcon name="lock" /><span>{t("family.private")}</span><span className="family-disclosure" aria-hidden="true"><FamilyIcon name="chevron" /></span></summary><p>{view.private_brief_th}</p></details>
           {experience === 'coop' && <section className="family-participants" aria-label={t("family.design.participants")}>
-            {([view.role, view.role === 'mother' ? 'father' : 'mother'] as const).map((item, index) => <div key={item}><span className="family-role-avatar" aria-hidden="true">{t(`family.design.${item}Initial`)}</span><p><strong>{t(`family.${item}`)}</strong><small>{t(index === 0 ? 'family.design.you' : view.partner_joined ? 'family.design.joined' : 'family.design.notJoined')}</small></p><span className={`family-presence ${index === 0 || view.partner_joined ? 'has-joined' : ''}`} aria-hidden="true" /></div>)}
+            {([view.role, view.role === 'mother' ? 'father' : 'mother'] as const).map((item, index) => <div key={item}><span className="family-role-avatar" aria-hidden="true">{t(`family.design.${item}Initial`)}</span><p><strong>{t(`family.${item}`)}</strong><small>{t(index === 0 ? 'family.design.you' : view.partner_joined ? 'family.design.joined' : 'family.design.notJoined')}</small></p><span className={`family-presence ${index === 0 || view.partner_joined ? 'has-joined' : ''} ${index === 1 && view.partner_online ? 'is-online' : ''}`} aria-hidden="true" /></div>)}
+            {view.partner_joined && <p role="status" className="family-online-note">{t(view.partner_online ? "family.cosim.presence.online" : "family.cosim.presence.offline")}</p>}
           </section>}
+          <FamilyFacts view={view} busy={busy || !!pending} onShare={(id) => void shareFact(id)} />
           {!view.partner_joined && <section className="family-invite-panel"><h2>{t("family.waitPartner")}</h2><p>{t("family.shareHelp")}</p>
             <label htmlFor="family-share" className="sr-only">{t("family.invitation")}</label>
             <input id="family-share" readOnly value={inviteLink} onFocus={(event) => event.target.select()} />
@@ -228,16 +255,18 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
             {lastTurn && <Exchange key={lastTurn.idx} turn={lastTurn} />}
             {pending && <div role="status" className="family-pending"><FamilyIcon name="chat" /><div><p>{view.scene?.choices.find((choice) => choice.id === pending.choice_id)?.text_th}</p><small>{t("family.sending")}</small></div></div>}
           </section>
-          <p aria-live="polite" aria-atomic="true" className="family-turn-status"><span className={`family-status-dot ${waiting ? 'is-waiting' : ''}`} aria-hidden="true" />{view.report ? t("family.finished") : !view.partner_joined ? t("family.waitPartner") : view.scene?.role === view.role ? t("family.yourTurn") : t("family.partnerTurn")}</p>
+          <p aria-live="polite" aria-atomic="true" className="family-turn-status"><span className={`family-status-dot ${waiting ? 'is-waiting' : ''}`} aria-hidden="true" />{t(status)}</p>
           {view.scene && <FamilyChapterGate key={view.room_id} chapter={view.scene.chapter_th} active={view.partner_joined && view.scene.role === view.role}><section className="family-scene" aria-labelledby="family-scene-title">
             <div className="family-scene-header"><span className="family-symbol"><FamilyIcon name={experience === 'bridge' ? 'leaf' : 'chat'} /></span><div><p className="family-kicker">{view.scene.chapter_th}</p><h2 id="family-scene-title">{view.scene.speaker_th}</h2></div></div>
             <p className="family-scene-prompt">{view.scene.prompt_th}</p>
-            {view.scene.choices.length > 0 && <PracticeChoice key={`${view.room_id}:${view.state_version}`} choices={view.scene.choices} disabled={busy || !view.partner_joined || !!pending} onCommit={(id) => void decide(id)} />}
+            {view.scene.card && <FamilyKnowledgeCard card={view.scene.card} />}
+            <FamilyVoteStatus scene={view.scene} />
+            {view.scene.choices.length > 0 && <PracticeChoice key={`${view.room_id}:${view.state_version}:${view.scene.vote?.my_choice_id ?? ""}`} choices={view.scene.choices} disabled={busy || !view.partner_joined || !!pending} onCommit={(id) => void decide(id)} />}
             {pending && !busy && <button className="button-primary family-retry" onClick={() => void decide(pending.choice_id)}>{t("family.retry")}</button>}
           </section></FamilyChapterGate>}
         </div>
       </div>
-      <FamilyJournal turns={view.transcript} coop={experience === "coop"} waiting={t(view.report ? "family.finished" : !view.partner_joined ? "family.waitPartner" : view.scene?.role === view.role ? "family.yourTurn" : "family.partnerTurn")} />
+      <FamilyJournal turns={view.transcript} coop={experience === "coop"} waiting={t(status)} />
       {view.report && <FamilyReportPanel report={view.report} turns={view.transcript} grandmother={experience === "bridge"} coop={experience === "coop"} onRestart={() => { setRole(view.role); leave(); }} />}
     </>}
   </main>;

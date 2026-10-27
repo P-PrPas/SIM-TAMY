@@ -12,6 +12,7 @@ from app.api.v1.family_schemas import (
     FamilyCreated,
     FamilyDecision,
     FamilyJoin,
+    FamilyShare,
     FamilyStoryCard,
     FamilyView,
 )
@@ -80,7 +81,9 @@ def join(room_id: uuid.UUID, body: FamilyJoin, db: Db) -> FamilyView:
 @router.get("/rooms/{room_id}", operation_id="getFamilyRoom", response_model=FamilyView)
 def get(room_id: uuid.UUID, db: Db, authorization: Auth = None) -> FamilyView:
     row = family.room(db, room_id)
-    return family.view(db, row, family.role_of(row, authorization))
+    role = family.role_of(row, authorization)
+    family.touch(row, role)
+    return family.view(db, row, role)
 
 
 @router.post(
@@ -90,4 +93,14 @@ def decide(
     room_id: uuid.UUID, body: FamilyDecision, db: Db, authorization: Auth = None
 ) -> FamilyView:
     row = family.room(db, room_id, lock=True)
-    return family.decide(db, row, family.role_of(row, authorization), body)
+    role = family.role_of(row, authorization)
+    family.touch(row, role)
+    return family.decide(db, row, role, body)
+
+
+@router.post("/rooms/{room_id}/shares", operation_id="shareFamilyFact", response_model=FamilyView)
+def share(room_id: uuid.UUID, body: FamilyShare, db: Db, authorization: Auth = None) -> FamilyView:
+    row = family.room(db, room_id, lock=True)
+    role = family.role_of(row, authorization)
+    family.touch(row, role)
+    return family.share(db, row, role, body)
