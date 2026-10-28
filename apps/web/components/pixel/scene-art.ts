@@ -134,3 +134,20 @@ export const BACKDROPS: Record<Backdrop, readonly Rect[]> = {
 
 /** Table slots (logical px) for notebook cards on the kitchen backdrop. */
 export const TABLE_CARDS: readonly (readonly [number, number])[] = Array.from({ length: 8 }, (_, i) => [92 + i * 17, 101] as const);
+
+/** Choice-card icons (display-only keys from the story's `icon`) and the table props they can leave behind. */
+export type ChoiceIcon = "book" | "notebook" | "pot" | "talk" | "pause" | "menu" | "arrow";
+export type ItemKey = "pot" | "notes";
+export const ICONS: Record<ChoiceIcon, Frame> = {
+  book: ["kkkkkkkkkkkk", "kppppkkppppk", "kpmmpkkpmmpk", "kppppkkppppk", "kpmmpkkpmmpk", "kppppkkppppk", "kpmmpkkpmmpk", "kkkkkkkkkkkk"],
+  notebook: ["kkkkkkkkkk", "kdkppppppk", "kdkpmmmmpk", "kdkppppppk", "kdkpmmmmpk", "kdkppppppk", "kdkpmmpppk", "kdkppppppk", "kkkkkkkkkk"],
+  pot: ["....kkkk....", "..kkoooookk..", ".kyyyyyyyyk.", "kkkkkkkkkkkk", "kwoooooooowk", "kwoooooooowk", "kwoooooooowk", ".kwwwwwwwwk.", "..kkkkkkkk.."],
+  talk: ["kkkkkkkkkkkk", "kppppppppppk", "kpkpkpkpkppk", "kppppppppppk", "kkkkkpkkkkkk", "....kpk.....", ".....k......"],
+  pause: ["..kkk..kkk..", "..kyk..kyk..", "..kyk..kyk..", "..kyk..kyk..", "..kyk..kyk..", "..kyk..kyk..", "..kkk..kkk.."],
+  menu: ["kkkkkkkkkkkk", "kppppppppppk", "kpgpmmmmmppk", "kppppppppppk", "kprpmmmmmppk", "kppppppppppk", "kpypmmmmmppk", "kppppppppppk", "kkkkkkkkkkkk"],
+  arrow: ["......k.....", "......kk....", "kkkkkkkyk...", "kyyyyyyyyk..", "kkkkkkkyk...", "......kk....", "......k....."],
+};
+/** A committed choice's icon decides which prop appears on the kitchen table. */
+export const ITEM_OF: Partial<Record<ChoiceIcon, ItemKey>> = { pot: "pot", notebook: "notes", menu: "notes", book: "notes" };
+export const ITEM_ART: Record<ItemKey, Frame> = { pot: ICONS.pot, notes: NOTEBOOK };
+export const ITEM_AT: Record<ItemKey, readonly [number, number]> = { pot: [118, 92], notes: [196, 96] };

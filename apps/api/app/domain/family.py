@@ -23,6 +23,9 @@ DEFAULT_RUBRIC: dict[Dimension, int] = {
 UNIT_ID = r"^KB-[A-Z]+-[A-Z]+-\d{3}$"
 OBJECTIVE_ID = r"^OBJ-\d-\d{2}$"
 CONTINUE = "continue"  # the single choice that closes a discover step
+# Pixel icon keys for choice cards (display only; the web draws them)
+FamilyIcon = Literal["book", "notebook", "pot", "talk", "pause", "menu", "arrow"]
+SHORT_MAX = 30  # card labels stay a glance long (about 25 Thai characters)
 
 
 class FamilyChoice(Model):
@@ -35,6 +38,8 @@ class FamilyChoice(Model):
     safe: bool = True
     flags: list[str] = []
     dimension: Dimension | None = None  # credited when chosen (rubric); None = no credit
+    short_th: NonBlank | None = Field(default=None, max_length=SHORT_MAX)  # card label
+    icon: FamilyIcon | None = None  # card icon, display only
 
 
 class FamilyLens(Model):

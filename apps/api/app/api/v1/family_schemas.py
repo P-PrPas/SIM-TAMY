@@ -86,6 +86,8 @@ class FamilyFactView(Model):
 class FamilyOption(Model):
     id: str
     text_th: str
+    short_th: str | None = None  # display-only card label (pixel stage); falls back to text_th
+    icon: Literal["book", "notebook", "pot", "talk", "pause", "menu", "arrow"] | None = None
 
 
 class FamilyScene(Model):

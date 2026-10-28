@@ -177,7 +177,10 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
             role=role if story.mode == "solo" or step.joint else step.role,
             speaker_th=step.speaker_th,
             prompt_th=prompt(story, choices, state.facts),
-            choices=[FamilyOption(id=c.id, text_th=c.text_th) for c in step.choices]
+            choices=[
+                FamilyOption(id=c.id, text_th=c.text_th, short_th=c.short_th, icon=c.icon)
+                for c in step.choices
+            ]
             if mine
             and not (vote and vote.my_choice_id)
             and (not discover or revealing(step, state.asked(len(chosen))) >= step.min_reveals)

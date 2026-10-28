@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import { t } from "@/lib/i18n";
-import { BACKDROPS, CARD, CHAR_H, CHAR_W, HEART, NOTEBOOK, SCENE_H, SCENE_W, TABLE_CARDS, THINK, characterFrames } from "./scene-art";
-import type { Backdrop, CharacterKey, Mood } from "./scene-art";
+import { BACKDROPS, CARD, CHAR_H, CHAR_W, HEART, ITEM_ART, ITEM_AT, NOTEBOOK, SCENE_H, SCENE_W, TABLE_CARDS, THINK, characterFrames } from "./scene-art";
+import type { Backdrop, CharacterKey, ItemKey, Mood } from "./scene-art";
 import { PALETTE, Sprite } from "./sprite";
 import "./scene.css";
 
@@ -30,8 +30,10 @@ function Rects({ rects }: { rects: readonly (readonly [number, number, number, n
  * Living pixel scene: 320x180 logical px, integer-scaled to the container. Decorative only (aria-hidden);
  * every visual change is also written in the sr-only status line and the notebook list.
  */
-export function PixelScene({ speaker, backdrop, talking = false, mood = null, cards = [] }: {
+export function PixelScene({ speaker, backdrop, talking = false, mood = null, cards = [], items = [], beat = false, compact = false, children }: {
   speaker: string; backdrop: Backdrop; talking?: boolean; mood?: Mood | null; cards?: readonly SceneCard[];
+  /** Stage mode: props on the table, the consequence beat, no notebook list below (HUD has it), overlay children. */
+  items?: readonly ItemKey[]; beat?: boolean; compact?: boolean; children?: ReactNode;
 }) {
   const box = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -39,7 +41,7 @@ export function PixelScene({ speaker, backdrop, talking = false, mood = null, ca
   useEffect(() => {
     const el = box.current;
     if (!el || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(() => setScale(Math.min(4, Math.max(1, Math.floor(el.clientWidth / SCENE_W)))));
+    const observer = new ResizeObserver(() => setScale(Math.min(4, Math.max(1, Math.floor((el.clientWidth - 8) / SCENE_W)))));
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
@@ -56,13 +58,15 @@ export function PixelScene({ speaker, backdrop, talking = false, mood = null, ca
   ].filter(Boolean).join(" ");
   const fly = { "--dx": `${NOTEBOOK_AT[0] - SPEAKER_X}px`, "--dy": `${NOTEBOOK_AT[1] - TOP}px` } as CSSProperties;
 
-  return <section className="pixel-scene-wrap">
+  return <section ref={box} className="pixel-scene-wrap">
     <p className="sr-only" role="status">{announce}</p>
-    <div ref={box} className="pixel-scene" aria-hidden="true" style={{ height: SCENE_H * scale }}>
+    <div className="pixel-stage-frame" style={{ width: SCENE_W * scale + 8 }}>
+    <div className={`pixel-scene ${beat ? "is-beat" : ""}`} aria-hidden="true" style={{ height: SCENE_H * scale }}>
       <div className="pixel-scene-stage" data-backdrop={backdrop} style={{ width: SCENE_W, height: SCENE_H, transform: `scale(${scale})` }}>
         <svg width={SCENE_W} height={SCENE_H} viewBox={`0 0 ${SCENE_W} ${SCENE_H}`} shapeRendering="crispEdges"><Rects rects={BACKDROPS[backdrop]} /></svg>
         <span className="pixel-prop" style={{ left: NOTEBOOK_AT[0], top: NOTEBOOK_AT[1] }}><Sprite frames={[NOTEBOOK]} scale={1} /></span>
         {backdrop === "kitchen" && cards.slice(0, TABLE_CARDS.length).map((c, i) => <span key={c.id} className="pixel-prop" style={{ left: TABLE_CARDS[i]![0], top: TABLE_CARDS[i]![1] }}><Sprite frames={[CARD]} scale={1} /></span>)}
+        {backdrop === "kitchen" && items.map((k, i) => <span key={k} className={`pixel-prop pixel-item ${beat && i === items.length - 1 ? "is-new" : ""}`} style={{ left: ITEM_AT[k][0], top: ITEM_AT[k][1] }}><Sprite frames={[ITEM_ART[k]]} scale={k === "pot" ? 2 : 1} /></span>)}
         <span className={`pixel-char ${mood ? `is-${mood}` : ""}`} data-who="ploy" style={{ left: PLOY_X, top: TOP, width: CHAR_W, height: CHAR_H }}>
           <Sprite key={mood ?? "idle"} frames={characterFrames("ploy", mood ?? "idle")} scale={1} fps={2} />
         </span>
@@ -74,11 +78,13 @@ export function PixelScene({ speaker, backdrop, talking = false, mood = null, ca
         {flying && <span key={flying.id} className="pixel-prop pixel-fly" style={{ left: SPEAKER_X + 12, top: TOP + 10, ...fly }}><Sprite frames={[CARD]} scale={1} /></span>}
       </div>
     </div>
-    <section className="pixel-notebook" aria-label={t("pixelSim.notebook.title")}>
+    {children && <div className="pixel-overlay">{children}</div>}
+    </div>
+    {!compact && <section className="pixel-notebook" aria-label={t("pixelSim.notebook.title")}>
       <h3>{t("pixelSim.notebook.title")}</h3>
       {cards.length === 0 ? <p>{t("pixelSim.notebook.empty")}</p> : <ul>
         {cards.map((c) => <li key={c.id}><span className="family-source-category">{c.source_id}</span> {c.title}</li>)}
       </ul>}
-    </section>
+    </section>}
   </section>;
 }

@@ -3745,6 +3745,24 @@ components:
         text_th:
           type: string
           title: Text Th
+        short_th:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Short Th
+        icon:
+          anyOf:
+          - type: string
+            enum:
+            - book
+            - notebook
+            - pot
+            - talk
+            - pause
+            - menu
+            - arrow
+          - type: 'null'
+          title: Icon
       additionalProperties: false
       type: object
       required:
