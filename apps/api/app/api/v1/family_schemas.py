@@ -102,6 +102,7 @@ class FamilyScene(Model):
     character_th: str | None = None  # discover: whom the learner is questioning
     accepts_text: bool = False  # typed chat is available on this step for the caller
     can_continue: bool = True  # discover: enough answers gathered to press continue
+    examples_th: list[str] = []  # discover: sample questions only (no intent ids or labels)
 
 
 class FamilyExchange(Model):
@@ -111,6 +112,7 @@ class FamilyExchange(Model):
     prompt_th: str
     text_th: str
     reply_th: str
+    mood: Literal["warm", "open"] | None = None  # coarse character reaction to the committed choice
 
 
 class FamilyEvidence(Model):

@@ -16,12 +16,14 @@ import { FamilyChapterGate, FamilyJournal } from "./family-story";
 import { FamilyFacts, FamilyKnowledgeCard, FamilyVoteStatus } from "./family-cosim";
 import { FamilyChat } from "./family-chat";
 import { FamilyLabReport } from "./family-lab-report";
+import { PixelScene, type SceneCard } from "./pixel/scene-view";
 
 type View = components["schemas"]["FamilyView"];
 type Role = View["role"];
 type Credentials = { room_id: string; token: string; invite?: string };
 type Decision = components["schemas"]["FamilyDecision"];
 const GOLDEN_STORY = "golden-first-night";
+const PIXEL_STORY = "thai-elements-family"; // the only story with the living pixel scene (LP-01)
 
 function newClientId() {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -47,6 +49,8 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
   const [copyFailed, setCopyFailed] = useState(false);
   const [card, setCard] = useState<components["schemas"]["FamilyStoryCard"] | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [cards, setCards] = useState<SceneCard[]>([]);
+  const [talking, setTalking] = useState(false);
   const requestInFlight = useRef(false);
   const completed = Boolean(view?.report);
   const inviteLink = ready && credentials?.invite
@@ -165,6 +169,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
     sessionStorage.removeItem(storageKey); sessionStorage.removeItem(`${storageKey}:join-token`);
     setCredentials(null); setView(null); setPending(null); setError("");
     setCopied(false); setCopyFailed(false);
+    setCards([]); setTalking(false);
   }
 
   async function copyInvitation() {
@@ -173,7 +178,14 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
   }
 
   const experience = storyId === "first-night" || storyId === GOLDEN_STORY || storyId.startsWith("gs-") ? "coop" : storyId === "parenthood" ? "journey" : "bridge";
+  const pixel = storyId === PIXEL_STORY;
   const lastTurn = view?.transcript.at(-1);
+  // Mood only reacts to choice steps; step 1 is the free-chat discover step whose "continue" has no meaning.
+  const mood = pixel && (view?.completed_steps ?? 0) >= 2
+    && (!view?.scene || view.scene.speaker_th === lastTurn?.speaker_th) ? lastTurn?.mood : null;
+  const addCards = (found: components["schemas"]["FamilyCitation"][]) => setCards((prior) => [...prior,
+    ...found.map((c) => ({ id: `${c.knowledge_id}:${c.claim_id}`, source_id: c.source_id, title: c.title }))
+      .filter((c, i, all) => !prior.some((p) => p.id === c.id) && all.findIndex((a) => a.id === c.id) === i)]);
   const earlierTurns = view?.transcript.slice(0, -1) ?? [];
   const voted = Boolean(view?.scene?.vote?.my_choice_id);
   const myTurn = Boolean(view?.scene && view.scene.role === view.role && !voted);
@@ -256,7 +268,8 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
           </section>}
         </aside>
         <div className="family-room-main">
-          <PracticeStage family grandmother={experience === "bridge"} sceneIndex={Math.max(0, card?.chapters_th.indexOf(view.scene?.chapter_th ?? "") ?? 0)} chapter={view.scene?.chapter_th ?? t("family.finished")} speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? t("family.conversation")} />
+          {pixel ? <PixelScene speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? ""} backdrop={view.scene?.kind === "discover" ? "sala" : "kitchen"} talking={talking} mood={mood} cards={cards} />
+            : <PracticeStage family grandmother={experience === "bridge"} sceneIndex={Math.max(0, card?.chapters_th.indexOf(view.scene?.chapter_th ?? "") ?? 0)} chapter={view.scene?.chapter_th ?? t("family.finished")} speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? t("family.conversation")} />}
           {earlierTurns.length > 0 && <details className="family-history"><summary><FamilyIcon name="chat" />{t("family.design.history")}<span>{earlierTurns.length}</span><span className="family-disclosure" aria-hidden="true"><FamilyIcon name="chevron" /></span></summary><div>{earlierTurns.map((turn) => <Exchange key={turn.idx} turn={turn} includePrompt />)}</div></details>}
           <section role="log" aria-live="polite" aria-relevant="additions" aria-label={t("family.conversation")}>
             {lastTurn && <Exchange key={lastTurn.idx} turn={lastTurn} />}
@@ -268,7 +281,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
             <p className="family-scene-prompt">{view.scene.prompt_th}</p>
             {view.scene.card && <FamilyKnowledgeCard card={view.scene.card} />}
             <FamilyVoteStatus scene={view.scene} />
-            {view.scene.accepts_text && credentials && view.partner_joined && <FamilyChat key={`${view.room_id}:${view.scene.id}`} view={view} credentials={credentials} onView={setView} onChoice={(id) => void decide(id)} />}
+            {view.scene.accepts_text && credentials && view.partner_joined && <FamilyChat key={`${view.room_id}:${view.scene.id}`} view={view} credentials={credentials} onView={setView} onChoice={(id) => void decide(id)} pixel={pixel ? { onTalking: setTalking, onCitations: addCards } : undefined} />}
             {view.scene.kind === "discover" && !view.scene.can_continue && <p className="family-muted" role="status">{t("lab.chat.askMore")}</p>}
             {view.scene.kind === "discover" && view.scene.choices.map((choice) => <button key={choice.id} type="button" className="button-primary family-continue" disabled={busy || !!pending} onClick={() => void decide(choice.id)}>{choice.text_th}<FamilyIcon name="arrow" /></button>)}
             {view.scene.kind !== "discover" && view.scene.choices.length > 0 && <PracticeChoice key={`${view.room_id}:${view.state_version}:${view.scene.vote?.my_choice_id ?? ""}`} choices={view.scene.choices} disabled={busy || !view.partner_joined || !!pending} onCommit={(id) => void decide(id)} />}

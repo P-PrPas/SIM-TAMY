@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ApiError, createApi } from "@/lib/api/client";
 import type { components } from "@/lib/api/schema";
@@ -11,7 +11,22 @@ type View = components["schemas"]["FamilyView"];
 type Reply = components["schemas"]["FamilyReply"];
 type Clarification = components["schemas"]["FamilyClarification"];
 type Pending = { text: string; client_turn_id: string; state_version: number };
-type Entry = { key: string; text: string; reply: Reply | null };
+type Entry = { key: string; text: string; reply: Reply | null; fresh?: boolean };
+/** Pixel mode (LP-01): reveal each new validated reply like an RPG dialogue box and report to the scene. */
+export type PixelHooks = { onTalking: (talking: boolean) => void; onCitations: (citations: Reply["citations"]) => void };
+
+/** Client-side typewriter over an already validated reply. The full text is always in the DOM for screen readers. */
+function Typed({ text, onTalking }: { text: string; onTalking: (talking: boolean) => void }) {
+  const chars = Array.from(text);
+  const [shown, setShown] = useState(() => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? chars.length : 0);
+  useEffect(() => {
+    if (shown >= chars.length) return;
+    onTalking(true);
+    const timer = window.setInterval(() => setShown((n) => Math.min(n + 1, chars.length)), 35);
+    return () => { window.clearInterval(timer); onTalking(false); };
+  }, [shown >= chars.length, chars.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  return <><p className="sr-only">{text}</p><p aria-hidden="true">{chars.slice(0, shown).join("")}</p></>;
+}
 
 function newId() {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -27,9 +42,9 @@ function newId() {
  * text and the same client_turn_id so Retry never duplicates a turn. Critical and joint steps only
  * accept questions here: decisions stay on the buttons.
  */
-export function FamilyChat({ view, credentials, onView, onChoice }: {
+export function FamilyChat({ view, credentials, onView, onChoice, pixel }: {
   view: View; credentials: { room_id: string; token: string };
-  onView: (next: View) => void; onChoice: (choiceId: string) => void;
+  onView: (next: View) => void; onChoice: (choiceId: string) => void; pixel?: PixelHooks;
 }) {
   const scene = view.scene!;
   const [draft, setDraft] = useState("");
@@ -39,6 +54,7 @@ export function FamilyChat({ view, credentials, onView, onChoice }: {
   const [pending, setPending] = useState<Pending | null>(null);
   const [failed, setFailed] = useState(false);
   const [clarify, setClarify] = useState<Clarification | null>(null);
+  const [example, setExample] = useState(0);
   const flying = useRef(false);
 
   async function send(body: Pending) {
@@ -52,7 +68,8 @@ export function FamilyChat({ view, credentials, onView, onChoice }: {
         body: { text: body.text, state_version: body.state_version, client_turn_id: body.client_turn_id },
       });
       if (!data) throw new Error("Missing reply");
-      setLog((prior) => [...prior, { key: body.client_turn_id, text: body.text, reply: data.reply ?? null }]);
+      setLog((prior) => [...prior, { key: body.client_turn_id, text: body.text, reply: data.reply ?? null, fresh: true }]);
+      if (data.reply?.citations.length) pixel?.onCitations(data.reply.citations);
       setClarify(data.clarification ?? null);
       setPending(null);
       onView(data.view);
@@ -73,14 +90,14 @@ export function FamilyChat({ view, credentials, onView, onChoice }: {
   }
 
   const discover = scene.kind === "discover";
-  return <section className="family-chat" aria-labelledby="family-chat-title">
+  return <section className={pixel ? "family-chat is-rpg" : "family-chat"} aria-labelledby="family-chat-title">
     <h3 id="family-chat-title"><FamilyIcon name="chat" />{t("lab.chat.title")}</h3>
     <p className="family-muted">{t("lab.chat.hint")}</p>
     {(scene.joint || scene.choices.length > 0 && !discover) && <p className="family-muted">{t("lab.chat.buttonsOnly")}</p>}
     <div role="log" aria-live="polite" aria-relevant="additions" aria-label={t("lab.chat.log")} className="family-chat-log">
       {log.map((entry) => <article key={entry.key} className="family-exchange">
         <div className="family-bubble family-bubble-learner"><strong>{t("lab.chat.you")}</strong><p>{entry.text}</p></div>
-        {entry.reply && <div className="family-bubble family-bubble-relative"><strong>{entry.reply.speaker_th}</strong><p>{entry.reply.text_th}</p>
+        {entry.reply && <div className="family-bubble family-bubble-relative"><strong>{entry.reply.speaker_th}</strong>{pixel && entry.fresh ? <Typed text={entry.reply.text_th} onTalking={pixel.onTalking} /> : <p>{entry.reply.text_th}</p>}
           {entry.reply.citations.length > 0 && <ul className="family-citations" aria-label={t("lab.chat.citations")}>
             {entry.reply.citations.map((c) => <li key={`${c.knowledge_id}:${c.claim_id}`}><span className="family-source-category">{c.source_id}</span> {c.title} <small>{c.locator}</small></li>)}
           </ul>}
@@ -102,6 +119,8 @@ export function FamilyChat({ view, credentials, onView, onChoice }: {
           else { setClarify(null); onChoice(option.id); }
         }}>{option.text_th}</button>)}
     </div>}
+    {pixel && discover && scene.examples_th && scene.examples_th.length > 0 && <button type="button" className="family-button-light family-dontknow"
+      onClick={() => { setDraft(scene.examples_th![example % scene.examples_th!.length]!); setExample(example + 1); }}>{t("pixelSim.dontKnow")}</button>}
     <form className="family-chat-form" onSubmit={(event) => { event.preventDefault(); submit(); }}>
       <label htmlFor="family-chat-input">{t("lab.chat.label")}</label>
       <textarea id="family-chat-input" rows={2} maxLength={500} value={draft} placeholder={t("lab.chat.placeholder")}

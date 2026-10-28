@@ -114,6 +114,7 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
             prompt_th=prompt(story, choices[:i], state.step_facts[i]),
             text_th=choice.text_th,
             reply_th=state.replies[i] or choice.reply_th,
+            mood="warm" if choice.skills and choice.safe else "open",
         )
         for i, (step, choice) in enumerate(zip(story.steps, chosen, strict=False))
     ]
@@ -186,6 +187,7 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
             kind=step.kind,
             character_th=step.character_th,
             accepts_text=bool(mine and not (vote and vote.my_choice_id)),
+            examples_th=[i.examples_th[0] for i in step.intents] if discover and mine else [],
             can_continue=not discover
             or revealing(step, state.asked(len(chosen))) >= step.min_reveals,
             card=FamilyKnowledgeCard(
