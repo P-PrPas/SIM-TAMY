@@ -41,7 +41,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); sessio
 
 it("registers the chapter-1 story and answers by exact id", async () => {
   const real = await vi.importActual<typeof import("@/components/pixel/registry")>("@/components/pixel/registry");
-  expect(real.PIXEL_STORIES.has("thai-elements-family")).toBe(true);
+  expect([...real.PIXEL_STORIES]).toContain("thai-elements-family"); // stage PRs only add ids, so do not pin the whole list
   expect(real.isPixelStory("thai-elements-family")).toBe(true);
   expect(real.isPixelStory("not-a-story")).toBe(false);
   expect(PIXEL_STORIES.has("thai-elements-family")).toBe(true);

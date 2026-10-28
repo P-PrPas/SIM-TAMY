@@ -172,7 +172,7 @@ describe("Learning Journey", () => {
     mockApi({ ...base, "/passport/acc-l1": { account: { id: "acc-l1", display_name_th: "L" }, attempts: [],
       lessons: [{ unit_id: "KB-TM-ELEMENT-001", completed_at: "2026-10-01T00:00:00Z" }] } });
     render(<StageCards />);
-    const book = (await screen.findByText(t("pixelHouse.items.book"), { exact: false })).closest("li") as HTMLElement;
+    const book = (await screen.findAllByText(t("pixelHouse.items.book"), { exact: false }))[0]!.closest("li") as HTMLElement; // stage 1 is the first zone
     expect(book.textContent).toContain(t("pixelHouse.itemState.have"));
   });
 

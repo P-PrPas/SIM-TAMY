@@ -11,8 +11,8 @@ const DEFAULT: Cast = { mother: "ploy", father: "ton", backdrops: { discover: "s
 export const CASTS: Record<string, Cast> = {
   "thai-elements-family": DEFAULT,
 
-  // Stage 2: placeholder until the stage 2 PR sets the real cast and backdrops
-  "thai-birth-conversation": { mother: "ploy", father: "ton", backdrops: { discover: "sala", choice: "kitchen" } },
+  // Stage 2: ploy and ton on a veranda; the grandmother (yai) visits as speaker
+  "thai-birth-conversation": { mother: "ploy", father: "ton", backdrops: { discover: "veranda", choice: "veranda" } },
 
   // Stage 3: placeholder until the stage 3 PR sets the real cast and backdrops
   "gs-a-postpartum-warning": { mother: "mali", father: "non", backdrops: { discover: "sala", choice: "kitchen" } },
