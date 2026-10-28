@@ -13,17 +13,19 @@ from datetime import UTC, datetime
 from typing import cast
 
 from sqlalchemy import func, or_, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.api.v1 import institution_schemas as out
 from app.content.family import load_stories
 from app.content.institution import STAFF_ROLES, DemoAccount, DemoOrg, institutions
+from app.content.knowledge import cached_knowledge
 from app.core.config import get_settings
 from app.core.errors import ApiError
 from app.db.family import FamilyEvent, FamilyMessage, FamilyRoom
-from app.db.models import Assignment, ClassRoom
+from app.db.models import Assignment, ClassRoom, PassportLesson
 from app.domain.family import FamilyRole, FamilyStory
-from app.engine.family import FamilyEventRecord, assess, replay, rubric_score
+from app.engine.family import FamilyEventRecord, assess, replay, rubric_score, selections
 from app.services import instructor
 
 MIN_OBJECTIVE_N = 3  # per-objective rates stay hidden below this many finished attempts (CT-12)
@@ -209,10 +211,22 @@ class Attempt:
     safety_met: bool
     score_total: float | None
     last_activity: datetime
+    strong: bool = False  # display only: every decision step's chosen option carried a skill
 
     @property
     def objective_ids(self) -> list[str]:
         return list(getattr(self.story, "objective_ids", []) or [])
+
+
+def _strong(story: FamilyStory, choices: list[str]) -> bool:
+    """Every decision step ended on an option that carries skills. Scripted `discover` steps
+    only continue, so they are not decisions. Display only: never read by scoring or safety."""
+    decided = [
+        choice
+        for step, choice in zip(story.steps, selections(story, choices), strict=True)
+        if step.kind != "discover"
+    ]
+    return bool(decided) and all(choice.skills for choice in decided)
 
 
 def attempts(db: Session, rooms: Sequence[FamilyRoom]) -> list[Attempt]:
@@ -238,7 +252,7 @@ def attempts(db: Session, rooms: Sequence[FamilyRoom]) -> list[Attempt]:
         story = FamilyStory.model_validate(room.story)
         seen = [room.created_at, room.host_seen_at, room.partner_seen_at, last_message.get(room.id)]
         activity = max(t for t in seen if t is not None)
-        finished, safety_met, score = False, True, None
+        finished, safety_met, score, strong = False, True, None, False
         try:
             state = replay(story, events[room.id])
             if len(state.choices) == len(story.steps):
@@ -246,9 +260,10 @@ def attempts(db: Session, rooms: Sequence[FamilyRoom]) -> list[Attempt]:
                 finished, safety_met = True, assessment.safety_met
                 rubric = rubric_score(story, state)
                 score = rubric.total if rubric else None
+                strong = _strong(story, state.choices)
         except ValueError:
             pass
-        result.append(Attempt(room, story, finished, safety_met, score, activity))
+        result.append(Attempt(room, story, finished, safety_met, score, activity, strong))
     return result
 
 
@@ -359,7 +374,33 @@ def passport(db: Session, account: DemoAccount) -> out.Passport:
                 safety_status="SAFETY_MET" if a.safety_met else "SAFETY_NOT_MET",
                 score_total=a.score_total,
                 objective_ids=a.objective_ids,
+                strong=a.strong,
             )
             for a in done
         ],
+        lessons=[
+            out.PassportLesson(unit_id=unit_id, completed_at=completed_at)
+            for unit_id, completed_at in db.execute(
+                select(PassportLesson.unit_id, PassportLesson.completed_at)
+                .where(PassportLesson.account_id == account.id)
+                .order_by(PassportLesson.completed_at, PassportLesson.unit_id)
+            )
+        ],
     )
+
+
+def complete_lesson(db: Session, account: DemoAccount, unit_id: str) -> out.PassportLesson:
+    """Record that the account finished a published lesson. Repeating it changes nothing."""
+    if cached_knowledge(get_settings().content_dir).release.unit(unit_id) is None:
+        raise ApiError("NOT_FOUND", "knowledge unit not found")
+    db.execute(
+        insert(PassportLesson)
+        .values(account_id=account.id, unit_id=unit_id)
+        .on_conflict_do_nothing(index_elements=["account_id", "unit_id"])
+    )
+    row = db.scalars(
+        select(PassportLesson).where(
+            PassportLesson.account_id == account.id, PassportLesson.unit_id == unit_id
+        )
+    ).one()
+    return out.PassportLesson(unit_id=row.unit_id, completed_at=row.completed_at)

@@ -101,7 +101,8 @@ score. Event IDs exposed to AI-03 and the UI: `"<room_id>:<idx>"`.
 | `/cohorts/{id}/clone`, `/cohorts/{id}/assignments` | POST | C | assignable: stories in the catalog (Draft allowed while `ALLOW_DRAFT_CASES=true`) |
 | `/cohorts/{id}/analytics` | GET | C | from finished rooms only; every rate shows numerator, `n`, story version; per-objective rates hidden when `n < 3` |
 | `/join/{code}` | GET | C | class + active assignments; expired → helpful error (CT-14) |
-| `/passport/{account_id}` | GET | C | finished attempts of that account, objectives touched, safety result per attempt (never averaged) |
+| `/passport/{account_id}` | GET | C | finished attempts of that account, objectives touched, safety result per attempt (never averaged); `attempts[].strong` (display only) and `lessons: [{unit_id, completed_at}]` |
+| `/passport/{account_id}/lessons/{unit_id}` | POST | C | records that the account finished that lesson (table `passport_lessons`, migration 0007; not the `events` log). 200 `{unit_id, completed_at}`; repeating it changes nothing and returns the first time. Unknown unit (not in the current release) or unknown account: 404 `NOT_FOUND` |
 
 C implementation notes (exact shapes are in `docs/openapi.yaml`, tag `Institution`): staff routes read `X-Demo-Account` (missing or unknown: 401; not educator/org_admin of that org: 403; another org's cohort: 404). `GET /cohorts/{id}/assignments` also exists. `join` errors: unknown code `CLASS_NOT_FOUND` (404), expired assignments `SESSION_EXPIRED` (410). Analytics replay finished rooms through the family engine; `objectives[].numerator` counts finished attempts that met the Critical Safety gate for stories carrying that `objective_id`, and is `null` with `suppressed: true` when `n < 3`. `score_total` is null until the family report exposes it.
 
@@ -169,9 +170,16 @@ citations retain their original meaning. This does not retire or approve content
 ### Pixel nursery house and end-of-chapter reveal (LP-03)
 
 `/learn` renders a code-drawn "บ้านต้อนรับลูก" with four stage zones (only stage 1 open). Items come only
-from finished attempts in `GET /passport/{account_id}`: the table item needs a finished
-`thai-elements-family` attempt (a second finished attempt upgrades it). The palm-leaf-book item (lesson
-`KB-TM-ELEMENT-001`) stays empty because lesson completion is not recorded server-side yet; no local storage is used.
+from `GET /passport/{account_id}`: the table item needs a finished `thai-elements-family` attempt and
+upgrades when a finished attempt is `strong`; the palm-leaf-book item (lesson `KB-TM-ELEMENT-001`) fills when
+`lessons` contains that unit. The pixel lesson posts the completion when the learner finishes the cards and the
+sort game (best effort: a failed call neither blocks the lesson nor stores anything locally; no call without a
+picked mock profile). No local storage is used.
+
+`strong` is derived on the server from the attempt's replayed choices: every decision step ended on an option
+that carries a non-empty `skills` list (scripted `discover` steps only continue, so they do not count). It is
+display only, post-completion, never in play views, and scoring, rubric and `safety_status` do not read it, so a
+`strong` attempt can still be `SAFETY_NOT_MET`.
 `FamilyEvidence` in the finished `FamilyReport` (post-completion only, never in play views) gains
 `skills`, `dimension`, `critical`, `kind` so the web reveal can replay each choice. The three meters are a
 visual reflection, not a score; scoring, rubric and `safety_status` are unchanged.

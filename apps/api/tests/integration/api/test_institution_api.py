@@ -260,10 +260,38 @@ def test_passport_lists_finished_attempts_of_host_and_partner_per_attempt(api: A
     assert by_room[str(unsafe)]["safety_status"] == "SAFETY_NOT_MET"  # never averaged away
     assert by_room[str(safe)]["story_id"] == STORY and by_room[str(safe)]["title_th"]
     assert by_room[str(safe)]["score_total"] is None and by_room[str(safe)]["objective_ids"] == []
+    assert by_room[str(safe)]["strong"] is True  # every decision carried skills
+    assert by_room[str(unsafe)]["strong"] is False
     dad = api.client.get("/v1/passport/parent-h-dad-1").json()
     assert {a["room_id"] for a in dad["attempts"]} == {str(safe), str(unsafe)}
     assert api.client.get("/v1/passport/parent-free-mom-1").json()["attempts"] == []
     assert api.client.get("/v1/passport/nobody").status_code == 404
+
+
+def test_a_safe_attempt_with_a_skill_less_choice_is_not_strong(api: Api):
+    attempt(api, None, [*SAFE[:2], ("mother", "push-through"), SAFE[3]], host="parent-h-mom-1")
+    (only,) = api.client.get("/v1/passport/parent-h-mom-1").json()["attempts"]
+    assert only["safety_status"] == "SAFETY_MET" and only["strong"] is False
+
+
+def test_lesson_completion_is_recorded_once_per_account_and_unit(api: Api):
+    unit = "KB-TM-ELEMENT-001"
+    assert api.client.get("/v1/passport/parent-h-mom-1").json()["lessons"] == []
+    first = api.client.post(f"/v1/passport/parent-h-mom-1/lessons/{unit}")
+    assert first.status_code == 200 and first.json()["unit_id"] == unit
+    again = api.client.post(f"/v1/passport/parent-h-mom-1/lessons/{unit}")
+    assert again.status_code == 200 and again.json() == first.json()  # no change on repeat
+    lessons = api.client.get("/v1/passport/parent-h-mom-1").json()["lessons"]
+    assert lessons == [first.json()]
+    assert api.client.get("/v1/passport/parent-h-dad-1").json()["lessons"] == []  # per account
+
+
+def test_lesson_completion_rejects_unknown_units_and_accounts(api: Api):
+    unit = api.client.post("/v1/passport/parent-h-mom-1/lessons/KB-NOPE")
+    assert (unit.status_code, unit.json()["error"]["code"]) == (404, "NOT_FOUND")
+    account = api.client.post("/v1/passport/nobody/lessons/KB-TM-ELEMENT-001")
+    assert (account.status_code, account.json()["error"]["code"]) == (404, "NOT_FOUND")
+    assert api.client.get("/v1/passport/parent-h-mom-1").json()["lessons"] == []
 
 
 def test_overview_counts_finished_attempts_of_the_whole_org_only(api: Api):

@@ -68,6 +68,16 @@ class Assignment(Base):
     expires_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True))
 
 
+class PassportLesson(Base):
+    """A knowledge lesson a mock account finished (LP-03). Not the append-only `events` log."""
+
+    __tablename__ = "passport_lessons"
+
+    account_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    unit_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    completed_at: Mapped[datetime] = _ts()
+
+
 class LearnerSession(Base):
     __tablename__ = "sessions"
     __table_args__ = (CheckConstraint("status IN ('active','completed','expired')", name="status"),)

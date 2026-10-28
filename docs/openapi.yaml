@@ -1824,6 +1824,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Passport'
+  /v1/passport/{account_id}/lessons/{unit_id}:
+    post:
+      tags:
+      - Institution
+      summary: Complete Passport Lesson
+      description: Records, once per account and unit, that the mock account finished
+        the lesson. Repeating the call changes nothing and returns the first completion
+        time. Unknown unit or account is 404.
+      operationId: completePassportLesson
+      parameters:
+      - name: account_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Account Id
+      - name: unit_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Unit Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PassportLesson'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   securitySchemes:
     SessionToken:
@@ -4693,12 +4724,33 @@ components:
             $ref: '#/components/schemas/PassportAttempt'
           type: array
           title: Attempts
+        lessons:
+          items:
+            $ref: '#/components/schemas/PassportLesson'
+          type: array
+          title: Lessons
       additionalProperties: false
       type: object
       required:
       - account
       - attempts
+      - lessons
       title: Passport
+    PassportLesson:
+      properties:
+        unit_id:
+          type: string
+          title: Unit Id
+        completed_at:
+          type: string
+          format: date-time
+          title: Completed At
+      additionalProperties: false
+      type: object
+      required:
+      - unit_id
+      - completed_at
+      title: PassportLesson
     PassportAccount:
       properties:
         id:
@@ -4745,6 +4797,9 @@ components:
             type: string
           type: array
           title: Objective Ids
+        strong:
+          type: boolean
+          title: Strong
       additionalProperties: false
       type: object
       required:
@@ -4755,6 +4810,7 @@ components:
       - safety_status
       - score_total
       - objective_ids
+      - strong
       title: PassportAttempt
     OrgOverview:
       properties:

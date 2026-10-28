@@ -53,7 +53,7 @@ const sources = { items: [{ id: "S01", kind: "kb_source", title: "KB source", pu
   { id: "M01", kind: "catalog", title: "Catalog book", publisher: null, year: null, url: null, rights_status: "metadata_only" }] };
 const attempt = (o: Partial<Record<string, unknown>> = {}) => ({
   room_id: "r", story_id: "gs-a-postpartum-warning", title_th: "Attempt title", finished_at: "2026-10-20T10:00:00Z",
-  safety_status: "SAFETY_MET", score_total: 80, objective_ids: ["OBJ-1-01"], ...o,
+  safety_status: "SAFETY_MET", score_total: 80, objective_ids: ["OBJ-1-01"], strong: false, ...o,
 });
 
 type Routes = Record<string, unknown | ((req: Request) => Response)>;
@@ -157,6 +157,15 @@ describe("Learning Journey", () => {
     expect(await screen.findByRole("heading", { name: "Stage one" })).toBeTruthy();
     const links = screen.getAllByRole("link", { name: new RegExp(t("platform.learn.openStage")) });
     expect(links.map((a) => a.getAttribute("href"))).toEqual(["/learn/1", "/learn/2"]);
+  });
+
+  it("fills the house palm-leaf book from the passport's completed lessons", async () => {
+    setDemoAccount("acc-l1");
+    mockApi({ ...base, "/passport/acc-l1": { account: { id: "acc-l1", display_name_th: "L" }, attempts: [],
+      lessons: [{ unit_id: "KB-TM-ELEMENT-001", completed_at: "2026-10-01T00:00:00Z" }] } });
+    render(<StageCards />);
+    const book = (await screen.findByText(t("pixelHouse.items.book"), { exact: false })).closest("li") as HTMLElement;
+    expect(book.textContent).toContain(t("pixelHouse.itemState.have"));
   });
 
   it("shows retry on failure", async () => {

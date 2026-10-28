@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { t } from "@/lib/i18n";
-import type { Attempt } from "@/lib/v2-api";
+import type { Attempt, PassportLesson } from "@/lib/v2-api";
 
 import { PALETTE } from "./sprite";
 import "./house.css";
@@ -11,11 +11,16 @@ const ZONES = ["1", "2", "3", "4"] as const;
 // 2x2 rooms inside a 320x180 house: [x, y] of each 130x50 room
 const ROOM: Record<(typeof ZONES)[number], [number, number]> = { "1": [20, 120], "2": [20, 70], "3": [170, 120], "4": [170, 70] };
 
-/** Finished attempts of the chapter-1 story, recorded server-side. Lesson completion has no server record yet. */
-export function houseItems(attempts: readonly Attempt[] | null) {
-  const finished = (attempts ?? []).filter((a) => a.finished_at && a.story_id === HOUSE_STORY).length;
-  // A replay upgrades the table (tier 2); nothing is ever removed.
-  return { book: false, table: (finished > 1 ? 2 : finished > 0 ? 1 : 0) as 0 | 1 | 2 };
+export const HOUSE_LESSON = "KB-TM-ELEMENT-001";
+
+/** Everything comes from the passport (server-side records only): finished chapter-1 attempts and completed lessons. */
+export function houseItems(attempts: readonly Attempt[] | null, lessons: readonly PassportLesson[] | null = null) {
+  const finished = (attempts ?? []).filter((a) => a.finished_at && a.story_id === HOUSE_STORY);
+  // A finished attempt fills the table; a better one (every decision carried a skill) fills it further. Nothing is removed.
+  return {
+    book: (lessons ?? []).some((l) => l.unit_id === HOUSE_LESSON),
+    table: (finished.some((a) => a.strong) ? 2 : finished.length > 0 ? 1 : 0) as 0 | 1 | 2,
+  };
 }
 
 function Art({ table, book }: { table: number; book: boolean }) {
@@ -39,9 +44,9 @@ function Art({ table, book }: { table: number; book: boolean }) {
   </svg>;
 }
 
-/** Nursery House meta-progress: four stage zones, only stage 1 open; items come from finished attempts only. */
-export function NurseryHouse({ attempts }: { attempts: readonly Attempt[] | null }) {
-  const items = houseItems(attempts);
+/** Nursery House meta-progress: four stage zones, only stage 1 open; items come from the passport only. */
+export function NurseryHouse({ attempts, lessons = null }: { attempts: readonly Attempt[] | null; lessons?: readonly PassportLesson[] | null }) {
+  const items = houseItems(attempts, lessons);
   return <section className="nh" aria-labelledby="nh-title">
     <h2 id="nh-title">{t("pixelHouse.title")}</h2>
     <p className="pf-muted">{t("pixelHouse.intro")}</p>
