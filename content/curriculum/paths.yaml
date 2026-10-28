@@ -20,12 +20,12 @@ stages:
         title_th: แยกธาตุกำเนิด ธาตุปัจจุบัน และรสอาหารในตำรา ออกจากการประเมินสุขภาพก่อนมีบุตร
         dimension: evidence_scope
         unit_ids: [KB-TM-ELEMENT-001]
-        story_ids: []
+        story_ids: [thai-elements-family]
       - id: OBJ-1-04
         title_th: อ่านมุมมองปฐมจินดาคู่กับความรู้ครรภ์ปัจจุบัน และรับฟังอาการแพ้ท้องโดยไม่โทษแม่
         dimension: communication
         unit_ids: [KB-ANC-HERITAGE-001, KB-ANC-PLAN-001]
-        story_ids: []
+        story_ids: [thai-elements-family]
   - stage: 2
     title_th: เตรียมคลอด
     summary_th: เข้าใจรากหมอตำแยและคัมภีร์ครรภ์ทรักษา แล้วร่วมกันเตรียมคำถามเรื่องทางเลือกคลอด สิทธิของแม่ ผู้ช่วยดูแล การเดินทาง และแผนขอความช่วยเหลือ
@@ -39,12 +39,12 @@ stages:
         title_th: สื่อสารความต้องการอย่างเคารพ ให้ข้อมูลประกอบการตัดสินใจ และไม่บังคับหรือบิดเบือนข้อมูล
         dimension: communication
         unit_ids: [KB-RIGHTS-CONSENT-001]
-        story_ids: [parenthood]
+        story_ids: [parenthood, thai-birth-conversation]
       - id: OBJ-2-03
         title_th: เคารพเรื่องเล่าการคลอดของครอบครัว พร้อมอธิบายสิทธิและทางเลือกโดยไม่ใช้วันเกิดทำนายอนาคตลูก
         dimension: evidence_scope
         unit_ids: [KB-IP-HERITAGE-001, KB-RIGHTS-CONSENT-001]
-        story_ids: []
+        story_ids: [thai-birth-conversation]
   - stage: 3
     title_th: หลังคลอดและฟื้นฟู
     summary_th: เชื่อมความห่วงใยผ่านการอยู่ไฟ สำรับอาหาร และสมุนไพรกับการพักฟื้นและการอ่านหลักฐาน พร้อมรู้ทันสัญญาณอันตรายและเลือกขอความช่วยเหลือก่อนใช้บริการ
