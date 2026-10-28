@@ -9,7 +9,7 @@ import { LESSON_UNITS_4 } from "@/components/pixel/art/lesson-stage4";
 import { sceneSetup } from "@/components/pixel/cast";
 import { ART, claimArt } from "@/components/pixel/lesson-art";
 import { isPixelLesson, isPixelStory } from "@/components/pixel/registry";
-import { BACKDROPS, CARD_SLOTS, ICONS, ITEMS, ITEM_OF } from "@/components/pixel/scene-art";
+import { BACKDROPS, CARD_SLOTS, ICONS, ITEMS, itemFor } from "@/components/pixel/scene-art";
 import { characterOf } from "@/components/pixel/scene-view";
 import { t } from "@/lib/i18n";
 
@@ -68,8 +68,8 @@ it("resolves a cast for both roles over every speaker, including the joint line"
 
 it("only maps icons to props that exist and shows them on its own backdrop; cards have slots", () => {
   for (const c of choices) {
-    const item = ITEM_OF[c.icon as keyof typeof ITEM_OF];
-    if (item && (ITEMS[item] as { on?: string[] }).on) expect((ITEMS[item] as { on: string[] }).on).toContain("livingroom");
+    const item = itemFor(c.icon as keyof typeof ICONS, "livingroom");
+    if (item) expect((ITEMS[item] as { on?: string[] }).on).toContain("livingroom");
   }
   expect(CARD_SLOTS.consult!.length).toBeGreaterThan(0);
   expect(CARD_SLOTS.livingroom!.length).toBeGreaterThan(0);
