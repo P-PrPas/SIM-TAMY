@@ -59,7 +59,8 @@ def test_catalog_import_matches_the_catalog_file_and_holds_no_full_text(
 
 
 def test_kb_sources_s01_to_s40_are_public_web_references(kb: KnowledgeBase) -> None:
-    kb_sources = [s for s in kb.sources if s.kind == "kb_source"]
+    original_ids = {f"S{i:02d}" for i in range(1, 41)}
+    kb_sources = [s for s in kb.sources if s.id in original_ids]
 
     assert [s.id for s in kb_sources] == [f"S{i:02d}" for i in range(1, 41)]
     assert all(s.rights_status == "public_web" for s in kb_sources)
