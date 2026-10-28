@@ -166,6 +166,16 @@ The knowledge index combines preconception and antenatal references into one
 navigation group and collapses the source registry; unit detail metadata and
 citations retain their original meaning. This does not retire or approve content.
 
+### Ready registry (LP-01, LP-04)
+
+`apps/web/lib/learning-path.ts` (`CORE_PATH`) is the single list of what learners can open: one lesson and one
+scenario per stage (stage 1 `KB-TM-ELEMENT-001` + `thai-elements-family`, stage 2 `KB-IP-HERITAGE-001` +
+`thai-birth-conversation`, stage 3 `KB-PP-WARN-001` + `gs-a-postpartum-warning`, stage 4 `KB-BF-COLOSTRUM-001` +
+`thai-milk-family`). `unitReady()` / `storyReady()` gate the stage page, lab, knowledge index and unit page, home,
+join-code assignments, the story routes and the course tabs. Everything else is listed greyed out with an availability
+label (not a review label, rule 9) and direct URLs show a notice. `NEXT_PUBLIC_SHOW_ALL_CONTENT=true` opens everything
+(dev, CI and the e2e web servers). Content, APIs, sessions and scoring are unchanged.
+
 ### Pixel nursery house and end-of-chapter reveal (LP-03)
 
 `/learn` renders a code-drawn "บ้านต้อนรับลูก" with four stage zones (only stage 1 open). Items come only

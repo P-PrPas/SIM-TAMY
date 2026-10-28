@@ -3,12 +3,13 @@
 import Link from "next/link";
 
 import { t } from "@/lib/i18n";
-import { CORE_PATH } from "@/lib/learning-path";
+import { CORE_PATH, storyReady, unitReady } from "@/lib/learning-path";
 import { useDemoAccount } from "@/lib/use-demo-account";
 import { useV2 } from "@/lib/use-v2";
 import { storyHref, v2, type Attempt, type LearningPaths, type PathObjective } from "@/lib/v2-api";
 
 import { NurseryHouse } from "../pixel/house";
+import { Disabled } from "./not-ready";
 import { Async, DemoBadge, labelOr } from "./shared";
 
 export function StageCards() {
@@ -68,12 +69,13 @@ export function StageDetail({ stage }: { stage: string }) {
     const current = data.stages.find((s) => String(s.stage) === stage);
     if (!current) return <p className="pf-note">{t("platform.learn.notFound")}</p>;
     const core = CORE_PATH.find((s) => s.stage === current.stage);
-    const coreUnits = (core?.units ?? []).filter((id) => unitTitles.has(id));
-    const extraUnits = [...new Set(current.objectives.flatMap((o) => o.unit_ids))]
-      .filter((id) => unitTitles.has(id) && !coreUnits.includes(id));
-    const coreStories = (core?.stories ?? []).filter((id) => scenarios.has(id));
-    const readings = (ids: string[]) => <ul className="pf-list pf-stack">{ids.map((id) =>
-      <li key={id}><Link href={`/knowledge/${encodeURIComponent(id)}`} className="pf-link">{unitTitles.get(id)}</Link></li>)}</ul>;
+    // Ready items first, then the rest of the stage greyed out so the roadmap stays visible.
+    const inStage = (ids: string[], first: string[]) => [...new Set([...first, ...ids])];
+    const unitIds = inStage(current.objectives.flatMap((o) => o.unit_ids), core?.units ?? []).filter((id) => unitTitles.has(id));
+    const storyIds = inStage(current.objectives.flatMap((o) => o.story_ids), core?.stories ?? []).filter((id) => scenarios.has(id));
+    const readings = (ids: string[]) => <ul className="pf-list pf-stack">{ids.map((id) => <li key={id}>{unitReady(id)
+      ? <Link href={`/knowledge/${encodeURIComponent(id)}`} className="pf-link">{unitTitles.get(id)}</Link>
+      : <Disabled>{unitTitles.get(id)}</Disabled>}</li>)}</ul>;
     return <>
       <header>
         <p className="pf-kicker">{t("platform.learn.stageLabel")} {current.stage}</p>
@@ -81,17 +83,15 @@ export function StageDetail({ stage }: { stage: string }) {
       </header>
       <section className="pf-section" aria-labelledby="read-title">
         <h2 id="read-title">{t("platform.learn.units")}</h2>
-        <Async r={units}>{() => coreUnits.length ? readings(coreUnits) : <p className="pf-note">{t("platform.learn.noUnits")}</p>}</Async>
+        <Async r={units}>{() => unitIds.length ? readings(unitIds) : <p className="pf-note">{t("platform.learn.noUnits")}</p>}</Async>
       </section>
       <section className="pf-section" aria-labelledby="practice-title">
         <h2 id="practice-title">{t("platform.learn.scenarios")}</h2>
-        <Async r={stories}>{() => coreStories.length ? <ul className="pf-list pf-stack">{coreStories.map((id) =>
-          <li key={id}><Link href={scenarios.get(id)!.href} className="pf-link">{scenarios.get(id)!.title}</Link></li>)}</ul>
+        <Async r={stories}>{() => storyIds.length ? <ul className="pf-list pf-stack">{storyIds.map((id) => <li key={id}>{storyReady(id)
+          ? <Link href={scenarios.get(id)!.href} className="pf-link">{scenarios.get(id)!.title}</Link>
+          : <Disabled>{scenarios.get(id)!.title}</Disabled>}</li>)}</ul>
           : <p className="pf-note">{t("platform.learn.noScenarios")}</p>}</Async>
       </section>
-      {extraUnits.length > 0 && <details className="pf-section pf-disclosure">
-        <summary>{t("platform.learn.extraUnits")}</summary>{readings(extraUnits)}
-      </details>}
       <details className="pf-section pf-disclosure">
         <summary>{t("platform.learn.objectives")}</summary>
         {account && <DemoBadge />}

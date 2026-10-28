@@ -34,7 +34,8 @@ export default defineConfig({
     {
       command: "npm run dev -- --hostname 127.0.0.1 --port 3100",
       cwd: ".",
-      env: { NEXT_PUBLIC_API_URL: apiUrl },
+      // e2e covers every story, including the ones the learner UI greys out (lib/learning-path.ts)
+      env: { NEXT_PUBLIC_API_URL: apiUrl, NEXT_PUBLIC_SHOW_ALL_CONTENT: "true" },
       url: webUrl,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
