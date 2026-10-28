@@ -1,0 +1,49 @@
+/* SIM-TAMY 2.0 platform pages (Home, Learn, Lab, Passport, Knowledge). Reuses the brand tokens in globals.css. */
+.pf-page { max-width: 1248px; margin: auto; padding: 28px 20px 48px; }
+.pf-page > header { margin-bottom: 20px; }
+.pf-page h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 650; line-height: 1.35; }
+.pf-page h2 { font-size: clamp(1.35rem, 2.5vw, 1.75rem); font-weight: 620; }
+.pf-page h3 { font-size: 1.125rem; font-weight: 620; }
+.pf-page h4 { font-size: 1rem; font-weight: 620; margin-top: 14px; color: var(--color-brand-800); }
+.pf-hero { padding: 24px 0 32px; }
+.pf-hero h1 { margin-top: 16px; max-width: 760px; font-size: clamp(2rem, 5vw, 3.2rem); }
+.pf-lead { max-width: 680px; margin-top: 14px; color: var(--color-muted); font-size: 1.125rem; line-height: 1.85; }
+.pf-actions { margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
+.pf-section { margin-top: 40px; }
+.pf-section > p { margin-top: 6px; }
+.pf-stack { display: grid; gap: 16px; margin-top: 16px; }
+.pf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; margin-top: 16px; }
+.pf-list { list-style: none; padding: 0; margin: 0; }
+.pf-card { border: 1px solid var(--color-line); border-radius: 16px; padding: 20px; background: var(--color-surface); min-width: 0; }
+.pf-card > * + * { margin-top: 10px; }
+.pf-card h2, .pf-card h3 { margin-top: 4px; }
+.pf-kicker { display: block; font-size: .875rem; font-weight: 650; color: var(--color-brand-700); }
+.pf-muted { color: var(--color-muted); }
+.pf-meta { color: var(--color-muted); font-size: .9375rem; }
+.pf-note { margin-top: 12px; padding: 12px 16px; border-radius: 12px; background: var(--color-brand-50); border: 1px solid var(--color-brand-200); color: var(--color-brand-950); }
+.pf-alert { margin-top: 16px; padding: 16px; border-radius: 12px; background: #fff1f2; color: #4c0519; border: 1px solid #fecdd3; }
+.pf-alert .pf-btn { margin-top: 10px; }
+.pf-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.pf-badge { display: inline-flex; align-items: center; min-height: 28px; padding: 2px 12px; border-radius: 999px; background: var(--color-brand-100); color: var(--color-brand-900); border: 1px solid var(--color-brand-300); font-size: .875rem; font-weight: 650; }
+.pf-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 650; color: var(--color-brand-800); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--color-brand-300); }
+.pf-link:hover { color: var(--color-brand-950); }
+.pf-link-btn { background: none; border: 0; padding: 0 4px; margin-top: 8px; }
+.pf-btn { min-height: 44px; padding: 8px 20px; border-radius: 10px; font-weight: 650; background: var(--color-brand-950); color: #fff; }
+.pf-btn:hover { background: var(--color-brand-800); }
+.pf-page .button-gold, .pf-page .button-primary { display: inline-flex; width: auto; max-width: 100%; }
+.pf-profile-btn { display: flex; width: 100%; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 52px; padding: 10px 16px; margin-top: 8px; text-align: left; border: 1px solid var(--color-stone-400); border-radius: 12px; background: var(--color-surface); font-weight: 650; }
+.pf-profile-btn small { font-weight: 400; color: var(--color-muted); font-size: .875rem; }
+.pf-profile-btn[aria-pressed="true"] { border-color: var(--color-brand-700); background: var(--color-brand-50); box-shadow: inset 4px 0 var(--color-brand-700); }
+.pf-progress { font-weight: 600; color: var(--color-muted); }
+.pf-progress[data-done="true"] { color: var(--color-brand-800); }
+.pf-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.pf-chip { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--color-brand-300); background: var(--color-brand-50); color: var(--color-brand-950); }
+.pf-chip small { color: var(--color-brand-800); font-size: .875rem; }
+.pf-safety { padding: 10px 14px; border-radius: 10px; font-weight: 500; }
+.pf-safety-met { background: #ecfdf5; color: #064e3b; border: 1px solid #a7f3d0; }
+.pf-safety-not-met { background: #fff1f2; color: #4c0519; border: 1px solid #fecdd3; }
+.pf-lens { padding: 20px; border-radius: 20px; background: var(--color-brand-50); border: 1px solid var(--color-brand-200); }
+.pf-lens .pf-card { background: var(--color-surface); }
+.pf-source p { overflow-wrap: anywhere; }
+.pf-page ul:not(.pf-list) { padding-left: 1.25rem; list-style: disc; }
+@media (min-width: 768px) { .pf-page { padding: 40px 32px 64px; } }

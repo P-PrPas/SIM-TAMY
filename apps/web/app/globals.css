@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./family.css";
 @import "./experience.css";
+@import "./platform.css";
 
 @theme {
   --color-brand-50: #fff9eb;
@@ -209,7 +210,7 @@ main > header h1 { font-size: clamp(1.75rem, 3vw, 2.5rem); }
   .site-nav { flex-wrap: wrap; gap: 12px; padding: 16px 20px; }
   .brand strong { font-size: 22px; }
   .brand img { width: 40px; height: 40px; border-radius: 10px; }
-  .site-nav nav { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; font-size: 14px; }
+  .site-nav nav { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; font-size: 14px; }
   .site-nav nav a { justify-content: center; text-align: center; min-height: 52px; }
   .site-nav nav .nav-instructor { padding: 6px 4px; }
   .site-nav nav .nav-instructor span { display: none; }

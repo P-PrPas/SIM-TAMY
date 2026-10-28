@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import JoinPage from "../app/page";
+import JoinPage from "../app/lab/solo/page";
 import ReplayPage from "../app/replay/page";
 import { t } from "../lib/i18n";
 

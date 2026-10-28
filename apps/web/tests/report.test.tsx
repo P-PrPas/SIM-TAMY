@@ -132,7 +132,7 @@ describe("T-053 Report", () => {
   it("redirects without a saved session and does not request a report", async () => {
     sessionStorage.clear();
     render(<ReportPage />);
-    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/lab/solo"));
     expect(mocks.get).not.toHaveBeenCalled();
   });
 

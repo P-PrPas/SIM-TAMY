@@ -27,7 +27,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     const active = readSession();
-    if (!active) { replace("/"); return; }
+    if (!active) { replace("/lab/solo"); return; }
     let cancelled = false;
     void Promise.resolve().then(() => { if (!cancelled) setBrief(active.brief); });
     void api().GET("/v1/sessions/{session_id}", { params: { path: { session_id: active.id } } })

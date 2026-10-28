@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import JoinPage from "../app/page";
+import JoinPage from "../app/lab/solo/page";
 import BriefingPage from "../app/briefing/page";
 import ChatPage from "../app/chat/page";
 import { StatusBadge } from "../components/status-badge";
@@ -176,7 +176,7 @@ describe("S1 Join and S2 Briefing", () => {
 
   it("redirects Briefing without a session", async () => {
     render(<BriefingPage />);
-    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/lab/solo"));
   });
 
   it("keeps showing the case version the session was created with after a newer one is published", async () => {
