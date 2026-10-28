@@ -234,6 +234,7 @@ def build_provider(settings: Settings) -> LLMProvider:
             base_url=settings.llm_base_url,
             api_key=settings.llm_api_key.get_secret_value(),
             reasoning_effort=settings.llm_reasoning_effort,
+            thinking=settings.llm_thinking,
         )
     raise ValueError(f"Unknown LLM_PROVIDER {name!r} (supported: mock, openai_like)")
 

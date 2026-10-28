@@ -1,0 +1,133 @@
+# SIM-TAMY 2.0 — shared contracts for parallel work
+
+Status: binding for all 2.0 streams (ADR-15). Source: `docs/SIM-TAMY_2.0_AI_Updated_Blueprint_v2.1.md`
+(task IDs `S0-*`..`S3-*`, `AI-*`, tests `CT-*`, `AI-T*`). Change a contract only in a PR that updates
+this file, the code it names, and every consumer.
+
+Already on `main` from the contracts PR (do not redefine): `app/domain/knowledge.py`,
+`app/ai/contracts.py`, migration `0006` (+ models in `app/db/models.py`, `app/db/family.py`),
+i18n namespace files `apps/web/lib/i18n/v2/*.json`, `apps/web/lib/demo-account.ts` and the
+`X-Demo-Account` header in `lib/api/client.ts`.
+
+## 1. Streams, ownership, merge order
+
+| Stream | Blueprint tasks | Owns (create/edit) | Reads only |
+|---|---|---|---|
+| **A Knowledge** | S0-04, S1-01, S1-03, AI-02a, CT-01..03, CT-13, AI-T07/T08 | `content/knowledge/**`, `content/curriculum/**`, `app/content/knowledge.py`, `app/services/knowledge.py` (`retrieve_claims`), `app/api/v1/knowledge.py`, i18n `knowledge` | family engine |
+| **B Golden + AI** | S0-05, S1-04, S1-05, AI-01a/b/c, AI-02b, AI-03a/b/c, AI-EVAL-01, CT-05..07, CT-10/11, AI-T01..T06, T09..T17 | `content/family/gs-*.yaml`, `app/domain/family.py`, `app/engine/family.py`, `app/content/family.py`, `app/services/family.py`, `app/api/v1/family*.py`, `app/ai/**` (new modules + `prompts/v2/`), `eval/v2/`, web `components/family-*.tsx`, route `/simulate/[storyId]`, i18n `lab` | `retrieve_claims` from A |
+| **C Institution** | S2-01..S2-05, CT-04, CT-08, CT-09, CT-12, CT-14 | `content/demo/institutions.yaml`, `app/services/institution.py`, `app/api/v1/institution.py`, web `/institution/**`, `/join/[code]`, i18n `institution` | family rooms/report (read) |
+| **D Platform IA** | S0-02, LP-01..04, Passport UI (§07), S3-05 | web `/`, `/learn/**`, `/lab`, `/passport`, `/knowledge/**`, nav/layout components, i18n `platform` | APIs of A, B, C |
+
+Shared rules:
+- Merge order **A → B → C → D**. Before merging, rebase on `main`, then run `make gen-api` and the
+  full gates. `docs/openapi.yaml` is the hand-kept contract (drift-tested): add your paths/schemas in
+  your own block and resolve rebase conflicts by keeping both sides. `apps/web/lib/api/schema.d.ts` is
+  generated: never hand-merge it, regenerate it.
+- Nobody edits `apps/web/lib/i18n/th.json` except to fix an existing key; new strings go to the
+  stream's namespace file and are read as `t("<namespace>.<key>")`.
+- A stream that needs a DB change beyond `0006` adds `0007+` after rebasing on the latest `main`.
+- Legacy routes (`/family`, `/golden`, `/bridge`, `/parenthood`, `/briefing`..`/report`, `/replay`,
+  `/instructor`) keep working; D removes them from the top navigation only.
+
+## 2. Content files
+
+| File | Owner | Schema | Notes |
+|---|---|---|---|
+| `content/knowledge/sources.yaml` | A | `list[SourceRecord]` | all 84 catalog records (`rights_status: metadata_only`) + KB sources `S01`..`S40` (`public_web`) |
+| `content/knowledge/units/<id>.yaml` | A | `KnowledgeUnit` | claim text is our own Thai summary of the KB report → `rights_status: own_summary`, `publish_status: published`, `review_basis: knowledge_base_2026`; every claim has ≥1 locator (`source_id` + section/page) |
+| `content/curriculum/paths.yaml` | A | `stages[]` → `objectives[]` | 4 stages (Blueprint §05); objective `{id: OBJ-<STAGE>-NN, title_th, unit_ids, story_ids, dimension}` |
+| `content/family/gs-a-*.yaml`, `gs-b-*.yaml` | B | extended `FamilyStory` (§3) | GS-A critical-safety route, GS-B positive Thai-service route; `knowledge_unit_ids` scope the evidence pack |
+| `content/demo/institutions.yaml` | C | `orgs[]`, `accounts[]` | `account {id, org_id, display_name_th, role: org_admin|educator|reviewer|learner}`; all labeled demo |
+
+Knowledge unit IDs: `KB-<AREA>-<TOPIC>-NNN`, areas `TM` (Thai midwifery), `ANC`, `IP`, `PP`, `NB`, `BF`,
+`RIGHTS`. A loader error (unknown source ID, duplicate ID, objective → unknown unit/story) fails
+`make validate-content`.
+
+## 3. Family story extension (B implements, others read)
+
+`FamilyStory` gains optional fields (older stories stay valid):
+- `stage: 1..4`, `objective_ids: [OBJ-*]`, `knowledge_unit_ids: [KB-*]`
+- `rubric: [{id: discovery|decision|communication|evidence_scope, weight}]`, default 25/35/25/15
+  (Blueprint §07 draft weights; test values, not a professional standard)
+
+`FamilyStep` gains `kind: choice | discover` (default `choice`):
+- **choice** (existing): learners may type instead of pressing a button. AI-01 maps the text to one of
+  `step.choices` or asks to clarify. A non-critical, non-joint step may commit from text (uncertainty
+  ≤ 0.25); **`critical` and `joint` steps commit only through the explicit choice/vote buttons.**
+- **discover** (new): the role questions a character. Fields: `character_th`, `intents: [{id: ^[A-Z_]+$,
+  label_th, examples_th[], reveals: [fact_id], unit_ids: [KB-*], dimension}]`, `min_reveals`.
+  Revealed facts join that role's `my_facts` and can be shared as today.
+- Choices and intents carry `dimension` for the rubric. Critical Safety stays the existing gate.
+
+Events (`family_events.kind`): existing `decision | vote | share`, plus `ask` (`choice_id` = intent ID,
+`reply_th` = the validated reply that was shown). A decision typed as text is a normal `decision`
+event; the text itself is a `family_messages` row. Engine replay stays the only source of state and
+score. Event IDs exposed to AI-03 and the UI: `"<room_id>:<idx>"`.
+
+## 4. API (all under `/v1`, standard error envelope)
+
+| Route | Verb | Owner | Behavior |
+|---|---|---|---|
+| `/knowledge/sources` | GET | A | registry, filter `?kind=` |
+| `/knowledge/units`, `/knowledge/units/{id}` | GET | A | published units of the current release, with sources resolved (code, title, url, locator) |
+| `/knowledge/release` | GET | A | `{id, unit_count}` |
+| `/learning-paths` | GET | A | stages → objectives → unit and story IDs |
+| `/family/rooms` | POST | B | + optional `assignment_id`; stores `X-Demo-Account` as host account; pins `release_id` |
+| `/family/rooms/{id}/join` | POST | B | stores `X-Demo-Account` as partner account |
+| `/family/rooms/{id}/messages` | POST | B | `{text, state_version, client_turn_id}` → `{view, reply?, clarification?}`; reply = `{speaker_th, text_th, citations[]}`; idempotent per `client_turn_id` |
+| `/family/rooms/{id}/debrief` | POST | B | AI-03 for a finished room; returns stored debrief if one exists for this `debrief_version` |
+| `/demo/accounts` | GET | C | mock accounts for the profile picker |
+| `/orgs/{org_id}/overview`, `/orgs/{org_id}/cohorts` | GET/POST | C | cohorts of that org only |
+| `/cohorts/{id}/clone`, `/cohorts/{id}/assignments` | POST | C | assignable: stories in the catalog (Draft allowed while `ALLOW_DRAFT_CASES=true`) |
+| `/cohorts/{id}/analytics` | GET | C | from finished rooms only; every rate shows numerator, `n`, story version; per-objective rates hidden when `n < 3` |
+| `/join/{code}` | GET | C | class + active assignments; expired → helpful error (CT-14) |
+| `/passport/{account_id}` | GET | C | finished attempts of that account, objectives touched, safety result per attempt (never averaged) |
+
+`X-Demo-Account` is trusted as-is (prototype). Play-time responses keep AGENTS rule 5: no revealed
+fact IDs, scores or partner-private data before the report.
+
+## 5. AI pipeline (B)
+
+Schemas: `app/ai/contracts.py`. Prompts: `app/ai/prompts/v2/{intent,grounded_reply,debrief}.md`, each
+starting with a `prompt_version:` line. Every call goes through `LLMClient` and writes `llm_calls` with
+`capability` (`ai01|ai02|ai03`), `prompt_version`, `schema_version`, `validation_status`,
+`fallback_reason`, `release_id`, `room_id`; never raw text.
+
+1. **Input boundary:** length cap, rule-based real-world health guard (`REAL_WORLD_HEALTH_QUERY` →
+   boundary text from content, no roleplay reply).
+2. **AI-01:** prompt gets the step's allowed intent/choice IDs, this role's last 6 messages and
+   revealed topics; output `IntentInterpretation`. Unknown IDs dropped; uncertainty ≤ 0.25 accept,
+   ≤ 0.5 clarify (show the allowed options as buttons), else ignore. Never a state change by itself.
+3. **Controller (engine):** decides reveals/transitions from the accepted intent.
+4. **AI-02:** `retrieve_claims(release, unit_ids, care_stage, audience, tags) -> EvidencePack`
+   (A owns; deterministic filter then tag ranking, ≤ 5 items). Generator gets allowed facts + pack,
+   returns `GroundedReply`. Validator: existing patient rules + `used_scenario_fact_ids ⊆ allowed` +
+   every citation `pack.cites(...)`. Critical steps use content templates (`high_risk_template`).
+   No support → abstain text from content. 2 failures → fallback, citations hidden.
+5. **AI-03:** input = finished assessment + event evidence + allowlists; output `DebriefOutput`;
+   readonly score/safety overwritten from the scorer; any unknown event/objective/claim/asset ID →
+   template debrief. Stored in `family_debriefs`.
+
+Mock provider must cover every path so CI stays offline. Eval set `eval/v2/` (≥60 paraphrase, ≥20
+multi-turn, ≥20 ambiguous/out-of-scope, ≥20 adversarial; separate held-out file) with `make eval-v2`;
+results reported only as measured (AGENTS rule 11).
+
+## 6. Web routes
+
+| Route | Owner | Content |
+|---|---|---|
+| `/` | D | family home: 4 pillars, continue where you left off, profile picker |
+| `/learn`, `/learn/[stage]` | D | Learning Journey: stage cards → objectives → lesson units → linked scenarios |
+| `/lab` | D | Simulation Lab: GS-A, GS-B first, then other stories and solo cases |
+| `/simulate/[storyId]` | B | room for any family story (typed chat, discover, share, vote, report, debrief) |
+| `/passport` | D | Learning Passport from `/passport/{account_id}` |
+| `/knowledge`, `/knowledge/[id]` | D | readable units with Thai Wisdom Lens and sources |
+| `/institution/**` | C | Overview, Cohorts, Assignments + QR, Analytics, Curriculum Library, Staff (demo) |
+| `/join/[code]` | C | QR landing → assignment → `/simulate/[storyId]?assignment=` |
+
+Demo data is labeled on screen (AGENTS rule 9). Mobile-first 360px, the existing a11y audit applies.
+
+## 7. Out of scope (prototype)
+
+Real auth, passwords, SSO, billing, white-label, tenant hardening, PDF export beyond print/CSV,
+pilot study, buyer interviews, EMR/HIS, AI-generated curriculum.

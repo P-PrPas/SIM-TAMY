@@ -19,6 +19,9 @@ EXPECTED_TABLES = {
     "pilot_feedback",
     "family_rooms",
     "family_events",
+    "assignments",
+    "family_messages",
+    "family_debriefs",
 }
 
 

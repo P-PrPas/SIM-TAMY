@@ -1,6 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     action_clarify_threshold: float = Field(default=0.5, ge=0, le=1, allow_inf_nan=False)
     llm_base_url: str | None = None  # openai_like provider, e.g. https://api.z.ai/api/paas/v4
     llm_reasoning_effort: str | None = None  # passed through when set (GLM-5.3: low|high|max)
+    llm_thinking: Literal["enabled", "disabled"] | None = None  # DeepSeek only; unset = not sent
     mock_llm_script: Path | None = None  # YAML script for the mock provider
     enable_replay: bool = False
     recordings_dir: Path = Path(__file__).resolve().parents[4] / "recordings"

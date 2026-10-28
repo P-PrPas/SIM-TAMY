@@ -1,6 +1,7 @@
 import createClient from "openapi-fetch";
 
 import type { components, paths } from "./schema";
+import { getDemoAccount as demoAccount } from "../demo-account";
 
 /** Error envelope from the API (docs/API_DESIGN.md 2.1). Mapped to Thai text via lib/i18n, not shown raw. */
 export class ApiError extends Error {
@@ -25,6 +26,8 @@ export type ClientOptions = {
   getToken?: () => string | undefined;
   /** Instructor secret is supplied interactively and held in memory only. */
   getInstructorSecret?: () => string | undefined;
+  /** Mock account picked in the demo (ADR-15); sent as X-Demo-Account. */
+  getDemoAccount?: () => string | undefined;
   fetchImpl?: typeof fetch;
   sleep?: (ms: number) => Promise<void>;
 };
@@ -49,6 +52,7 @@ export function createApi({
   baseUrl,
   getToken = () => undefined,
   getInstructorSecret = () => undefined,
+  getDemoAccount = demoAccount,
   fetchImpl = (...a) => fetch(...a),
   sleep = (ms) => new Promise((r) => setTimeout(r, ms)),
 }: ClientOptions) {
@@ -57,6 +61,8 @@ export function createApi({
     if (token) req.headers.set("Authorization", `Bearer ${token}`);
     const instructorSecret = getInstructorSecret();
     if (instructorSecret) req.headers.set("X-Instructor-Secret", instructorSecret);
+    const account = getDemoAccount();
+    if (account) req.headers.set("X-Demo-Account", account);
     const replayable =
       req.method === "GET" || (await req.clone().text()).includes('"client_turn_id"');
 

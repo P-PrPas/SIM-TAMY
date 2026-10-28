@@ -151,6 +151,35 @@ def test_llm_client_openai_like_request_shape_and_parsing() -> None:
     )
 
 
+def test_llm_client_openai_like_thinking_switch_is_sent_only_when_set() -> None:
+    bodies: list[dict] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        bodies.append(json.loads(request.content))
+        return httpx2.Response(200, json=ok_body("hi"))
+
+    for thinking in (None, "disabled"):
+        p = OpenAILikeProvider(
+            base_url="https://api.deepseek.com",
+            api_key=FAKE_KEY,
+            thinking=thinking,
+            transport=httpx2.MockTransport(handler),
+        )
+        p.complete(req(schema=False))
+    assert "thinking" not in bodies[0] and bodies[1]["thinking"] == {"type": "disabled"}
+    assert (
+        build_provider(
+            Settings(
+                llm_provider="openai_like",
+                llm_base_url="https://api.deepseek.com",
+                llm_api_key=FAKE_KEY,
+                llm_thinking="disabled",
+            )
+        ).thinking
+        == "disabled"
+    )
+
+
 def test_llm_client_openai_like_text_call_has_no_response_format() -> None:
     bodies: list[dict] = []
 

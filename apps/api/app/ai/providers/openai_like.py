@@ -5,6 +5,9 @@ POST {LLM_BASE_URL}/chat/completions with `Authorization: Bearer <key>`, base UR
 https://api.z.ai/api/paas/v4. `response_format` accepts `text` and `json_object` only
 (no json_schema), so the schema is embedded in the system message and the caller validates it.
 Reasoning models return the answer in `choices[0].message.content`; that is all we read.
+
+DeepSeek (api-docs.deepseek.com, 2026-10-27) is the same wire format: LLM_BASE_URL=https://api.deepseek.com,
+model `deepseek-flash` (V4.1-Flash). Thinking mode ignores temperature: set LLM_THINKING=disabled.
 """
 
 import json
@@ -33,9 +36,11 @@ class OpenAILikeProvider:
         base_url: str,
         api_key: str,
         reasoning_effort: str | None = None,
+        thinking: str | None = None,
         transport: httpx2.BaseTransport | None = None,
     ) -> None:
         self.reasoning_effort = reasoning_effort
+        self.thinking = thinking
         self._client = httpx2.Client(
             base_url=base_url.rstrip("/") + "/",
             headers={"Authorization": f"Bearer {api_key}"},
@@ -99,4 +104,6 @@ class OpenAILikeProvider:
             body["max_tokens"] = request.max_tokens
         if self.reasoning_effort:
             body["reasoning_effort"] = self.reasoning_effort
+        if self.thinking:
+            body["thinking"] = {"type": self.thinking}  # DeepSeek: disabled honours temperature
         return body
