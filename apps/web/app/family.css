@@ -255,3 +255,22 @@ details[open] > summary > .family-disclosure { transform: rotate(180deg); }
 .family-featured { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin: 24px auto; max-width: 72rem; padding: 24px; border: 1px solid var(--color-brand-600); border-radius: 18px; background: var(--color-brand-50); }
 .family-featured h2 { margin: 4px 0; font-size: 1.25rem; }
 .family-featured p { margin: 0; }
+
+/* 2.0 typed chat, Thai Wisdom Lens, dimension report (Stream B) */
+.family-chat { display: grid; gap: 12px; margin: 20px 0; }
+.family-chat-log { display: grid; gap: 12px; }
+.family-chat-form { display: grid; gap: 8px; }
+.family-chat-form textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--color-line); border-radius: 12px; background: var(--color-surface); color: var(--color-ink); resize: vertical; }
+.family-typing { margin: 0; color: var(--color-brand-700); font-style: italic; }
+.family-citations { margin: 8px 0 0; padding-left: 18px; font-size: 1rem; }
+.family-citations small { color: var(--color-brand-700); }
+.family-clarify { display: grid; gap: 8px; }
+.family-continue { margin-top: 12px; }
+.family-lens { display: grid; gap: 10px; margin: 12px 0; padding: 14px 16px; border: 1px solid var(--color-brand-200); border-radius: 14px; background: var(--color-brand-50); }
+.family-lens h3, .family-lens h4 { margin: 0; }
+.family-lens p { margin: 4px 0 0; }
+.family-lab-report { display: grid; gap: 12px; margin: 24px 0; }
+.family-dimensions { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.family-dimensions li { display: grid; gap: 4px; }
+.family-dimensions progress { width: 100%; }
+.family-debrief ul { margin: 4px 0 12px; padding-left: 20px; }

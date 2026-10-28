@@ -33,7 +33,7 @@ Shared rules:
 
 | File | Owner | Schema | Notes |
 |---|---|---|---|
-| `content/knowledge/sources.yaml` | A | `list[SourceRecord]` | all 84 catalog records (`rights_status: metadata_only`) + KB sources `S01`..`S40` (`public_web`) |
+| `content/knowledge/sources.yaml` | A | `list[SourceRecord]` | all 84 catalog records (`rights_status: metadata_only`) + KB sources `S01`..`S40` (`public_web`). Catalog section `S` codes (`S01`..`S20` in the JSON) are stored as **`CS01`..`CS20`** because `S01`..`S40` already name KB sources; every other catalog code is unchanged (`SOURCE_ID` accepts `CSnn`) |
 | `content/knowledge/units/<id>.yaml` | A | `KnowledgeUnit` | claim text is our own Thai summary of the KB report → `rights_status: own_summary`, `publish_status: published`, `review_basis: knowledge_base_2026`; every claim has ≥1 locator (`source_id` + section/page) |
 | `content/curriculum/paths.yaml` | A | `stages[]` → `objectives[]` | 4 stages (Blueprint §05); objective `{id: OBJ-<STAGE>-NN, title_th, unit_ids, story_ids, dimension}` |
 | `content/family/gs-a-*.yaml`, `gs-b-*.yaml` | B | extended `FamilyStory` (§3) | GS-A critical-safety route, GS-B positive Thai-service route; `knowledge_unit_ids` scope the evidence pack |
@@ -59,6 +59,20 @@ Knowledge unit IDs: `KB-<AREA>-<TOPIC>-NNN`, areas `TM` (Thai midwifery), `ANC`,
   Revealed facts join that role's `my_facts` and can be shared as today.
 - Choices and intents carry `dimension` for the rubric. Critical Safety stays the existing gate.
 
+Implementation notes from stream B (binding for consumers):
+- Intents also carry `reply_th` (authored answer: validator fallback, and the only text when
+  `high_risk: true`); a discover step has `abstain_th` and exactly one `continue` choice; a story may
+  carry `boundary_th`; a card may carry a three-part `lens {wisdom_th, safety_th, rights_th}`.
+  `knowledge_unit_ids` may be unvalidated here: the knowledge stream's validator checks them.
+- `ask` events keep the intent ID in `choice_id`; `continue` needs `min_reveals` distinct revealing
+  intents. Rubric scores (`score_total`, per-dimension earned/possible) exist only in the finished
+  `FamilyReport`; the Critical Safety gate is separate and never averaged.
+- `POST /messages` clarification options: on a discover step the client re-sends the option text as
+  a new message; on a choice step the client commits through `/decisions`. The retry of an
+  already-handled `client_turn_id` returns the current view and the stored reply, if any.
+- `app/ai/evidence.py::evidence_pack` is the only consumer of `retrieve_claims`; with no release it
+  returns `release_id="none"` and knowledge answers abstain.
+
 Events (`family_events.kind`): existing `decision | vote | share`, plus `ask` (`choice_id` = intent ID,
 `reply_th` = the validated reply that was shown). A decision typed as text is a normal `decision`
 event; the text itself is a `family_messages` row. Engine replay stays the only source of state and
@@ -82,6 +96,8 @@ score. Event IDs exposed to AI-03 and the UI: `"<room_id>:<idx>"`.
 | `/cohorts/{id}/analytics` | GET | C | from finished rooms only; every rate shows numerator, `n`, story version; per-objective rates hidden when `n < 3` |
 | `/join/{code}` | GET | C | class + active assignments; expired → helpful error (CT-14) |
 | `/passport/{account_id}` | GET | C | finished attempts of that account, objectives touched, safety result per attempt (never averaged) |
+
+C implementation notes (exact shapes are in `docs/openapi.yaml`, tag `Institution`): staff routes read `X-Demo-Account` (missing or unknown: 401; not educator/org_admin of that org: 403; another org's cohort: 404). `GET /cohorts/{id}/assignments` also exists. `join` errors: unknown code `CLASS_NOT_FOUND` (404), expired assignments `SESSION_EXPIRED` (410). Analytics replay finished rooms through the family engine; `objectives[].numerator` counts finished attempts that met the Critical Safety gate for stories carrying that `objective_id`, and is `null` with `suppressed: true` when `n < 3`. `score_total` is null until the family report exposes it.
 
 `X-Demo-Account` is trusted as-is (prototype). Play-time responses keep AGENTS rule 5: no revealed
 fact IDs, scores or partner-private data before the report.

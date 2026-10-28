@@ -529,6 +529,263 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/knowledge/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Release */
+        get: operations["getKnowledgeRelease"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/knowledge/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sources */
+        get: operations["listKnowledgeSources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/knowledge/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Units */
+        get: operations["listKnowledgeUnits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/knowledge/units/{unit_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Unit */
+        get: operations["getKnowledgeUnit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-paths": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Learning Paths */
+        get: operations["listLearningPaths"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/family/rooms/{room_id}/debrief": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Debrief */
+        post: operations["getFamilyDebrief"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/family/rooms/{room_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Message */
+        post: operations["sendFamilyMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/demo/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Demo Accounts */
+        get: operations["listDemoAccounts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orgs/{org_id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Org Overview */
+        get: operations["getOrgOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orgs/{org_id}/cohorts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Cohorts */
+        get: operations["listCohorts"];
+        put?: never;
+        /** Create Cohort */
+        post: operations["createCohort"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cohorts/{cohort_id}/clone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clone Cohort */
+        post: operations["cloneCohort"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cohorts/{cohort_id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Assignments */
+        get: operations["listCohortAssignments"];
+        put?: never;
+        /** Create Assignment */
+        post: operations["createCohortAssignment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cohorts/{cohort_id}/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cohort Analytics */
+        get: operations["getCohortAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/join/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Join Info */
+        get: operations["getJoinInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/passport/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Passport */
+        get: operations["getPassport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -569,6 +826,7 @@ export interface components {
         };
         /** FamilyKnowledgeCard */
         FamilyKnowledgeCard: {
+            lens?: components["schemas"]["FamilyLensView"] | null;
             /** Tradition Th */
             tradition_th: string;
             /** Learning Point Th */
@@ -1202,6 +1460,8 @@ export interface components {
              * @enum {string}
              */
             role: "mother" | "father";
+            /** Assignment Id */
+            assignment_id?: string | null;
         };
         /** FamilyCreated */
         FamilyCreated: {
@@ -1276,6 +1536,13 @@ export interface components {
         FamilyReport: {
             /** Safety Status */
             safety_status: string;
+            /** Score Total */
+            score_total?: number | null;
+            /**
+             * Dimensions
+             * @default []
+             */
+            dimensions: components["schemas"]["FamilyDimension"][];
             /** Competencies */
             competencies: components["schemas"]["FamilyCompetency"][];
             /** Evidence */
@@ -1307,6 +1574,24 @@ export interface components {
             joint: boolean;
             vote?: components["schemas"]["FamilyVote"] | null;
             card?: components["schemas"]["FamilyKnowledgeCard"] | null;
+            /**
+             * Kind
+             * @default choice
+             * @enum {string}
+             */
+            kind: "choice" | "discover";
+            /** Character Th */
+            character_th?: string | null;
+            /**
+             * Accepts Text
+             * @default false
+             */
+            accepts_text: boolean;
+            /**
+             * Can Continue
+             * @default true
+             */
+            can_continue: boolean;
         };
         /** FamilySource */
         FamilySource: {
@@ -1389,6 +1674,513 @@ export interface components {
             /** Transcript */
             transcript: components["schemas"]["FamilyExchange"][];
             report: components["schemas"]["FamilyReport"] | null;
+            /**
+             * Dialogue
+             * @default []
+             */
+            dialogue: components["schemas"]["FamilyDialogueTurn"][];
+            /** Assignment Id */
+            assignment_id?: string | null;
+        };
+        /** KnowledgeReleaseInfo */
+        KnowledgeReleaseInfo: {
+            /** Id */
+            id: string;
+            /** Unit Count */
+            unit_count: number;
+        };
+        /** SourceItem */
+        SourceItem: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "catalog" | "kb_source";
+            /** Title */
+            title: string;
+            /** Publisher */
+            publisher?: string | null;
+            /** Year */
+            year?: string | null;
+            /** Url */
+            url?: string | null;
+            /**
+             * Rights Status
+             * @enum {string}
+             */
+            rights_status: "unknown" | "metadata_only" | "public_web" | "own_summary";
+        };
+        /** SourceList */
+        SourceList: {
+            /** Items */
+            items: components["schemas"]["SourceItem"][];
+        };
+        /** UnitListItem */
+        UnitListItem: {
+            /** Id */
+            id: string;
+            /** Version */
+            version: string;
+            /** Title Th */
+            title_th: string;
+            /** Care Stage */
+            care_stage: string;
+            /** Domain */
+            domain: number;
+            /** Has Lens */
+            has_lens: boolean;
+        };
+        /** UnitList */
+        UnitList: {
+            /** Release Id */
+            release_id: string;
+            /** Items */
+            items: components["schemas"]["UnitListItem"][];
+        };
+        /** ClaimSource */
+        ClaimSource: {
+            /** Source Id */
+            source_id: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+            /** Locator */
+            locator: string;
+        };
+        /** ClaimView */
+        ClaimView: {
+            /** Id */
+            id: string;
+            /** Type */
+            type: string;
+            /** Text Th */
+            text_th: string;
+            /** Sources */
+            sources: components["schemas"]["ClaimSource"][];
+        };
+        /** LensView */
+        LensView: {
+            /** Wisdom Th */
+            wisdom_th: string;
+            /** Safety Th */
+            safety_th: string;
+            /** Rights Th */
+            rights_th: string;
+        };
+        /** UnitDetail */
+        UnitDetail: {
+            /** Id */
+            id: string;
+            /** Version */
+            version: string;
+            /** Title Th */
+            title_th: string;
+            /** Care Stage */
+            care_stage: string;
+            /** Domain */
+            domain: number;
+            /** Evidence Status */
+            evidence_status: string;
+            /** Review Basis */
+            review_basis: string;
+            /** Reviewed On */
+            reviewed_on: string;
+            /** Claims */
+            claims: components["schemas"]["ClaimView"][];
+            lens?: components["schemas"]["LensView"] | null;
+            /** Contraindications Th */
+            contraindications_th: string[];
+            /** Escalation Th */
+            escalation_th?: string | null;
+        };
+        /** ObjectiveView */
+        ObjectiveView: {
+            /** Id */
+            id: string;
+            /** Title Th */
+            title_th: string;
+            /** Dimension */
+            dimension: string;
+            /** Unit Ids */
+            unit_ids: string[];
+            /** Story Ids */
+            story_ids: string[];
+        };
+        /** StageView */
+        StageView: {
+            /** Stage */
+            stage: number;
+            /** Title Th */
+            title_th: string;
+            /** Summary Th */
+            summary_th: string;
+            /** Objectives */
+            objectives: components["schemas"]["ObjectiveView"][];
+        };
+        /** LearningPathsView */
+        LearningPathsView: {
+            /** Release Id */
+            release_id: string;
+            /** Stages */
+            stages: components["schemas"]["StageView"][];
+        };
+        /**
+         * DebriefOutput
+         * @description ai.debrief.v1. Readonly fields are overwritten from the scorer before anything is shown.
+         */
+        DebriefOutput: {
+            /**
+             * Schema Version
+             * @default ai.debrief.v1
+             * @constant
+             */
+            schema_version: "ai.debrief.v1";
+            /** Attempt Id */
+            attempt_id: string;
+            /** Score Total Readonly */
+            score_total_readonly?: number | null;
+            /** Critical Safety Result Readonly */
+            critical_safety_result_readonly?: ("pass" | "fail") | null;
+            /**
+             * Strengths
+             * @default []
+             */
+            strengths: components["schemas"]["DebriefPoint"][];
+            /**
+             * Improvements
+             * @default []
+             */
+            improvements: components["schemas"]["DebriefPoint"][];
+            /**
+             * Recommended Asset Ids
+             * @default []
+             */
+            recommended_asset_ids: string[];
+            /**
+             * Cited Claim Ids
+             * @default []
+             */
+            cited_claim_ids: string[];
+            /**
+             * Fallback Used
+             * @default false
+             */
+            fallback_used: boolean;
+        };
+        /** DebriefPoint */
+        DebriefPoint: {
+            /** Text */
+            text: string;
+            /** Event Ids */
+            event_ids: string[];
+            /** Rubric Dimension Id */
+            rubric_dimension_id?: string | null;
+            /**
+             * Objective Ids
+             * @default []
+             */
+            objective_ids: string[];
+        };
+        /** FamilyCitation */
+        FamilyCitation: {
+            /** Knowledge Id */
+            knowledge_id: string;
+            /** Claim Id */
+            claim_id: string;
+            /** Source Id */
+            source_id: string;
+            /** Title */
+            title: string;
+            /** Locator */
+            locator: string;
+        };
+        /**
+         * FamilyClarification
+         * @description Allowed options as buttons. Discover options are re-sent as text; choice options vote.
+         */
+        FamilyClarification: {
+            /** Options */
+            options: components["schemas"]["FamilyOption"][];
+        };
+        /**
+         * FamilyDialogueTurn
+         * @description One typed question and the character's validated answer, visible to the asker only.
+         */
+        FamilyDialogueTurn: {
+            /** Step Id */
+            step_id: string;
+            /** Speaker Th */
+            speaker_th: string;
+            /** Text Th */
+            text_th: string;
+            /** Reply Th */
+            reply_th: string;
+        };
+        /** FamilyDimension */
+        FamilyDimension: {
+            /** Id */
+            id: string;
+            /** Weight */
+            weight: number;
+            /** Earned */
+            earned: number;
+            /** Possible */
+            possible: number;
+            /** Score */
+            score: number;
+        };
+        /** FamilyLensView */
+        FamilyLensView: {
+            /** Wisdom Th */
+            wisdom_th: string;
+            /** Safety Th */
+            safety_th: string;
+            /** Rights Th */
+            rights_th: string;
+        };
+        /**
+         * FamilyMessage
+         * @description Typed learner text (AI-01). Never commits a critical or joint decision by itself.
+         */
+        FamilyMessage: {
+            /** Text */
+            text: string;
+            /** State Version */
+            state_version: number;
+            /**
+             * Client Turn Id
+             * Format: uuid
+             */
+            client_turn_id: string;
+        };
+        /** FamilyMessageResult */
+        FamilyMessageResult: {
+            view: components["schemas"]["FamilyView"];
+            reply: components["schemas"]["FamilyReply"] | null;
+            clarification: components["schemas"]["FamilyClarification"] | null;
+        };
+        /** FamilyReply */
+        FamilyReply: {
+            /** Speaker Th */
+            speaker_th: string;
+            /** Text Th */
+            text_th: string;
+            /** Citations */
+            citations: components["schemas"]["FamilyCitation"][];
+        };
+        /** CreateAssignmentRequest */
+        CreateAssignmentRequest: {
+            /** Story Id */
+            story_id: string;
+            /** Expires At */
+            expires_at?: string | null;
+        };
+        /** CohortNameRequest */
+        CohortNameRequest: {
+            /** Name */
+            name: string;
+        };
+        /** DemoAccountList */
+        DemoAccountList: {
+            /** Items */
+            items: components["schemas"]["DemoAccount"][];
+        };
+        /** DemoAccount */
+        DemoAccount: {
+            /** Id */
+            id: string;
+            /** Org Id */
+            org_id: string | null;
+            /** Display Name Th */
+            display_name_th: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "org_admin" | "educator" | "reviewer" | "learner";
+        };
+        /** Passport */
+        Passport: {
+            account: components["schemas"]["PassportAccount"];
+            /** Attempts */
+            attempts: components["schemas"]["PassportAttempt"][];
+        };
+        /** PassportAccount */
+        PassportAccount: {
+            /** Id */
+            id: string;
+            /** Display Name Th */
+            display_name_th: string;
+        };
+        /** PassportAttempt */
+        PassportAttempt: {
+            /**
+             * Room Id
+             * Format: uuid
+             */
+            room_id: string;
+            /** Story Id */
+            story_id: string;
+            /** Title Th */
+            title_th: string;
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /**
+             * Safety Status
+             * @enum {string}
+             */
+            safety_status: "SAFETY_MET" | "SAFETY_NOT_MET";
+            /** Score Total */
+            score_total: number | null;
+            /** Objective Ids */
+            objective_ids: string[];
+        };
+        /** OrgOverview */
+        OrgOverview: {
+            org: components["schemas"]["OrgRef"];
+            /** Demo */
+            demo: boolean;
+            /** Cohort Count */
+            cohort_count: number;
+            /** Assignment Count */
+            assignment_count: number;
+            /** Finished Attempts */
+            finished_attempts: number;
+        };
+        /** OrgRef */
+        OrgRef: {
+            /** Id */
+            id: string;
+            /** Name Th */
+            name_th: string;
+        };
+        /** CohortList */
+        CohortList: {
+            /** Items */
+            items: components["schemas"]["Cohort"][];
+        };
+        /** CohortAnalytics */
+        CohortAnalytics: {
+            /**
+             * Cohort Id
+             * Format: uuid
+             */
+            cohort_id: string;
+            /** Demo */
+            demo: boolean;
+            /** N Started */
+            n_started: number;
+            /** N Finished */
+            n_finished: number;
+            safety_not_met: components["schemas"]["Ratio"];
+            /** Objectives */
+            objectives: components["schemas"]["ObjectiveRate"][];
+            /** By Story */
+            by_story: components["schemas"]["StoryCount"][];
+        };
+        /**
+         * ObjectiveRate
+         * @description Per-objective rate; `numerator` is null while `suppressed` (small n, CT-12).
+         */
+        ObjectiveRate: {
+            /** Objective Id */
+            objective_id: string;
+            /** Numerator */
+            numerator: number | null;
+            /** N */
+            n: number;
+            /** Suppressed */
+            suppressed: boolean;
+        };
+        /** StoryCount */
+        StoryCount: {
+            /** Story Id */
+            story_id: string;
+            /** Story Version */
+            story_version: string;
+            /** N Finished */
+            n_finished: number;
+        };
+        /** Ratio */
+        Ratio: {
+            /** Numerator */
+            numerator: number;
+            /** N */
+            n: number;
+        };
+        /** Cohort */
+        Cohort: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Assignment Count */
+            assignment_count: number;
+        };
+        /** CohortAssignmentList */
+        CohortAssignmentList: {
+            /** Items */
+            items: components["schemas"]["CohortAssignment"][];
+        };
+        /** JoinInfo */
+        JoinInfo: {
+            cohort: components["schemas"]["JoinCohort"];
+            /** Assignments */
+            assignments: components["schemas"]["JoinAssignment"][];
+        };
+        /** JoinCohort */
+        JoinCohort: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** JoinAssignment */
+        JoinAssignment: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Story Id */
+            story_id: string;
+            /** Title Th */
+            title_th: string;
+        };
+        /** CohortAssignment */
+        CohortAssignment: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Story Id */
+            story_id: string;
+            /** Story Version */
+            story_version: string;
+            /** Title Th */
+            title_th: string;
+            /** Join Url Path */
+            join_url_path: string;
         };
     };
     responses: {
@@ -2489,7 +3281,9 @@ export interface operations {
     createFamilyRoom: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2513,7 +3307,9 @@ export interface operations {
     joinFamilyRoom: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
             path: {
                 room_id: string;
             };
@@ -2612,6 +3408,407 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FamilyView"];
+                };
+            };
+        };
+    };
+    getKnowledgeRelease: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeReleaseInfo"];
+                };
+            };
+        };
+    };
+    listKnowledgeSources: {
+        parameters: {
+            query?: {
+                kind?: ("catalog" | "kb_source") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceList"];
+                };
+            };
+        };
+    };
+    listKnowledgeUnits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitList"];
+                };
+            };
+        };
+    };
+    getKnowledgeUnit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                unit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listLearningPaths: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningPathsView"];
+                };
+            };
+        };
+    };
+    getFamilyDebrief: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DebriefOutput"];
+                };
+            };
+        };
+    };
+    sendFamilyMessage: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FamilyMessage"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyMessageResult"];
+                };
+            };
+        };
+    };
+    listDemoAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoAccountList"];
+                };
+            };
+        };
+    };
+    getOrgOverview: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgOverview"];
+                };
+            };
+        };
+    };
+    listCohorts: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CohortList"];
+                };
+            };
+        };
+    };
+    createCohort: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CohortNameRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cohort"];
+                };
+            };
+        };
+    };
+    cloneCohort: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                cohort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CohortNameRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cohort"];
+                };
+            };
+        };
+    };
+    listCohortAssignments: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                cohort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CohortAssignmentList"];
+                };
+            };
+        };
+    };
+    createCohortAssignment: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                cohort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAssignmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CohortAssignment"];
+                };
+            };
+        };
+    };
+    getCohortAnalytics: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                cohort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CohortAnalytics"];
+                };
+            };
+        };
+    };
+    getJoinInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinInfo"];
+                };
+            };
+        };
+    };
+    getPassport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Passport"];
                 };
             };
         };

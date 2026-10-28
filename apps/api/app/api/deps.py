@@ -11,6 +11,7 @@ from fastapi import Depends, Header, Request
 from sqlalchemy.orm import Session
 
 from app.ai.llm_client import LLMClient, OnCall, Purpose, get_llm_client
+from app.content.institution import DemoAccount, find_account
 from app.content.loader import ContentStore
 from app.core import ratelimit
 from app.core.config import get_settings
@@ -151,3 +152,16 @@ def glassbox_caller(
 
 
 GlassboxCaller = Annotated[tuple[LearnerSession, bool], Depends(glassbox_caller)]
+
+
+def demo_account(
+    x_demo_account: Annotated[str | None, Header(alias="X-Demo-Account")] = None,
+) -> DemoAccount:
+    """Mock identity (ADR-15 prototype): the picked account id is trusted, never authenticated."""
+    account = find_account(x_demo_account)
+    if account is None:
+        raise ApiError("UNAUTHORIZED", "pick a demo account (X-Demo-Account)")
+    return account
+
+
+Demo = Annotated[DemoAccount, Depends(demo_account)]

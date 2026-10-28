@@ -48,6 +48,12 @@ export function FamilyVoteStatus({ scene }: { scene: Scene }) {
 export function FamilyKnowledgeCard({ card }: { card: NonNullable<Scene["card"]> }) {
   return <details className={`family-card family-card-${card.evidence_status}`}>
     <summary><FamilyIcon name="book" /><span>{t("family.cosim.card.title")}</span><span className="family-disclosure" aria-hidden="true"><FamilyIcon name="chevron" /></span></summary>
+    {card.lens && <section className="family-lens" aria-label={t("lab.lens.title")}>
+      <h3>{t("lab.lens.title")}</h3>
+      <div><h4>{t("lab.lens.wisdom")}</h4><p>{card.lens.wisdom_th}</p></div>
+      <div><h4>{t("lab.lens.safety")}</h4><p>{card.lens.safety_th}</p></div>
+      <div><h4>{t("lab.lens.rights")}</h4><p>{card.lens.rights_th}</p></div>
+    </section>}
     <dl>
       <dt>{t("family.cosim.card.tradition")}</dt><dd>{card.tradition_th}</dd>
       <dt>{t("family.cosim.card.evidence")}</dt><dd><span className="family-card-status">{t(`family.cosim.card.status.${card.evidence_status}`)}</span></dd>

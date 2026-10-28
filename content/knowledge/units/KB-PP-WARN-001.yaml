@@ -1,0 +1,36 @@
+id: KB-PP-WARN-001
+version: 1.0.0
+title_th: สัญญาณอันตรายหลังคลอดที่ต้องขอความช่วยเหลือทันที
+audience: parent
+care_stage: postpartum
+domain: 9
+evidence_status: secondary
+rights_status: own_summary
+publish_status: published
+review_basis: knowledge_base_2026
+reviewed_on: '2026-10-28'
+tags: [postpartum, warning-sign, red-flag, bleeding, chest-pain, breathing, referral, urgent]
+claims:
+  - id: c1
+    type: safety
+    text_th: หลังคลอด หากมีเลือดออกมากผิดปกติ เจ็บหน้าอก หรือหายใจลำบาก ให้ถือว่าเป็นสัญญาณอันตรายที่ต้องขอความช่วยเหลือทันที
+    locators:
+      - {source_id: S36, locator: 'KB 2026 §9 ตัวอย่าง KB-PP-001, p.11'}
+      - {source_id: S06, locator: 'KB 2026 §10, p.12'}
+  - id: c2
+    type: scope
+    text_th: เรื่องนี้เน้นการรู้ทันสัญญาณและการส่งต่อเพื่อขอความช่วยเหลือ ไม่ได้สอนให้รักษาเอง
+    locators:
+      - {source_id: S36, locator: 'KB 2026 §9 ตัวอย่าง KB-PP-001, p.11'}
+  - id: c3
+    type: safety
+    text_th: หากผู้หลังคลอดรายงานว่ามีเลือดออกผิดปกติ ต้องตระหนักว่าเป็นสัญญาณอันตรายและส่งต่ออย่างเร่งด่วน แม้เธอจะมาเพื่อขอรับบริการฟื้นฟูแบบไทยก็ตาม
+    locators:
+      - {source_id: S06, locator: 'KB 2026 §10, p.12'}
+      - {source_id: S36, locator: 'KB 2026 §10, p.12'}
+  - id: c4
+    type: guidance
+    text_th: แนวทางดูแลหลังคลอดของ WHO ปี 2022 ครอบคลุมการดูแลทั้งแม่และทารก สุขภาพจิต ความพร้อมของครอบครัว และการดูแลต่อเนื่องในช่วง 6 สัปดาห์แรก
+    locators:
+      - {source_id: S05, locator: 'KB 2026 §3.2, p.5'}
+escalation_th: เลือดออกมากผิดปกติ เจ็บหน้าอก หรือหายใจลำบากหลังคลอด ให้ขอความช่วยเหลือจากบริการสุขภาพทันที

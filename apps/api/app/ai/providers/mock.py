@@ -16,6 +16,7 @@ from typing import Any
 import yaml
 
 from app.ai.llm_client import LLMProviderError, LLMRequest, LLMResponse
+from app.ai.providers import mock_v2
 from app.domain.state import AllowedFacts
 
 _FALLBACK_TEXT = "mock reply"
@@ -44,6 +45,9 @@ class MockProvider:
                 return _reply(rule["default"])
             if "match_contains" in rule and rule["match_contains"] in request.prompt:
                 return _reply(rule["return"])
+        v2 = mock_v2.respond(request.system, request.prompt)
+        if v2 is not None:
+            return _reply(v2)
         if request.json_schema is not None:
             # An empty success suppresses the real lexical fallback and loses every Action.
             raise LLMProviderError("mock_no_rule", retryable=False)

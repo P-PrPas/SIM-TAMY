@@ -12,10 +12,13 @@ from app.api.v1.family_schemas import (
     FamilyCardSource,
     FamilyCompetency,
     FamilyDecision,
+    FamilyDialogueTurn,
+    FamilyDimension,
     FamilyEvidence,
     FamilyExchange,
     FamilyFactView,
     FamilyKnowledgeCard,
+    FamilyLensView,
     FamilyOption,
     FamilyReport,
     FamilyScene,
@@ -27,7 +30,7 @@ from app.api.v1.family_schemas import (
 from app.core.config import get_settings
 from app.core.errors import ApiError
 from app.core.security import hash_token
-from app.db.family import FamilyEvent, FamilyRoom
+from app.db.family import FamilyEvent, FamilyMessage, FamilyRoom
 from app.domain.family import FamilyRole, FamilyStory
 from app.engine.family import (
     FamilyEventRecord,
@@ -36,6 +39,8 @@ from app.engine.family import (
     choose,
     prompt,
     replay,
+    revealing,
+    rubric_score,
     selections,
 )
 
@@ -116,8 +121,16 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
     scene = None
     if len(chosen) == len(story.steps):
         assessment = assess(story, choices, state.facts)
+        rubric = rubric_score(story, state)
         report = FamilyReport(
             safety_status="SAFETY_MET" if assessment.safety_met else "SAFETY_NOT_MET",
+            score_total=rubric.total if rubric else None,
+            dimensions=[
+                FamilyDimension(
+                    id=d.id, weight=d.weight, earned=d.earned, possible=d.possible, score=d.score
+                )
+                for d in (rubric.dimensions if rubric else ())
+            ],
             competencies=[
                 FamilyCompetency(skill=skill, observed=counts[0], opportunities=counts[1])
                 for skill, counts in assessment.competencies.items()
@@ -151,6 +164,7 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
                 else None,
             )
         mine = story.mode == "solo" or step.joint or step.role == role
+        discover = step.kind == "discover"
         by_id = {src.id: src for src in story.sources}
         scene = FamilyScene(
             id=step.id,
@@ -159,11 +173,19 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
             speaker_th=step.speaker_th,
             prompt_th=prompt(story, choices, state.facts),
             choices=[FamilyOption(id=c.id, text_th=c.text_th) for c in step.choices]
-            if mine and not (vote and vote.my_choice_id)
+            if mine
+            and not (vote and vote.my_choice_id)
+            and (not discover or revealing(step, state.asked(len(chosen))) >= step.min_reveals)
             else [],
             joint=step.joint,
             vote=vote,
+            kind=step.kind,
+            character_th=step.character_th,
+            accepts_text=bool(mine and not (vote and vote.my_choice_id)),
+            can_continue=not discover
+            or revealing(step, state.asked(len(chosen))) >= step.min_reveals,
             card=FamilyKnowledgeCard(
+                lens=FamilyLensView(**step.card.lens.model_dump()) if step.card.lens else None,
                 tradition_th=step.card.tradition_th,
                 learning_point_th=step.card.learning_point_th,
                 evidence_status=step.card.evidence_status,
@@ -192,7 +214,7 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
         my_facts=[
             FamilyFactView(id=f.id, role=f.role, text_th=f.text_th, shared=f.id in shared)
             for f in story.facts
-            if f.role == role
+            if f.role == role and (f.id not in story.discoverable or f.id in state.revealed)
         ],
         shared_facts=[
             FamilyFactView(id=f.id, role=f.role, text_th=f.text_th, shared=True)
@@ -203,7 +225,38 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
         scene=scene,
         transcript=transcript,
         report=report,
+        dialogue=dialogue(db, row, story, state, role),
+        assignment_id=row.assignment_id,
     )
+
+
+def dialogue(
+    db: Session, row: FamilyRoom, story: FamilyStory, state: Progress, role: FamilyRole
+) -> list[FamilyDialogueTurn]:
+    """The caller's own typed questions with the replies that were shown (never the partner's)."""
+    if not state.asks:
+        return []
+    texts = {
+        m.client_turn_id: m
+        for m in db.scalars(
+            select(FamilyMessage).where(FamilyMessage.room_id == row.id, FamilyMessage.role == role)
+        )
+    }
+    turns = []
+    for e in events(db, row):
+        message = texts.get(e.client_turn_id)
+        if e.kind == "ask" and e.role == role and message and e.reply_th:
+            step = next((st for st in story.steps if st.id == message.step_id), None)
+            if step:
+                turns.append(
+                    FamilyDialogueTurn(
+                        step_id=step.id,
+                        speaker_th=step.character_th or step.speaker_th,
+                        text_th=message.text,
+                        reply_th=e.reply_th,
+                    )
+                )
+    return turns
 
 
 def _prior(saved: list[FamilyEvent], turn_id: uuid.UUID) -> FamilyEvent | None:
@@ -240,6 +293,10 @@ def decide(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyDecision)
     else:
         try:
             choose(story, state.choices, role, body.choice_id)
+            if step.kind == "discover" and revealing(step, state.asked(len(state.choices))) < (
+                step.min_reveals
+            ):
+                raise ValueError("ask more questions before continuing")
         except ValueError as exc:
             raise ApiError("DECISION_OPTION_INVALID", str(exc)) from exc
         kind = "decision"
@@ -274,7 +331,8 @@ def share(db: Session, row: FamilyRoom, role: FamilyRole, body: FamilyShare) -> 
     if len(state.choices) >= len(story.steps):
         raise ApiError("INVALID_PHASE", "story is complete")
     fact = next((f for f in story.facts if f.id == body.fact_id and f.role == role), None)
-    if fact is None:  # unknown or the other role's: deliberately indistinguishable
+    # unknown, the other role's, or not yet discovered: deliberately indistinguishable
+    if fact is None or (fact.id in story.discoverable and fact.id not in state.revealed):
         raise ApiError("DECISION_OPTION_INVALID", "fact cannot be shared")
     # A repeat share is recorded too (replay dedupes it) so its client_turn_id stays bound.
     db.add(

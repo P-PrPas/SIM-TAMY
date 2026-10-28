@@ -2,13 +2,33 @@
 
 import argparse
 import sys
+from pathlib import Path
 
 from pydantic import ValidationError
 
 from app.content.family import load_stories
+from app.content.institution import load_institutions
+from app.content.knowledge import load_knowledge
 from app.content.loader import ContentError, load_case
 from app.content.validate import check
 from app.core.config import get_settings
+
+
+def _check_knowledge(content_dir: Path) -> bool:
+    """Validate sources, knowledge units, the release and learning paths; True when it failed."""
+    if not (content_dir / "knowledge").is_dir():
+        return False  # a content tree without the 2.0 knowledge base (e.g. a bare cases tree)
+    try:
+        kb = load_knowledge(content_dir)
+    except ContentError as exc:
+        for issue in exc.issues:
+            print(issue, file=sys.stderr)
+        return True
+    print(
+        f"OK knowledge {kb.release.id} ({len(kb.release.units)}/{len(kb.units)} units released, "
+        f"{len(kb.sources)} sources, {len(kb.paths.stages)} stages)"
+    )
+    return False
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -26,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no cases in {cases_dir}; nothing validated")
         return 0
 
-    failed = False
+    failed = _check_knowledge(content_dir)
     for d in dirs:
         try:
             loaded = load_case(d)
@@ -44,6 +64,13 @@ def main(argv: list[str] | None = None) -> int:
     except (ValidationError, ValueError) as exc:
         print(f"ERROR family stories: {exc}", file=sys.stderr)
         failed = True
+    if (content_dir / "demo" / "institutions.yaml").is_file():  # optional, like family stories
+        try:
+            inst = load_institutions(content_dir)
+            print(f"OK demo/institutions ({len(inst.orgs)} orgs, {len(inst.accounts)} accounts)")
+        except (ValidationError, ValueError, OSError) as exc:
+            print(f"ERROR demo/institutions.yaml: {exc}", file=sys.stderr)
+            failed = True
     return 1 if failed else 0
 
 

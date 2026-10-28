@@ -1,0 +1,36 @@
+id: KB-NB-WARN-001
+version: 1.0.0
+title_th: ทารกดูดนมไม่ดีหรือซึมลง ควรให้บุคลากรประเมินโดยไม่ชักช้า
+audience: parent
+care_stage: newborn
+domain: 7
+evidence_status: proposed
+rights_status: own_summary
+publish_status: published
+review_basis: knowledge_base_2026
+reviewed_on: '2026-10-28'
+tags: [newborn, feeding, drowsy, warning-sign, referral, urgent, red-flag]
+claims:
+  - id: c1
+    type: safety
+    text_th: เมื่อผู้ปกครองกังวลว่าทารกดูดนมไม่ดีและซึมลง ไม่ควรชะลอการประเมินโดยบุคลากรสุขภาพ
+    locators:
+      - {source_id: S35, locator: 'KB 2026 §10, p.12'}
+  - id: c2
+    type: guidance
+    text_th: ฉากฝึกนี้เน้นการสื่อสารด้วยภาษาง่ายและการประเมินว่าต้องขอความช่วยเหลือหรือไม่
+    locators:
+      - {source_id: S35, locator: 'KB 2026 §10, p.12'}
+      - {source_id: S36, locator: 'KB 2026 §10, p.12'}
+  - id: c3
+    type: guidance
+    text_th: WHO มีฐานความรู้เรื่องการดูแลทารก และมีแหล่งสัญญาณอันตรายทั่วไปของแม่และทารก ซึ่ง KB ใช้ประกอบเรื่องนี้
+    locators:
+      - {source_id: S35, locator: 'KB 2026 เอกสารอ้างอิง, p.15'}
+      - {source_id: S36, locator: 'KB 2026 เอกสารอ้างอิง, p.16'}
+  - id: c4
+    type: scope
+    text_th: หมวดภาวะเสี่ยงของ KB คือการรู้สัญญาณอันตราย ความเร่งด่วน และการส่งต่อ
+    locators:
+      - {source_id: S36, locator: 'KB 2026 §2 หมวด 09, p.4'}
+escalation_th: ทารกดูดนมไม่ดีหรือซึมลง ให้ติดต่อบุคลากรสุขภาพเพื่อประเมินโดยไม่ชักช้า
