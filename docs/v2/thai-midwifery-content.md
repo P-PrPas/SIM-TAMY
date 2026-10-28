@@ -18,7 +18,7 @@ Each unit distinguishes traditional explanation, present-day guidance, and the l
 using the existing claim types, source locators and Thai Wisdom Lens. Unit-level `synthesis` and
 `knowledge_base_2026` provenance do not mean expert review or clinical certification.
 
-## Exercise map (planned follow-up changes)
+## Exercise map
 
 - `thai-elements-family`: stage 1, OBJ-1-03/04; optional typed questions, source comparison and family planning.
 - `thai-birth-conversation`: stage 2, OBJ-2-02/03; history, birth preferences and informed discussion.
@@ -36,5 +36,19 @@ room cannot silently use a different release, so it may abstain if its pinned re
 - No birth-date calculator, fertility category, element-based diet prescription or prediction of a child's future.
 - No herb dose, heat-treatment procedure or delivery instruction. Trial results retain sample size and limitations.
 - Family distance and shared care are fictional learning contexts, not measured prevalence or proof of demand.
-- No schema, scoring formula, clinical case, migration or application prompt changes.
+- No schema, scoring formula, clinical case, migration or application prompt changes (see the GS-B known issue below).
 - Real-model quality, specialist sign-off and user learning outcomes are not established by mock tests.
+
+## Known issue: GS-B 1.1 scores differ from 1.0
+
+`rubric_score()` counts every discover intent as a scoring opportunity (`FamilyIntent.dimension`
+defaults to `discovery` and cannot be unset), so there is no "optional, unscored" question. The two
+intents added in GS-B 1.1 (`ASK_FOOD_TRADITION`, `ASK_MILK_EVIDENCE`, `evidence_scope`) are
+therefore scored even though the prompt presents them as optional. The same playthrough that asks
+neither scores 83 on 1.0 and 78 on 1.1 (`evidence_scope` 4/4 → 4/6); asking both scores 83.
+Passport and instructor views list 1.0 and 1.1 as separate story versions, so their scores are
+not directly comparable.
+
+Accepted for the prototype. Fix later with a backward-compatible `scored: bool = True` on
+`FamilyIntent` (skipped by `rubric_score`), which is a schema and scoring-semantics change and
+needs a product decision. The same applies to `ASK_ELEMENT_METHODS` and `ASK_MILK_HISTORY`.

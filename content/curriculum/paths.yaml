@@ -68,7 +68,7 @@ stages:
         title_th: อ่านอาหารและสมุนไพรหลังคลอดโดยแยกความเชื่อ สารอาหาร ผลทดลอง และข้อจำกัดก่อนตัดสินใจ
         dimension: evidence_scope
         unit_ids: [KB-TM-FOOD-001, KB-TM-HERB-001]
-        story_ids: []
+        story_ids: [gs-b-thai-recovery]
   - stage: 4
     title_th: ทารกและครอบครัว
     summary_th: จากเรื่องน้ำนมในคัมภีร์สู่การช่วยแม่ให้นมและแผนดูแลลูก 0–24 เดือน ฝึกคุยกับคนต่างรุ่น แบ่งหน้าที่ผู้ดูแล และรู้ว่าเมื่อใดต้องขอการประเมินจากทีมสุขภาพ
@@ -87,9 +87,9 @@ stages:
         title_th: อธิบายน้ำนมเหลืองโดยเคารพผู้ใหญ่ และช่วยแม่เข้าถึงความช่วยเหลือโดยไม่ใช้สีตัดสินคุณภาพน้ำนม
         dimension: communication
         unit_ids: [KB-BF-COLOSTRUM-001]
-        story_ids: []
+        story_ids: [thai-milk-family]
       - id: OBJ-4-04
         title_th: ร่วมกันวางแผนให้นม อาหารตามวัย การนอนปลอดภัย และการส่งต่อข้อมูลระหว่างผู้ดูแลลูก
         dimension: decision
         unit_ids: [KB-NB-FAMILY-001, KB-BF-COLOSTRUM-001]
-        story_ids: []
+        story_ids: [thai-milk-family]
