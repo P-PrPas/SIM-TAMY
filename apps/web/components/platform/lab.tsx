@@ -3,8 +3,9 @@
 import Link from "next/link";
 
 import { t } from "@/lib/i18n";
+import { CORE_PATH, CORE_STORY_IDS, FOLLOW_UP_STORY_IDS } from "@/lib/learning-path";
 import { useV2 } from "@/lib/use-v2";
-import { GOLDEN_STORY_IDS, storyHref, v2, type StoryCard } from "@/lib/v2-api";
+import { storyHref, v2, type StoryCard } from "@/lib/v2-api";
 
 import { Async } from "./shared";
 
@@ -30,26 +31,31 @@ export function Lab() {
     <p className="pf-note">{t("platform.lab.pairNote")}</p>
 
     <Async r={stories}>{(all) => {
-      const featured = GOLDEN_STORY_IDS.map((id) => all.find((s) => s.id === id)).filter((s) => s !== undefined);
-      const others = all.filter((s) => !(GOLDEN_STORY_IDS as readonly string[]).includes(s.id));
+      const featured = CORE_STORY_IDS.map((id) => all.find((s) => s.id === id)).filter((s) => s !== undefined);
+      const followUp = all.filter((s) => FOLLOW_UP_STORY_IDS.includes(s.id));
+      const others = all.filter((s) => !CORE_STORY_IDS.includes(s.id) && !FOLLOW_UP_STORY_IDS.includes(s.id));
       return <>
         {featured.length > 0 && <section aria-labelledby="featured-title" className="pf-section">
           <h2 id="featured-title">{t("platform.lab.featured")}</h2>
           <ul className="pf-grid pf-list">
             {featured.map((s) => <StoryItem key={s.id} story={s}
-              kicker={t(s.id === GOLDEN_STORY_IDS[0] ? "platform.lab.kickerA" : "platform.lab.kickerB")} />)}
+              kicker={`${t("platform.learn.stageLabel")} ${CORE_PATH.find((stage) => stage.stories.includes(s.id))!.stage}`} />)}
           </ul>
         </section>}
-        <section aria-labelledby="others-title" className="pf-section">
-          <h2 id="others-title">{t("platform.lab.otherStories")}</h2>
-          {others.length === 0 ? <p className="pf-note">{t("platform.lab.empty")}</p>
-            : <ul className="pf-grid pf-list">{others.map((s) => <StoryItem key={s.id} story={s} />)}</ul>}
-        </section>
+        {featured.length === 0 && <p className="pf-note">{t("platform.lab.empty")}</p>}
+        {followUp.length > 0 && <details className="pf-section pf-disclosure">
+          <summary>{t("platform.lab.followUp")}</summary>
+          <ul className="pf-grid pf-list">{followUp.map((s) => <StoryItem key={s.id} story={s} />)}</ul>
+        </details>}
+        {others.length > 0 && <details className="pf-section pf-disclosure">
+          <summary>{t("platform.lab.otherStories")}</summary>
+          <ul className="pf-grid pf-list">{others.map((s) => <StoryItem key={s.id} story={s} />)}</ul>
+        </details>}
       </>;
     }}</Async>
 
-    <section aria-labelledby="more-title" className="pf-section">
-      <h2 id="more-title">{t("platform.lab.moreModules")}</h2>
+    <details className="pf-section pf-disclosure">
+      <summary>{t("platform.lab.moreModules")}</summary>
       <ul className="pf-grid pf-list">
         <li className="pf-card">
           <h3>{t("platform.lab.soloTitle")}</h3>
@@ -75,6 +81,6 @@ export function Lab() {
           <Link href="/validation" className="pf-link">{t("platform.lab.validationCta")}<span aria-hidden="true"> →</span></Link>
         </li>
       </ul>
-    </section>
+    </details>
   </main>;
 }

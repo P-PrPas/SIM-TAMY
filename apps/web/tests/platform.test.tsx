@@ -19,13 +19,14 @@ const paths = {
   release_id: "r1",
   stages: [
     { stage: 1, title_th: "Stage one", summary_th: "Stage one summary", objectives: [
-      { id: "OBJ-1-01", title_th: "Objective one", dimension: "discovery", unit_ids: ["KB-1", "KB-HIDDEN"], story_ids: ["gs-a-postpartum-warning", "PP-001", "missing-story"] },
-      { id: "OBJ-1-02", title_th: "Objective two", dimension: "decision", unit_ids: [], story_ids: [] },
+      { id: "OBJ-1-01", title_th: "Objective one", dimension: "discovery", unit_ids: ["KB-TM-ELEMENT-001", "KB-1", "KB-HIDDEN"], story_ids: ["gs-a-postpartum-warning", "PP-001", "missing-story"] },
+      { id: "OBJ-1-02", title_th: "Objective two", dimension: "decision", unit_ids: ["KB-1"], story_ids: [] },
     ] },
     { stage: 2, title_th: "Stage two", summary_th: "Two", objectives: [] },
   ],
 };
 const units = { release_id: "r1", items: [
+  { id: "KB-TM-ELEMENT-001", version: "1", title_th: "Core unit", care_stage: "preconception", domain: 1, has_lens: true },
   { id: "KB-1", version: "1", title_th: "Unit one", care_stage: "postpartum", domain: 3, has_lens: true },
   { id: "KB-2", version: "1", title_th: "Unit two", care_stage: "antenatal", domain: 1, has_lens: false },
 ] };
@@ -37,6 +38,8 @@ const unitDetail = {
   contraindications_th: ["Avoid X"], escalation_th: "Escalate now",
 };
 const stories = [
+  ...["thai-milk-family", "thai-birth-conversation", "thai-elements-family", "golden-first-night"].map((id) =>
+    ({ id, title_th: id, description_th: "d", mode: "solo", chapters_th: [] })),
   { id: "first-night", title_th: "Legacy story", description_th: "d", mode: "coop", chapters_th: ["a", "b"] },
   { id: "gs-b-thai-recovery", title_th: "GS-B title", description_th: "d", mode: "coop", chapters_th: [] },
   { id: "gs-a-postpartum-warning", title_th: "GS-A title", description_th: "d", mode: "coop", chapters_th: [] },
@@ -118,7 +121,7 @@ describe("Home", () => {
   });
 
   it("hides the golden section when the API does not list them and survives a failing accounts call", async () => {
-    mockApi({ ...base, "/family/stories": [stories[0]], "/demo/accounts": () => Response.json({ error: { code: "X" } }, { status: 500 }) });
+    mockApi({ ...base, "/family/stories": [stories.find((s) => s.id === "first-night")], "/demo/accounts": () => Response.json({ error: { code: "X" } }, { status: 500 }) });
     render(<HomePage />);
     expect(await screen.findByRole("alert")).toBeTruthy();
     expect(screen.queryByRole("heading", { name: t("platform.home.goldenTitle") })).toBeNull();
@@ -163,18 +166,28 @@ describe("Learning Journey", () => {
     expect(screen.getByRole("button", { name: t("platform.common.retry") })).toBeTruthy();
   });
 
-  it("links only published units and playable scenarios, never invents durations, and needs a profile for progress", async () => {
+  it("deduplicates supplementary reading, prioritizes the stage core and hides unavailable API items", async () => {
     mockApi(base);
     render(<StageDetail stage="1" />);
-    const first = (await screen.findByRole("heading", { name: "Objective one" })).closest("li") as HTMLElement;
-    await waitFor(() => expect(within(first).getByRole("link", { name: "Unit one" })).toBeTruthy());
-    expect(within(first).getByRole("link", { name: "Unit one" }).getAttribute("href")).toBe("/knowledge/KB-1");
-    expect(within(first).queryByText("KB-HIDDEN")).toBeNull();
-    await waitFor(() => expect(within(first).getByRole("link", { name: "GS-A title" }).getAttribute("href")).toBe("/simulate/gs-a-postpartum-warning"));
-    expect(within(first).getByRole("link", { name: /Solo case/ }).getAttribute("href")).toBe("/lab/solo");
-    expect(within(first).queryByText(/missing-story/)).toBeNull();
-    expect(within(first).getByText(t("platform.learn.progressPick"))).toBeTruthy();
+    expect(await screen.findByRole("link", { name: "Core unit" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "thai-elements-family" }).getAttribute("href")).toBe("/simulate/thai-elements-family");
+    expect(screen.getByRole("link", { name: "Unit one" }).closest("details")?.open).toBe(false);
+    fireEvent.click(screen.getByText(t("platform.learn.extraUnits")));
+    expect(screen.getAllByRole("link", { name: "Unit one" })).toHaveLength(1);
+    expect(screen.queryByText("KB-HIDDEN")).toBeNull();
+    expect(screen.queryByText(/missing-story/)).toBeNull();
+    fireEvent.click(screen.getByText(t("platform.learn.objectives")));
+    expect(screen.getAllByText(t("platform.learn.progressPick"))).toHaveLength(2);
     expect(document.body.textContent).not.toMatch(/นาที|ชั่วโมง/);
+  });
+
+  it("does not link a curated unit or story that the API omits", async () => {
+    mockApi({ ...base, "/knowledge/units": { items: [] }, "/family/stories": [] });
+    render(<StageDetail stage="1" />);
+    expect(await screen.findByText(t("platform.learn.noUnits"))).toBeTruthy();
+    expect(await screen.findByText(t("platform.learn.noScenarios"))).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Core unit" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "thai-elements-family" })).toBeNull();
   });
 
   it("counts an objective as done only from finished attempts", async () => {
@@ -182,6 +195,8 @@ describe("Learning Journey", () => {
     mockApi({ ...base, "/passport/acc-l1": { account: { id: "acc-l1", display_name_th: "L" }, attempts: [
       attempt(), attempt({ room_id: "r2", finished_at: null }), attempt({ room_id: "r3", objective_ids: ["OBJ-1-02"], finished_at: null })] } });
     render(<StageDetail stage="1" />);
+    await screen.findByRole("heading", { name: "Stage one" });
+    fireEvent.click(screen.getByText(t("platform.learn.objectives")));
     const one = (await screen.findByRole("heading", { name: "Objective one" })).closest("li") as HTMLElement;
     const two = screen.getByRole("heading", { name: "Objective two" }).closest("li") as HTMLElement;
     await waitFor(() => expect(within(one).getByText(new RegExp(`${t("platform.learn.progressDone")} 1`))).toBeTruthy());
@@ -196,24 +211,31 @@ describe("Learning Journey", () => {
 });
 
 describe("Simulation Lab", () => {
-  it("puts GS-A then GS-B first, states pair vs solo, and keeps legacy modules reachable", async () => {
+  it("shows five core stories in stage order and keeps follow-up, archives and tools collapsed", async () => {
     mockApi(base);
     render(<Lab />);
     const featured = (await screen.findByRole("heading", { name: t("platform.lab.featured") })).closest("section") as HTMLElement;
-    expect(within(featured).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["GS-A title", "GS-B title"]);
-    expect(screen.getByText(t("platform.lab.pairNote"))).toBeTruthy();
-    const others = screen.getByRole("heading", { name: t("platform.lab.otherStories") }).closest("section") as HTMLElement;
-    expect(within(others).getByRole("link", { name: new RegExp(t("platform.lab.start")) }).getAttribute("href")).toBe("/family");
+    expect(within(featured).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual([
+      "thai-elements-family", "thai-birth-conversation", "GS-A title", "GS-B title", "thai-milk-family"]);
+    for (const title of ["Legacy story", "golden-first-night", t("platform.lab.soloTitle")]) {
+      expect(screen.getByRole("heading", { name: title }).closest("details")?.open).toBe(false);
+    }
+    fireEvent.click(screen.getByText(t("platform.lab.followUp")));
+    expect(screen.getByRole("heading", { name: "golden-first-night" })).toBeTruthy();
+    fireEvent.click(screen.getByText(t("platform.lab.otherStories")));
+    expect(screen.getByRole("heading", { name: "Legacy story" })).toBeTruthy();
+    fireEvent.click(screen.getByText(t("platform.lab.moreModules")));
     expect(screen.queryByText("Fixture")).toBeNull();
     const hrefs = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
-    for (const h of ["/lab/solo", "/replay", "/instructor", "/validation"]) expect(hrefs).toContain(h);
+    for (const h of ["/family", "/golden", "/lab/solo", "/replay", "/instructor", "/validation"]) expect(hrefs).toContain(h);
   });
 
-  it("hides the featured section when the golden stories are absent", async () => {
-    mockApi({ ...base, "/family/stories": [stories[0]] });
+  it("hides unavailable core stories without promoting archived stories", async () => {
+    mockApi({ ...base, "/family/stories": [stories.find((s) => s.id === "first-night")] });
     render(<Lab />);
-    await screen.findByRole("heading", { name: t("platform.lab.otherStories") });
+    await screen.findByText(t("platform.lab.otherStories"));
     expect(screen.queryByRole("heading", { name: t("platform.lab.featured") })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Legacy story" }).closest("details")?.open).toBe(false);
   });
 });
 
@@ -268,9 +290,11 @@ describe("Knowledge & Sources", () => {
     await screen.findByRole("link", { name: "Unit one" });
     const headings = screen.getAllByRole("heading", { level: 2 });
     const texts = headings.map((h) => h.textContent);
-    expect(texts.indexOf(t("platform.knowledge.stage_antenatal"))).toBeLessThan(texts.indexOf(t("platform.knowledge.stage_postpartum")));
+    expect(texts.indexOf(t("platform.knowledge.stage_pregnancy"))).toBeLessThan(texts.indexOf(t("platform.knowledge.stage_postpartum")));
     expect(screen.getByRole("link", { name: "Unit one" }).getAttribute("href")).toBe("/knowledge/KB-1");
-    expect(screen.getByText(t("platform.knowledge.hasLens"), { exact: false })).toBeTruthy();
+    expect(screen.getAllByText(t("platform.knowledge.hasLens"), { exact: false })).toHaveLength(2);
+    expect(screen.getByText(t("platform.knowledge.registry")).closest("details")?.open).toBe(false);
+    fireEvent.click(screen.getByText(t("platform.knowledge.registry")));
     expect(await screen.findByText("KB source", { exact: false })).toBeTruthy();
     expect(screen.getByText(new RegExp(t("platform.knowledge.rights_metadata_only")))).toBeTruthy();
     const ext = screen.getByRole("link", { name: new RegExp(t("platform.knowledge.sourceLink")) });

@@ -18,7 +18,8 @@ const data: Record<string, unknown> = {
   "/v1/demo/accounts": { items: [{ id: "acc-l1", org_id: "o", display_name_th: "Learner One", role: "learner" }] },
   "/v1/passport/acc-l1": { account: { id: "acc-l1", display_name_th: "Learner One" }, attempts: [
     { room_id: "r1", story_id: "gs-a-postpartum-warning", title_th: "Finished run", finished_at: "2026-10-20T10:00:00Z", safety_status: "SAFETY_NOT_MET", score_total: 70, objective_ids: ["OBJ-1-01"] }] },
-  "/v1/family/stories": [{ id: "gs-a-postpartum-warning", title_th: "GS-A", description_th: "d", mode: "coop", chapters_th: [] }],
+  "/v1/family/stories": ["first-night", "thai-milk-family", "gs-b-thai-recovery", "thai-birth-conversation", "gs-a-postpartum-warning", "thai-elements-family", "golden-first-night"]
+    .map((id) => ({ id, title_th: id, description_th: "d", mode: "coop", chapters_th: [] })),
   "/v1/cases": { items: [] },
 };
 
@@ -46,7 +47,7 @@ async function expectNoSeriousViolations(page: Page) {
 const pages: Array<[string, string, string]> = [
   ["Home", "/", t("platform.home.pillarsTitle")],
   ["Learn", "/learn", "Stage 1"],
-  ["Learn stage", "/learn/1", "Objective 1"],
+  ["Learn stage", "/learn/1", t("platform.learn.units")],
   ["Lab", "/lab", t("platform.lab.featured")],
   ["Passport", "/passport", "Finished run"],
   ["Knowledge", "/knowledge", "Unit one"],
@@ -60,7 +61,7 @@ for (const [name, path, ready] of pages) {
     await expect(page.getByRole("heading", { name: ready }).first()).toBeVisible();
     await page.evaluate(() => document.fonts.ready);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    const small = await page.evaluate(() => [...document.querySelectorAll("main a, main button, header a, header button")]
+    const small = await page.evaluate(() => [...document.querySelectorAll("main a, main button, main summary, header a, header button")]
       .map((el) => ({ el, r: el.getBoundingClientRect(), inline: getComputedStyle(el).display === "inline" }))
       .filter(({ r, inline }) => r.width > 0 && !inline && (r.height < 43.5 || r.width < 43.5))
       .map(({ el }) => `${el.tagName} ${el.textContent?.slice(0, 30)}`));
@@ -84,4 +85,35 @@ test("the Passport never shows pass wording for a SAFETY_NOT_MET attempt", async
   await page.goto("/passport");
   await expect(page.getByText(t("report.safetyNotMet"))).toBeVisible();
   await expect(page.getByText(t("report.safetyMet"), { exact: true })).toHaveCount(0);
+});
+
+test("disclosures open by keyboard and preserve archived routes and objective progress", async ({ page }) => {
+  await mock(page, "acc-l1");
+  await page.goto("/learn/1");
+  const progress = page.locator("summary", { hasText: t("platform.learn.objectives") });
+  await expect(page.getByRole("heading", { name: "Objective 1" })).not.toBeVisible();
+  await progress.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "Objective 1" })).toBeVisible();
+  await expect(page.getByText(`${t("platform.learn.progressDone")} 1`, { exact: false })).toBeVisible();
+  await page.goto("/lab");
+  const core = page.getByRole("region", { name: t("platform.lab.featured") });
+  await expect(core.getByRole("heading", { level: 3 })).toHaveText([
+    "thai-elements-family", "thai-birth-conversation", "gs-a-postpartum-warning", "gs-b-thai-recovery", "thai-milk-family"]);
+  await expect(page.getByRole("heading", { name: "first-night", exact: true })).not.toBeVisible();
+  await page.locator("summary", { hasText: t("platform.lab.otherStories") }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator('main a[href="/family"]')).toBeVisible();
+  const tools = page.locator("summary", { hasText: t("platform.lab.moreModules") });
+  await expect(page.locator('main a[href="/lab/solo"]')).not.toBeVisible();
+  await tools.focus();
+  await page.keyboard.press("Space");
+  await expect(page.locator('main a[href="/lab/solo"]')).toBeVisible();
+  await expectNoSeriousViolations(page);
+  await page.goto("/knowledge");
+  const source = page.getByRole("link", { name: new RegExp(t("platform.knowledge.sourceLink")) });
+  await expect(source).not.toBeVisible();
+  await page.locator("summary", { hasText: t("platform.knowledge.registry") }).focus();
+  await page.keyboard.press("Enter");
+  await expect(source).toBeVisible();
 });

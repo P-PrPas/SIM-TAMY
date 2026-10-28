@@ -47,3 +47,7 @@
 .pf-source p { overflow-wrap: anywhere; }
 .pf-page ul:not(.pf-list) { padding-left: 1.25rem; list-style: disc; }
 @media (min-width: 768px) { .pf-page { padding: 40px 32px 64px; } }
+
+.pf-disclosure { border-top: 1px solid var(--color-line); padding-top: 8px; }
+.pf-disclosure > summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-weight: 650; color: var(--color-brand-800); }
+.pf-disclosure > summary:focus-visible { outline: 2px solid var(--color-brand-700); outline-offset: 4px; border-radius: 4px; }
