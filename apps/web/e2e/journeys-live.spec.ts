@@ -43,7 +43,7 @@ async function startChat(page: Page, variant: "A" | "C") {
   expect(health.ok()).toBeTruthy();
   expect(await health.json()).toMatchObject({ db: "ok", llm_provider: "mock" });
 
-  await page.goto("/");
+  await page.goto("/lab/solo");
   await expect(page.getByRole("heading", { name: t("join.title") })).toBeVisible();
   await page.locator("#case").selectOption("PP-001");
   await page.locator("#variant").selectOption(variant);

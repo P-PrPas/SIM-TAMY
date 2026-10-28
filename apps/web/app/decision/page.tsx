@@ -24,7 +24,7 @@ export default function DecisionPage() {
 
   useEffect(() => {
     const active = readSession();
-    if (!active) { replace("/"); return; }
+    if (!active) { replace("/lab/solo"); return; }
     let cancelled = false;
     void api().GET("/v1/sessions/{session_id}", { params: { path: { session_id: active.id } } })
       .then(({ data }) => {

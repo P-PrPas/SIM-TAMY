@@ -20,7 +20,7 @@ export default function BriefingPage() {
     let cancelled = false;
     void Promise.resolve(readSession()).then((session) => { // same async shape as the chat page
       if (cancelled) return;
-      if (!session) { replace("/"); return; }
+      if (!session) { replace("/lab/solo"); return; }
       setBrief(session.brief); // the version this session was created with, not the latest case
       setNotices((session.notices ?? []).filter((notice) =>
         notice.code === "PRIVACY_LLM" || notice.code === "NO_REAL_PII"));
@@ -52,7 +52,7 @@ export default function BriefingPage() {
         {notices.map((notice) => <p key={notice.code} role="note" className="mt-3 rounded-xl border border-stone-300 bg-stone-50 p-4 text-stone-800">{notice.text_th}</p>)}
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <Link href="/chat" className="rounded-xl bg-brand-900 px-6 py-3 font-bold text-white hover:bg-brand-800">{t("briefing.begin")}</Link>
-          <Link href="/" className="rounded-xl border border-stone-400 px-6 py-3 font-semibold text-stone-800">{t("briefing.back")}</Link>
+          <Link href="/lab/solo" className="rounded-xl border border-stone-400 px-6 py-3 font-semibold text-stone-800">{t("briefing.back")}</Link>
         </div>
       </>}
   </main>;

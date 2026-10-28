@@ -6,6 +6,12 @@ import { usePathname } from "next/navigation";
 
 import { t } from "@/lib/i18n";
 
+const NAV = [
+  ["/", "platform.nav.home"], ["/learn", "platform.nav.learn"], ["/lab", "platform.nav.lab"],
+  ["/passport", "platform.nav.passport"], ["/knowledge", "platform.nav.knowledge"],
+] as const;
+const isCurrent = (path: string, href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`));
+
 const steps = ["briefing", "chat", "decision", "closing", "report"] as const;
 
 export function SiteHeader() {
@@ -20,10 +26,8 @@ export function SiteHeader() {
           <span><strong>SIM-TAMY<span className="brand-dot">.</span></strong><small>{t("brand.tagline")}</small></span>
         </Link>
         <nav aria-label={t("nav.label")}>
-          <Link href="/" aria-current={path === "/" ? "page" : undefined}>{t("nav.learn")}</Link>
-          <Link href="/replay" aria-current={path === "/replay" ? "page" : undefined}>{t("nav.replay")}</Link>
-          <Link href="/family" aria-current={path === "/family" ? "page" : undefined}>{t("family.link")}</Link>
-          <Link href="/instructor" className="nav-instructor" aria-current={path === "/instructor" ? "page" : undefined}>{t("instructor.link")}<span aria-hidden="true"> ↗</span></Link>
+          {NAV.map(([href, key]) => <Link key={href} href={href} aria-current={isCurrent(path, href) ? "page" : undefined}>{t(key)}</Link>)}
+          <Link href="/institution" className="nav-instructor" aria-current={isCurrent(path, "/institution") ? "page" : undefined}>{t("platform.nav.institution")}</Link>
         </nav>
       </div>
     </header>

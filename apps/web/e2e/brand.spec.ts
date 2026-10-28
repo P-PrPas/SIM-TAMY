@@ -6,7 +6,7 @@ for (const viewport of [{ width: 360, height: 780 }, { width: 844, height: 390 }
   test(`branded learning entry works at ${viewport.width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/");
+    await page.goto("/lab/solo");
     await expect(page.locator("#case:enabled")).toBeVisible();
     await expect(page.getByRole("navigation", { name: t("nav.label") })).toBeVisible();
     await expect(page.locator("a.brand")).toBeVisible();
@@ -30,7 +30,7 @@ for (const viewport of [{ width: 360, height: 780 }, { width: 844, height: 390 }
 }
 
 test("entry remains usable with enlarged text", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/lab/solo");
   await expect(page.locator("#case:enabled")).toBeVisible();
   await page.evaluate(() => { document.documentElement.style.fontSize = "32px"; });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -39,7 +39,7 @@ test("entry remains usable with enlarged text", async ({ page }) => {
 
 test("motion settles without shifting layout and responds to reduced motion changes", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
+  await page.goto("/lab/solo");
   const hero = page.locator(".hero-art");
   await expect(hero).toHaveCSS("animation-name", "hero-art-arrive");
   await expect(hero).toHaveCSS("opacity", "1");

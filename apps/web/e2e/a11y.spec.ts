@@ -46,7 +46,7 @@ async function expectNoSeriousViolations(page: Page) {
 // What each screen shows once its data has loaded; the loading and error states also render <main>.
 const ready: Record<string, (page: Page) => Locator> = {
   // the heading also shows while the cases load or fail; the enabled select means a case is chosen
-  "/": (page) => page.locator("#case:enabled"),
+  "/lab/solo": (page) => page.locator("#case:enabled"),
   "/briefing": (page) => page.getByRole("link", { name: t("briefing.begin") }),
   "/chat": (page) => page.getByRole("textbox", { name: t("chat.messageLabel") }),
   "/decision": (page) => page.locator('input[name="decision"]').first(),
@@ -55,14 +55,14 @@ const ready: Record<string, (page: Page) => Locator> = {
 };
 
 for (const [name, path, phase] of [
-  ["S1 Join", "/"], ["S2 Briefing", "/briefing"], ["S3 Chat", "/chat"], ["S4 Decision", "/decision"],
+  ["S1 Join", "/lab/solo"], ["S2 Briefing", "/briefing"], ["S3 Chat", "/chat"], ["S4 Decision", "/decision"],
   ["S5 Pressure", "/chat", "PRESSURE"], ["S6 Closing", "/closing", "CLOSING"], ["S7 Report", "/report", "COMPLETED"],
 ] as const) {
   test(`${name} has no critical or serious axe violations at 360px`, async ({ page }) => {
-    if (path !== "/") await seed(page, phase);
+    if (path !== "/lab/solo") await seed(page, phase);
     await page.goto(path);
     await expect(ready[path]!(page)).toBeVisible();
-    if (path === "/") {
+    if (path === "/lab/solo") {
       await expect(page.locator("#case option").first()).toBeAttached();
       await expect(page.getByText(t("status.draftFull"), { exact: true })).toHaveCount(0);
     }
@@ -82,7 +82,7 @@ test("the skip link is the first focusable element and moves focus to the conten
 
 test("hero text keeps accessible contrast during the entrance animation", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
+  await page.goto("/lab/solo");
   await expect(page.locator("#case:enabled")).toBeVisible();
   await page.locator(".hero").evaluate((element) => {
     for (const animation of element.getAnimations({ subtree: true })) {

@@ -63,7 +63,7 @@ export default function ReportPage() {
 
   useEffect(() => {
     const active = readSession();
-    if (!active) { replace("/"); return; }
+    if (!active) { replace("/lab/solo"); return; }
     let cancelled = false;
     void Promise.resolve().then(() => {
       if (cancelled) return;
@@ -82,7 +82,7 @@ export default function ReportPage() {
 
   function retry() {
     const active = readSession();
-    if (!active) { replace("/"); return; }
+    if (!active) { replace("/lab/solo"); return; }
     void load(active.id);
   }
 

@@ -40,7 +40,7 @@ describe("T-052 Decision Panel", () => {
   it("redirects without a saved session and never calls the API", async () => {
     sessionStorage.clear();
     render(<DecisionPage />);
-    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/lab/solo"));
     expect(mocks.get).not.toHaveBeenCalled();
   });
 
@@ -120,7 +120,7 @@ describe("T-052 Closing and pressure handoff", () => {
   it("redirects without a saved session and guards phases that cannot complete", async () => {
     sessionStorage.clear();
     const empty = render(<ClosingPage />);
-    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/"));
+    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/lab/solo"));
     expect(mocks.get).not.toHaveBeenCalled();
     empty.unmount();
     saveSession({ id: "session-1", token: "synthetic-token", caseId: "PP-001", brief });
