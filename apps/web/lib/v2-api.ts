@@ -21,8 +21,11 @@ export type DemoAccount = { id: string; org_id: string; display_name_th: string;
 export type Attempt = {
   room_id: string; story_id: string; title_th: string; finished_at: string | null;
   safety_status: "SAFETY_MET" | "SAFETY_NOT_MET"; score_total: number | null; objective_ids: string[];
+  /** Display only: every decision of this attempt carried a skill. Never a score or a safety result. */
+  strong: boolean;
 };
-export type Passport = { account: { id: string; display_name_th: string }; attempts: Attempt[] };
+export type PassportLesson = { unit_id: string; completed_at: string };
+export type Passport = { account: { id: string; display_name_th: string }; attempts: Attempt[]; lessons: PassportLesson[] };
 
 export type StoryCard = { id: string; title_th: string; description_th: string; mode: "coop" | "solo"; chapters_th: string[] };
 export type CaseCard = { case_id: string; title_th: string; audience?: string | null };
@@ -36,14 +39,14 @@ export class V2ApiError extends Error {
 
 const base = () => process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-/** GET `/v1<path>`; sends X-Demo-Account when a profile is picked; throws V2ApiError from the standard envelope. */
-export async function v2Get<T>(path: string, signal?: AbortSignal): Promise<T> {
+/** `/v1<path>`; sends X-Demo-Account when a profile is picked; throws V2ApiError from the standard envelope. */
+async function request<T>(method: "GET" | "POST", path: string, signal?: AbortSignal): Promise<T> {
   const headers: Record<string, string> = {};
   const account = getDemoAccount();
   if (account) headers["X-Demo-Account"] = account;
   let res: Response;
   try {
-    res = await fetch(`${base()}/v1${path}`, { headers, signal });
+    res = await fetch(`${base()}/v1${path}`, { method, headers, signal });
   } catch (e) {
     if (signal?.aborted) throw e;
     throw new V2ApiError("NETWORK_ERROR", 0);
@@ -55,6 +58,8 @@ export async function v2Get<T>(path: string, signal?: AbortSignal): Promise<T> {
   return (await res.json()) as T;
 }
 
+export const v2Get = <T>(path: string, signal?: AbortSignal) => request<T>("GET", path, signal);
+
 export const v2 = {
   learningPaths: (s?: AbortSignal) => v2Get<LearningPaths>("/learning-paths", s),
   units: (s?: AbortSignal) => v2Get<{ release_id: string; items: UnitSummary[] }>("/knowledge/units", s),
@@ -62,6 +67,8 @@ export const v2 = {
   sources: (s?: AbortSignal) => v2Get<{ items: Source[] }>("/knowledge/sources", s),
   accounts: (s?: AbortSignal) => v2Get<{ items: DemoAccount[] }>("/demo/accounts", s),
   passport: (id: string, s?: AbortSignal) => v2Get<Passport>(`/passport/${encodeURIComponent(id)}`, s),
+  completeLesson: (accountId: string, unitId: string) =>
+    request<PassportLesson>("POST", `/passport/${encodeURIComponent(accountId)}/lessons/${encodeURIComponent(unitId)}`),
   stories: (s?: AbortSignal) => v2Get<StoryCard[]>("/family/stories", s),
   cases: (s?: AbortSignal) => v2Get<{ items: CaseCard[] }>("/cases", s),
 };

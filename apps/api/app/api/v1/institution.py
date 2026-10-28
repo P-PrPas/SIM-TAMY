@@ -18,6 +18,7 @@ from app.api.v1.institution_schemas import (
     JoinInfo,
     OrgOverview,
     Passport,
+    PassportLesson,
 )
 from app.content.institution import find_account
 from app.core.errors import ApiError
@@ -105,3 +106,15 @@ def passport(account_id: str, db: Db) -> Passport:
     if account is None:
         raise ApiError("NOT_FOUND", "account not found")
     return service.passport(db, account)
+
+
+@router.post(
+    "/passport/{account_id}/lessons/{unit_id}",
+    response_model=PassportLesson,
+    operation_id="completePassportLesson",
+)
+def complete_lesson(account_id: str, unit_id: str, db: Db) -> PassportLesson:
+    account = find_account(account_id)
+    if account is None:
+        raise ApiError("NOT_FOUND", "account not found")
+    return service.complete_lesson(db, account, unit_id)

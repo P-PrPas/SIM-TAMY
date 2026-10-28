@@ -6,14 +6,14 @@ import { NurseryHouse, houseItems } from "@/components/pixel/house";
 import { HouseReveal, metersFor } from "@/components/pixel/reveal";
 import type { components } from "@/lib/api/schema";
 import { t } from "@/lib/i18n";
-import type { Attempt } from "@/lib/v2-api";
+import type { Attempt, PassportLesson } from "@/lib/v2-api";
 
 type Ev = components["schemas"]["FamilyEvidence"];
 const ev = (idx: number, over: Partial<Ev> = {}): Ev => ({
   idx, text_th: `choice-${idx}`, feedback_th: "f", source_ids: ["S1"], safe: true, skills: [], dimension: null, critical: false, kind: "choice", ...over,
 });
 const attempt = (over: Partial<Attempt> = {}): Attempt => ({
-  room_id: "r", story_id: "thai-elements-family", title_th: "x", finished_at: "2026-10-01", safety_status: "SAFETY_MET", score_total: 50, objective_ids: [], ...over,
+  room_id: "r", story_id: "thai-elements-family", title_th: "x", finished_at: "2026-10-01", safety_status: "SAFETY_MET", score_total: 50, objective_ids: [], strong: false, ...over,
 });
 
 afterEach(() => { cleanup(); vi.useRealTimers(); });
@@ -25,12 +25,38 @@ describe("NurseryHouse", () => {
     expect(screen.getByText(t("pixelHouse.itemState.table"), { exact: false })).toBeTruthy();
     expect(houseItems(null).table).toBe(0);
   });
-  it("fills the table from a finished attempt and upgrades it on replay, never adds a score", () => {
+  it("fills the table from a finished attempt and upgrades it only for a strong one, never adds a score", () => {
     expect(houseItems([attempt()]).table).toBe(1);
-    expect(houseItems([attempt(), attempt({ safety_status: "SAFETY_NOT_MET" })]).table).toBe(2);
+    expect(houseItems([attempt(), attempt()]).table).toBe(1); // a plain replay is not an upgrade
+    expect(houseItems([attempt(), attempt({ strong: true })]).table).toBe(2);
+    expect(houseItems([attempt({ strong: true, story_id: "other" }), attempt({ finished_at: null, strong: true })]).table).toBe(0);
     render(<NurseryHouse attempts={[attempt()]} />);
     expect(screen.getByText(t("pixelHouse.itemState.have"), { exact: false })).toBeTruthy();
+    expect(document.body.textContent).toContain(t("pixelHouse.itemState.tableMore")); // hint: replay better to fill it
     expect(document.body.textContent).not.toMatch(/XP|\d+\s*%/);
+  });
+  it("shows the stronger table in the art and drops the upgrade hint from the text list", () => {
+    const { container, rerender } = render(<NurseryHouse attempts={[attempt()]} />);
+    const plain = container.querySelectorAll(".nh-art rect").length;
+    expect(container.textContent).toContain(t("pixelHouse.itemState.tableMore"));
+    rerender(<NurseryHouse attempts={[attempt(), attempt({ strong: true })]} />);
+    expect(container.textContent).not.toContain(t("pixelHouse.itemState.tableMore"));
+    expect(container.textContent).toContain(t("pixelHouse.itemState.have"));
+    expect(container.querySelectorAll(".nh-art rect").length).toBe(plain + 2);
+  });
+  it("fills the palm-leaf book from a completed lesson in the passport, in the art and the text list", () => {
+    const done: PassportLesson[] = [{ unit_id: "KB-TM-ELEMENT-001", completed_at: "2026-10-01" }];
+    expect(houseItems(null).book).toBe(false);
+    expect(houseItems([], [{ unit_id: "KB-OTHER", completed_at: "2026-10-01" }]).book).toBe(false);
+    expect(houseItems([], done).book).toBe(true);
+    const { container, rerender } = render(<NurseryHouse attempts={[]} lessons={[]} />);
+    const bookRow = () => screen.getByText(t("pixelHouse.items.book"), { exact: false }).closest("li")!.textContent;
+    const artRects = () => container.querySelectorAll(".nh-art rect").length;
+    expect(bookRow()).toContain(t("pixelHouse.itemState.book"));
+    const empty = artRects();
+    rerender(<NurseryHouse attempts={[]} lessons={done} />);
+    expect(bookRow()).toContain(t("pixelHouse.itemState.have"));
+    expect(artRects()).toBe(empty + 1);
   });
 });
 

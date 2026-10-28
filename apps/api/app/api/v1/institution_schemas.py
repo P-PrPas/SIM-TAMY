@@ -126,8 +126,16 @@ class PassportAttempt(Model):
     safety_status: Literal["SAFETY_MET", "SAFETY_NOT_MET"]
     score_total: float | None
     objective_ids: list[str]
+    # Display only, post-completion: every decision of this attempt carried a skill.
+    strong: bool
+
+
+class PassportLesson(Model):
+    unit_id: str
+    completed_at: datetime
 
 
 class Passport(Model):
     account: PassportAccount
     attempts: list[PassportAttempt]
+    lessons: list[PassportLesson]

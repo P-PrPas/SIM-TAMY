@@ -1,13 +1,15 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PixelLesson } from "@/components/pixel/lesson-cards";
+import { KnowledgeUnit } from "@/components/platform/knowledge";
+import { setDemoAccount } from "@/lib/demo-account";
 import { buildSortItems, isSortable, LessonSort, seededOrder } from "@/components/pixel/lesson-sort";
 import { t } from "@/lib/i18n";
 import type { UnitDetail } from "@/lib/v2-api";
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); localStorage.clear(); });
 
 const src = [{ source_id: "S41", title: "T", url: null, locator: "page 1" }];
 const unit: UnitDetail = {
@@ -154,4 +156,50 @@ it("falls back to the plain card when a claim has no hotspots", () => {
   render(<PixelLesson unit={unit} />);
   expect(screen.queryByRole("dialog")).toBeNull();
   expect(screen.getByText("tradition claim one")).toBeTruthy();
+});
+
+describe("lesson completion is recorded server-side", () => {
+  const plain = { ...unit, claims: [unit.claims[0]!], lens: null };
+  function mockApi(complete: () => Response) {
+    const calls: Request[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: string | Request, init?: RequestInit) => {
+      const req = new Request(input, init);
+      calls.push(req);
+      const { pathname } = new URL(req.url);
+      return pathname.endsWith("/lessons/KB-TM-ELEMENT-001") ? complete() : Response.json(plain);
+    }));
+    return calls;
+  }
+  const posts = (calls: Request[]) => calls.filter((c) => c.method === "POST");
+  async function finishLesson() {
+    render(<KnowledgeUnit id="KB-TM-ELEMENT-001" />);
+    fireEvent.click(await screen.findByRole("button", { name: t("pixelLesson.finish") }));
+  }
+
+  it("posts once for the picked account when the lesson finishes", async () => {
+    setDemoAccount("acc-l1");
+    const calls = mockApi(() => Response.json({ unit_id: "KB-TM-ELEMENT-001", completed_at: "2026-10-01T00:00:00Z" }));
+    await finishLesson();
+    await waitFor(() => expect(posts(calls)).toHaveLength(1));
+    expect(new URL(posts(calls)[0]!.url).pathname).toBe("/v1/passport/acc-l1/lessons/KB-TM-ELEMENT-001");
+    expect(posts(calls)[0]!.headers.get("X-Demo-Account")).toBe("acc-l1");
+    expect(screen.getByText(t("pixelLesson.lessonDone"))).toBeTruthy();
+    expect(localStorage.length).toBe(1); // only the picked mock profile, no completion flag
+  });
+
+  it("still shows the lesson as done when the server call fails, and stores nothing locally", async () => {
+    setDemoAccount("acc-l1");
+    const calls = mockApi(() => Response.json({ error: { code: "INTERNAL_ERROR" } }, { status: 500 }));
+    await finishLesson();
+    await waitFor(() => expect(posts(calls)).toHaveLength(1));
+    expect(screen.getByText(t("pixelLesson.lessonDone"))).toBeTruthy();
+    expect(localStorage.length).toBe(1);
+  });
+
+  it("makes no completion call without a picked profile", async () => {
+    const calls = mockApi(() => Response.json({}));
+    await finishLesson();
+    expect(screen.getByText(t("pixelLesson.lessonDone"))).toBeTruthy();
+    expect(posts(calls)).toHaveLength(0);
+  });
 });

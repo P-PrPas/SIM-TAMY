@@ -22,6 +22,7 @@ EXPECTED_TABLES = {
     "assignments",
     "family_messages",
     "family_debriefs",
+    "passport_lessons",
 }
 
 
