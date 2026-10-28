@@ -85,3 +85,37 @@ it("leaves every other story without the pixel scene or the example button", asy
   expect(container.querySelector(".is-rpg")).toBeNull();
   expect(screen.queryByRole("button", { name: t("pixelSim.dontKnow") })).toBeNull();
 });
+
+it.each([
+  ["ton", "warm"],
+  ["mom", "idle"],
+])("keeps the last reaction with its speaker when the next scene shows %s", async (speaker, expected) => {
+  vi.stubGlobal("fetch", vi.fn(async (request: Request) => request.url.endsWith("/stories")
+    ? Response.json([{ id: STORY, title_th: "T", description_th: "d", mode: "solo", chapters_th: [] }])
+    : Response.json({ ...view(STORY), completed_steps: 2, state_version: 2,
+      scene: { ...scene, kind: "choice", speaker_th: t(`pixelSim.name.${speaker}`) },
+      transcript: [{ idx: 2, role: "mother", speaker_th: t("pixelSim.name.ton"), prompt_th: "P", text_th: "C", reply_th: "R", mood: "warm" }],
+    })));
+  const { container } = render(<FamilySimulator storyId={STORY} />);
+  await screen.findByLabelText(t("lab.chat.label"));
+  expect(container.querySelector(`[data-who="${speaker}"]`)?.getAttribute("data-state")).toBe(expected);
+});
+
+it("clears notebook cards when leaving and starting a new room", async () => {
+  serve(STORY, () => Response.json({
+    view: { ...view(STORY), state_version: 1 }, clarification: null,
+    reply: { speaker_th: "Teacher", text_th: "Books differ", citations: [citation] },
+  }));
+  render(<FamilySimulator storyId={STORY} />);
+  fireEvent.change(await screen.findByLabelText(t("lab.chat.label")), { target: { value: "why differ" } });
+  fireEvent.click(screen.getByRole("button", { name: t("lab.chat.send") }));
+  await vi.waitFor(() => expect(screen.getByRole("region", { name: t("pixelSim.notebook.title") }).textContent).toContain("S41"));
+  fireEvent.click(screen.getByRole("button", { name: t("family.leave") }));
+  vi.stubGlobal("fetch", vi.fn(async (request: Request) => request.url.endsWith("/rooms")
+    ? Response.json({ room_id: ROOM, token: "new-token" }) : Response.json(view(STORY))));
+  fireEvent.click(await screen.findByRole("button", { name: t("family.startSolo") }));
+  await screen.findByLabelText(t("lab.chat.label"));
+  const notebook = screen.getByRole("region", { name: t("pixelSim.notebook.title") });
+  expect(notebook.textContent).not.toContain("S41");
+  expect(notebook.textContent).toContain(t("pixelSim.notebook.empty"));
+});

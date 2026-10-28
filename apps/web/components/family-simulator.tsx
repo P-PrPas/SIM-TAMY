@@ -167,6 +167,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
     sessionStorage.removeItem(storageKey); sessionStorage.removeItem(`${storageKey}:join-token`);
     setCredentials(null); setView(null); setPending(null); setError("");
     setCopied(false); setCopyFailed(false);
+    setCards([]); setTalking(false);
   }
 
   async function copyInvitation() {
@@ -178,7 +179,8 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
   const pixel = storyId === PIXEL_STORY;
   const lastTurn = view?.transcript.at(-1);
   // Mood only reacts to choice steps; step 1 is the free-chat discover step whose "continue" has no meaning.
-  const mood = pixel && (view?.completed_steps ?? 0) >= 2 ? lastTurn?.mood : null;
+  const mood = pixel && (view?.completed_steps ?? 0) >= 2
+    && (!view?.scene || view.scene.speaker_th === lastTurn?.speaker_th) ? lastTurn?.mood : null;
   const addCards = (found: components["schemas"]["FamilyCitation"][]) => setCards((prior) => [...prior,
     ...found.map((c) => ({ id: `${c.knowledge_id}:${c.claim_id}`, source_id: c.source_id, title: c.title }))
       .filter((c, i, all) => !prior.some((p) => p.id === c.id) && all.findIndex((a) => a.id === c.id) === i)]);
