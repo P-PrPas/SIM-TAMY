@@ -111,3 +111,49 @@ it("keeps the result, final feedback and replay available when the lesson game e
     expect(screen.queryByText(t("pixelLesson.doneTitle"))).toBeNull();
   }
 });
+
+const spotUnit: UnitDetail = {
+  ...unit,
+  claims: [{ ...unit.claims[0]!, hotspots: [{ id: "h1", label_th: "spot-one", text_th: "short one" }, { id: "h2", label_th: "spot-two", text_th: "short two" }] }, ...unit.claims.slice(1)],
+};
+
+it("opens a sheet with the short text, marks the spot explored and returns focus on Esc", () => {
+  render(<PixelLesson unit={spotUnit} />);
+  const spot = screen.getByRole("button", { name: "spot-one" });
+  spot.focus();
+  fireEvent.click(spot);
+  const dlg = screen.getByRole("dialog");
+  expect(dlg.textContent).toContain("short one");
+  expect(document.activeElement).toBe(screen.getByRole("button", { name: t("pixelLesson.close") }));
+  fireEvent.keyDown(document, { key: "Escape" });
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(document.activeElement).toBe(spot);
+  expect(spot.textContent).toContain(t("pixelLesson.explored"));
+  expect(screen.getByRole("button", { name: t("pixelLesson.next") }).hasAttribute("disabled")).toBe(false);
+});
+
+it("closes the sheet from the close button and the backdrop", () => {
+  render(<PixelLesson unit={spotUnit} />);
+  fireEvent.click(screen.getByRole("button", { name: /spot-two/ }));
+  fireEvent.click(screen.getByRole("button", { name: t("pixelLesson.close") }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: /spot-two/ }));
+  fireEvent.click(screen.getByRole("dialog").parentElement!);
+  expect(screen.queryByRole("dialog")).toBeNull();
+});
+
+it("keeps the full claim behind read more and the sources behind the info button", () => {
+  render(<PixelLesson unit={spotUnit} />);
+  expect(screen.queryByText("tradition claim one")).toBeNull();
+  expect(screen.queryByText(/S41/)).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: t("pixelLesson.readMore") }));
+  expect(screen.getByText("tradition claim one")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: new RegExp(t("pixelLesson.sourcesBtn")) }));
+  expect(screen.getByRole("dialog").textContent).toContain("S41 · T · page 1");
+});
+
+it("falls back to the plain card when a claim has no hotspots", () => {
+  render(<PixelLesson unit={unit} />);
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.getByText("tradition claim one")).toBeTruthy();
+});

@@ -45,11 +45,29 @@ class SourceLocator(Model):
     locator: NonBlank  # section / page / table in the source, or the KB report page
 
 
+class Hotspot(Model):
+    """A tappable spot in a lesson picture: a 1-3 word label and one short plain sentence.
+
+    A faithful shortening of its own claim's `text_th`; provenance is the claim's `locators`.
+    """
+
+    id: str = Field(pattern=r"^h\d+$")
+    label_th: NonBlank
+    text_th: NonBlank
+
+
 class KnowledgeClaim(Model):
     id: str = Field(pattern=r"^c\d+$")
     type: ClaimType
     text_th: NonBlank
     locators: list[SourceLocator] = Field(min_length=1)
+    hotspots: list[Hotspot] = []
+
+    @model_validator(mode="after")
+    def unique_hotspots(self) -> "KnowledgeClaim":
+        if len({h.id for h in self.hotspots}) != len(self.hotspots):
+            raise ValueError("duplicate hotspot ID")
+        return self
 
 
 class ThaiWisdomLens(Model):

@@ -83,12 +83,20 @@ def test_unit_detail_resolves_sources_and_lens(client: TestClient) -> None:
     }
     assert body["review_basis"] == "knowledge_base_2026" and body["domain"] == 10
     claim = body["claims"][0]
-    assert set(claim) == {"id", "type", "text_th", "sources"}
+    assert set(claim) == {"id", "type", "text_th", "sources", "hotspots"}
     assert set(claim["sources"][0]) == {"source_id", "title", "url", "locator"}
     assert claim["sources"][0]["source_id"] == "S23" and "KB 2026" in claim["sources"][0]["locator"]
     assert set(body["lens"]) == {"wisdom_th", "safety_th", "rights_th"}
     plain = client.get("/v1/knowledge/units/KB-PP-WARN-001").json()
     assert plain["lens"] is None and plain["escalation_th"]
+
+
+def test_unit_detail_exposes_lesson_hotspots(client: TestClient) -> None:
+    claims = client.get("/v1/knowledge/units/KB-TM-ELEMENT-001").json()["claims"]
+
+    assert [len(c["hotspots"]) for c in claims] == [5, 2, 3, 6, 5]
+    assert set(claims[0]["hotspots"][0]) == {"id", "label_th", "text_th"}
+    assert client.get("/v1/knowledge/units/KB-PP-WARN-001").json()["claims"][0]["hotspots"] == []
 
 
 def test_unknown_unit_is_a_404_envelope(client: TestClient) -> None:
