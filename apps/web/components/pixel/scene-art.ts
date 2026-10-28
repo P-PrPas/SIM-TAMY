@@ -1,28 +1,18 @@
+import { STAGE2_BACKDROPS, STAGE2_CARD_SLOTS, STAGE2_ITEMS, STAGE2_ITEM_OF } from "./art/scene-stage2";
+import { STAGE3_BACKDROPS, STAGE3_CARD_SLOTS, STAGE3_ITEMS, STAGE3_ITEM_OF } from "./art/scene-stage3";
+import { STAGE4_BACKDROPS, STAGE4_CARD_SLOTS, STAGE4_ITEMS, STAGE4_ITEM_OF } from "./art/scene-stage4";
+import { blank, box, outlined, planks, put, slats, type Rect } from "./art/draw";
 import type { Frame } from "./sprite";
 
 /** Pixel art for the family scene, drawn in code (no assets). Logical scene size is 320x180. */
-export const SCENE_W = 320;
-export const SCENE_H = 180;
+export { SCENE_H, SCENE_W } from "./art/draw";
 export const CHAR_W = 32;
 export const CHAR_H = 48;
 
 export type Mood = "warm" | "open";
-export type CharacterKey = "ploy" | "ton" | "teacher" | "mom" | "neutral";
+export type CharacterKey = "ploy" | "ton" | "teacher" | "mom" | "mali" | "non" | "yai" | "counselor" | "neutral";
 export type CharState = "idle" | "talk" | "warm" | "open";
-export type Backdrop = "sala" | "kitchen";
-export type Rect = readonly [x: number, y: number, w: number, h: number, key: string];
-
-type Grid = string[][];
-const blank = (w: number, h: number): Grid => Array.from({ length: h }, () => Array<string>(w).fill("."));
-function box(g: Grid, x: number, y: number, w: number, h: number, k: string) {
-  for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) if (g[j]?.[i] !== undefined) g[j]![i] = k;
-}
-const put = (g: Grid, x: number, y: number, k: string) => box(g, x, y, 1, 1, k);
-/** 1px dark outline around every filled pixel. */
-function outlined(g: Grid): Frame {
-  return g.map((row, y) => row.map((c, x) => c !== "." ? c
-    : [g[y - 1]?.[x], g[y + 1]?.[x], row[x - 1], row[x + 1]].some((n) => n !== undefined && n !== ".") ? "k" : ".").join(""));
-}
+export type { Rect };
 
 type Look = { hair: string; cloth: string; trim: string; long?: boolean; bun?: boolean; glasses?: boolean; skirt?: boolean };
 type Pose = { eyes: "open" | "blink" | "happy"; mouth: "flat" | "open" | "smile" | "hmm"; dy?: number; tilt?: number; wave?: boolean; blush?: boolean };
@@ -32,6 +22,11 @@ const LOOKS: Record<CharacterKey, Look> = {
   ton: { hair: "h", cloth: "b", trim: "p" },
   teacher: { hair: "l", cloth: "o", trim: "p", glasses: true },
   mom: { hair: "m", cloth: "g", trim: "y", bun: true, skirt: true },
+  // TODO(art): placeholder looks for the stage 2-4 cast; the stage PRs may refine them.
+  mali: { hair: "h", cloth: "y", trim: "r", long: true, skirt: true },
+  non: { hair: "h", cloth: "g", trim: "p" },
+  yai: { hair: "l", cloth: "m", trim: "y", bun: true, skirt: true },
+  counselor: { hair: "d", cloth: "x", trim: "g", bun: true, skirt: true },
   neutral: { hair: "m", cloth: "l", trim: "p" },
 };
 
@@ -104,12 +99,7 @@ export const NOTEBOOK: Frame = (() => {
   return outlined(g);
 })();
 
-const planks = (y: number, h: number, step: number, key: string): Rect[] =>
-  Array.from({ length: Math.ceil(h / step) }, (_, i): Rect => [0, y + i * step, SCENE_W, 1, key]);
-const slats = (y: number, h: number, step: number, key: string): Rect[] =>
-  Array.from({ length: SCENE_W / step }, (_, i): Rect => [i * step, y, 1, h, key]);
-
-export const BACKDROPS: Record<Backdrop, readonly Rect[]> = {
+const BASE_BACKDROPS = {
   sala: [
     [0, 0, 320, 128, "c"], ...slats(18, 110, 20, "l"),
     [0, 0, 320, 18, "d"], ...slats(0, 18, 24, "w"),
@@ -130,24 +120,44 @@ export const BACKDROPS: Record<Backdrop, readonly Rect[]> = {
     [148, 101, 16, 9, "p"], [150, 101, 12, 3, "r"], [170, 99, 18, 11, "x"], [172, 99, 14, 3, "y"],
     [196, 106, 26, 4, "g"], [200, 103, 18, 3, "c"],
   ],
-};
+} satisfies Record<string, readonly Rect[]>;
+
+/** Every backdrop; stage PRs add theirs in art/scene-stageN.ts. Each key also needs a `pixelSim.backdrop.<key>` string. */
+export const BACKDROPS = { ...BASE_BACKDROPS, ...STAGE2_BACKDROPS, ...STAGE3_BACKDROPS, ...STAGE4_BACKDROPS } satisfies Record<string, readonly Rect[]>;
+export type Backdrop = keyof typeof BACKDROPS;
 
 /** Table slots (logical px) for notebook cards on the kitchen backdrop. */
 export const TABLE_CARDS: readonly (readonly [number, number])[] = Array.from({ length: 8 }, (_, i) => [92 + i * 17, 101] as const);
+/** Where collected knowledge cards sit, per backdrop. Backdrops without an entry show none. */
+export const CARD_SLOTS: Partial<Record<string, readonly (readonly [number, number])[]>> = {
+  kitchen: TABLE_CARDS, ...STAGE2_CARD_SLOTS, ...STAGE3_CARD_SLOTS, ...STAGE4_CARD_SLOTS,
+};
 
 /** Choice-card icons (display-only keys from the story's `icon`) and the table props they can leave behind. */
-export type ChoiceIcon = "book" | "notebook" | "pot" | "talk" | "pause" | "menu" | "arrow";
-export type ItemKey = "pot" | "notes";
+export type ChoiceIcon = "book" | "notebook" | "pot" | "talk" | "pause" | "menu" | "arrow" | "phone" | "baby" | "house" | "heart" | "help";
 export const ICONS: Record<ChoiceIcon, Frame> = {
   book: ["kkkkkkkkkkkk", "kppppkkppppk", "kpmmpkkpmmpk", "kppppkkppppk", "kpmmpkkpmmpk", "kppppkkppppk", "kpmmpkkpmmpk", "kkkkkkkkkkkk"],
   notebook: ["kkkkkkkkkk", "kdkppppppk", "kdkpmmmmpk", "kdkppppppk", "kdkpmmmmpk", "kdkppppppk", "kdkpmmpppk", "kdkppppppk", "kkkkkkkkkk"],
-  pot: ["....kkkk....", "..kkoooookk..", ".kyyyyyyyyk.", "kkkkkkkkkkkk", "kwoooooooowk", "kwoooooooowk", "kwoooooooowk", ".kwwwwwwwwk.", "..kkkkkkkk.."],
+  pot: ["....kkkk....", "..kkooookk..", ".kyyyyyyyyk.", "kkkkkkkkkkkk", "kwoooooooowk", "kwoooooooowk", "kwoooooooowk", ".kwwwwwwwwk.", "..kkkkkkkk.."],
   talk: ["kkkkkkkkkkkk", "kppppppppppk", "kpkpkpkpkppk", "kppppppppppk", "kkkkkpkkkkkk", "....kpk.....", ".....k......"],
   pause: ["..kkk..kkk..", "..kyk..kyk..", "..kyk..kyk..", "..kyk..kyk..", "..kyk..kyk..", "..kyk..kyk..", "..kkk..kkk.."],
   menu: ["kkkkkkkkkkkk", "kppppppppppk", "kpgpmmmmmppk", "kppppppppppk", "kprpmmmmmppk", "kppppppppppk", "kpypmmmmmppk", "kppppppppppk", "kkkkkkkkkkkk"],
   arrow: ["......k.....", "......kk....", "kkkkkkkyk...", "kyyyyyyyyk..", "kkkkkkkyk...", "......kk....", "......k....."],
+  phone: ["..kkkkkkkk..", "..kppppppk..", "..kpmmmmpk..", "..kpmmmmpk..", "..kpmmmmpk..", "..kpppppk...", "..kpkkkpk...", "..kppppppk..", "..kkkkkkkk.."],
+  baby: [".....kk.....", "...kkssk....", "..ksskksk...", "..kskkkskk..", "..ksrssrsk..", "..kssrrssk..", "...kssssk...", ".kkkyyyykkk.", "kyyyyyyyyyyk", ".kkkkkkkkkk."],
+  house: ["......kk......", "....kkrrkk....", "..kkrrrrrrkk..", ".krrrrrrrrrrk.", "kkkkkkkkkkkkkk", ".kpppppppppk..", ".kppkkppkkpk..", ".kppkkppkkpk..", ".kpppkddkppk..", ".kkkkkddkkkk.."],
+  heart: [".kk...kk.", "krrk.krrk", "krrrkrrrk", "krrrrrrrk", ".krrrrrk.", "..krrrk..", "...krk...", "....k...."],
+  help: ["....kkkk....", "...kyyyyk...", "..kyykkyyk..", "..kyykkyyk..", "...kkyykk...", "....kyyk....", "....kkkk....", "....kyyk....", "....kkkk...."],
 };
-/** A committed choice's icon decides which prop appears on the kitchen table. */
-export const ITEM_OF: Partial<Record<ChoiceIcon, ItemKey>> = { pot: "pot", notebook: "notes", menu: "notes", book: "notes" };
-export const ITEM_ART: Record<ItemKey, Frame> = { pot: ICONS.pot, notes: NOTEBOOK };
-export const ITEM_AT: Record<ItemKey, readonly [number, number]> = { pot: [118, 92], notes: [196, 96] };
+/** A committed choice's icon can leave a prop behind. `on` lists the backdrops it shows on (default: the kitchen). */
+type ItemDef = { art: Frame; at: readonly [x: number, y: number]; scale?: number; on?: readonly string[] };
+const BASE_ITEMS = {
+  pot: { art: ICONS.pot, at: [118, 92], scale: 2 },
+  notes: { art: NOTEBOOK, at: [196, 96] },
+} satisfies Record<string, ItemDef>;
+export const ITEMS = { ...BASE_ITEMS, ...STAGE2_ITEMS, ...STAGE3_ITEMS, ...STAGE4_ITEMS } satisfies Record<string, ItemDef>;
+export type ItemKey = keyof typeof ITEMS;
+export const ITEM_OF: Partial<Record<ChoiceIcon, ItemKey>> = {
+  pot: "pot", notebook: "notes", menu: "notes", book: "notes", ...STAGE2_ITEM_OF, ...STAGE3_ITEM_OF, ...STAGE4_ITEM_OF,
+};
+export const itemShownOn = (k: ItemKey, backdrop: string) => ((ITEMS[k] as ItemDef).on ?? ["kitchen"]).includes(backdrop);

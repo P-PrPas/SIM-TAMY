@@ -7,3 +7,10 @@ export const PIXEL_STORIES: ReadonlySet<string> = new Set(["thai-elements-family
 export function isPixelStory(id: string): boolean {
   return PIXEL_STORIES.has(id);
 }
+
+/** Lessons shown as pixel story cards with tap-to-learn hotspots (LP-01). A stage PR adds its unit id once hotspots and art are in. */
+export const PIXEL_LESSONS: ReadonlySet<string> = new Set(["KB-TM-ELEMENT-001"]);
+
+export function isPixelLesson(id: string): boolean {
+  return PIXEL_LESSONS.has(id);
+}

@@ -7,7 +7,7 @@ from pydantic import Field
 
 from app.core.limits import MAX_TEXT_CHARS
 from app.domain.case import Model
-from app.domain.family import EvidenceStatus, FamilyRole, FamilySkill, FamilySource
+from app.domain.family import EvidenceStatus, FamilyIcon, FamilyRole, FamilySkill, FamilySource
 
 
 class FamilyCreate(Model):
@@ -87,7 +87,7 @@ class FamilyOption(Model):
     id: str
     text_th: str
     short_th: str | None = None  # display-only card label (pixel stage); falls back to text_th
-    icon: Literal["book", "notebook", "pot", "talk", "pause", "menu", "arrow"] | None = None
+    icon: FamilyIcon | None = None
 
 
 class FamilyScene(Model):

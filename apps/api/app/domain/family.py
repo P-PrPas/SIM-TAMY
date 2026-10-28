@@ -24,7 +24,20 @@ UNIT_ID = r"^KB-[A-Z]+-[A-Z]+-\d{3}$"
 OBJECTIVE_ID = r"^OBJ-\d-\d{2}$"
 CONTINUE = "continue"  # the single choice that closes a discover step
 # Pixel icon keys for choice cards (display only; the web draws them)
-FamilyIcon = Literal["book", "notebook", "pot", "talk", "pause", "menu", "arrow"]
+FamilyIcon = Literal[
+    "book",
+    "notebook",
+    "pot",
+    "talk",
+    "pause",
+    "menu",
+    "arrow",
+    "phone",
+    "baby",
+    "house",
+    "heart",
+    "help",
+]
 SHORT_MAX = 30  # card labels stay a glance long (about 25 Thai characters)
 
 

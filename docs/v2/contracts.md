@@ -178,6 +178,17 @@ join-code assignments, the story routes and the course tabs. Everything else is 
 label (not a review label, rule 9) and direct URLs show a notice. `NEXT_PUBLIC_SHOW_ALL_CONTENT=true` opens everything
 (dev, CI and the e2e web servers). Content, APIs, sessions and scoring are unchanged.
 
+### Adding a stage to the pixel mode (LP-01)
+
+Each stage is one lesson plus one scenario (`lib/learning-path.ts`). A stage PR touches only its own files:
+- `components/pixel/art/scene-stageN.ts`: backdrops (also add `pixelSim.backdrop.<key>`), table/scene props (`ITEMS`, `ITEM_OF`: choice icon to prop) and knowledge-card slots; drawing helpers live in `art/draw.ts`.
+- `components/pixel/art/lesson-stageN.ts`: 96x64 illustrations (helpers in `lesson-draw.ts`) and `unit id -> kind per claim`.
+- `components/pixel/cast.ts`: who plays mother and father and which backdrop each step kind uses. The player's own character stands on the left; when the speaker is that character the partner stands there instead.
+- `components/pixel/scene-art.ts`: only to refine a character look (`LOOKS`) or add a choice icon. Choice icons are an enum in `FamilyIcon` (domain/family.py), `docs/openapi.yaml` and `schema.d.ts`: book, notebook, pot, talk, pause, menu, arrow, phone, baby, house, heart, help.
+- `components/pixel/registry.ts`: add the story id to `PIXEL_STORIES` and the unit id to `PIXEL_LESSONS`. The nursery-house zone for that stage opens when both are registered.
+- Content: `hotspots` on each claim and `short_th` / `icon` on each choice.
+Speaker names map to sprites through `pixelSim.name.<key>` (`characterOf` in `scene-view.tsx`); add a key for any new speaker.
+
 ### Pixel nursery house and end-of-chapter reveal (LP-03)
 
 `/learn` renders a code-drawn "บ้านต้อนรับลูก" with four stage zones (only stage 1 open). Items come only
