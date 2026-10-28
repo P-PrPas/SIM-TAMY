@@ -529,6 +529,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/knowledge/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Release */
+        get: operations["getKnowledgeRelease"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/knowledge/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sources */
+        get: operations["listKnowledgeSources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/knowledge/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Units */
+        get: operations["listKnowledgeUnits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/knowledge/units/{unit_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Unit */
+        get: operations["getKnowledgeUnit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-paths": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Learning Paths */
+        get: operations["listLearningPaths"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1389,6 +1474,151 @@ export interface components {
             /** Transcript */
             transcript: components["schemas"]["FamilyExchange"][];
             report: components["schemas"]["FamilyReport"] | null;
+        };
+        /** KnowledgeReleaseInfo */
+        KnowledgeReleaseInfo: {
+            /** Id */
+            id: string;
+            /** Unit Count */
+            unit_count: number;
+        };
+        /** SourceItem */
+        SourceItem: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "catalog" | "kb_source";
+            /** Title */
+            title: string;
+            /** Publisher */
+            publisher?: string | null;
+            /** Year */
+            year?: string | null;
+            /** Url */
+            url?: string | null;
+            /**
+             * Rights Status
+             * @enum {string}
+             */
+            rights_status: "unknown" | "metadata_only" | "public_web" | "own_summary";
+        };
+        /** SourceList */
+        SourceList: {
+            /** Items */
+            items: components["schemas"]["SourceItem"][];
+        };
+        /** UnitListItem */
+        UnitListItem: {
+            /** Id */
+            id: string;
+            /** Version */
+            version: string;
+            /** Title Th */
+            title_th: string;
+            /** Care Stage */
+            care_stage: string;
+            /** Domain */
+            domain: number;
+            /** Has Lens */
+            has_lens: boolean;
+        };
+        /** UnitList */
+        UnitList: {
+            /** Release Id */
+            release_id: string;
+            /** Items */
+            items: components["schemas"]["UnitListItem"][];
+        };
+        /** ClaimSource */
+        ClaimSource: {
+            /** Source Id */
+            source_id: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+            /** Locator */
+            locator: string;
+        };
+        /** ClaimView */
+        ClaimView: {
+            /** Id */
+            id: string;
+            /** Type */
+            type: string;
+            /** Text Th */
+            text_th: string;
+            /** Sources */
+            sources: components["schemas"]["ClaimSource"][];
+        };
+        /** LensView */
+        LensView: {
+            /** Wisdom Th */
+            wisdom_th: string;
+            /** Safety Th */
+            safety_th: string;
+            /** Rights Th */
+            rights_th: string;
+        };
+        /** UnitDetail */
+        UnitDetail: {
+            /** Id */
+            id: string;
+            /** Version */
+            version: string;
+            /** Title Th */
+            title_th: string;
+            /** Care Stage */
+            care_stage: string;
+            /** Domain */
+            domain: number;
+            /** Evidence Status */
+            evidence_status: string;
+            /** Review Basis */
+            review_basis: string;
+            /** Reviewed On */
+            reviewed_on: string;
+            /** Claims */
+            claims: components["schemas"]["ClaimView"][];
+            lens?: components["schemas"]["LensView"] | null;
+            /** Contraindications Th */
+            contraindications_th: string[];
+            /** Escalation Th */
+            escalation_th?: string | null;
+        };
+        /** ObjectiveView */
+        ObjectiveView: {
+            /** Id */
+            id: string;
+            /** Title Th */
+            title_th: string;
+            /** Dimension */
+            dimension: string;
+            /** Unit Ids */
+            unit_ids: string[];
+            /** Story Ids */
+            story_ids: string[];
+        };
+        /** StageView */
+        StageView: {
+            /** Stage */
+            stage: number;
+            /** Title Th */
+            title_th: string;
+            /** Summary Th */
+            summary_th: string;
+            /** Objectives */
+            objectives: components["schemas"]["ObjectiveView"][];
+        };
+        /** LearningPathsView */
+        LearningPathsView: {
+            /** Release Id */
+            release_id: string;
+            /** Stages */
+            stages: components["schemas"]["StageView"][];
         };
     };
     responses: {
@@ -2612,6 +2842,111 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FamilyView"];
+                };
+            };
+        };
+    };
+    getKnowledgeRelease: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeReleaseInfo"];
+                };
+            };
+        };
+    };
+    listKnowledgeSources: {
+        parameters: {
+            query?: {
+                kind?: ("catalog" | "kb_source") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceList"];
+                };
+            };
+        };
+    };
+    listKnowledgeUnits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitList"];
+                };
+            };
+        };
+    };
+    getKnowledgeUnit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                unit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listLearningPaths: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningPathsView"];
                 };
             };
         };
