@@ -7,7 +7,7 @@ const webUrl = "http://127.0.0.1:3100";
 
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: ["**/competition-demo.spec.ts", "**/golden-scenarios.spec.ts"],
+  testMatch: ["**/competition-demo.spec.ts", "**/golden-scenarios.spec.ts", "**/thai-curriculum-live.spec.ts"],
   timeout: 180_000,
   expect: { timeout: 15_000 }, // the first visit to a route in `next dev` compiles it
   workers: 1,

@@ -54,7 +54,7 @@ def test_gs_a_has_a_joint_critical_step_and_gs_b_has_no_emergency_gate() -> None
     assert not any(s.critical for s in b.steps)
     assert (a.objective_ids, b.objective_ids) == (
         ["OBJ-3-01", "OBJ-3-03"],
-        ["OBJ-3-02", "OBJ-3-03"],
+        ["OBJ-3-02", "OBJ-3-03", "OBJ-3-04"],
     )
 
 

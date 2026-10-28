@@ -1,10 +1,11 @@
 id: gs-b-thai-recovery
-version: '1.0'
+version: '1.1'
 status: Draft
 mode: coop
 stage: 3
-objective_ids: [OBJ-3-02, OBJ-3-03]
-knowledge_unit_ids: [KB-TM-REST-001, KB-TM-SAFE-001, KB-TM-HERB-001, KB-RIGHTS-SCOPE-001, KB-RIGHTS-CONSENT-001, KB-PP-WARN-001]
+objective_ids: [OBJ-3-02, OBJ-3-03, OBJ-3-04]
+knowledge_unit_ids: [KB-TM-REST-001, KB-TM-SAFE-001, KB-TM-HERB-001, KB-RIGHTS-SCOPE-001, KB-RIGHTS-CONSENT-001, KB-PP-WARN-001, KB-TM-FOOD-001]
+# Version 1.1 adds optional food/evidence questions from the four-stage KB, §3.5–3.6, pp.11–12.
 # Golden Scenario GS-B (Blueprint section 06): the positive Thai-service route. No emergency here.
 # Authored only from docs/knowledge base/Thai_Midwifery_Knowledge_Base_2026.pdf section 4
 # (assessment principles before using Thai recovery activities, integration with the health team)
@@ -73,6 +74,16 @@ sources:
     url: https://www.who.int/tools/your-life-your-health/life-phase/pregnancy--birth-and-after-childbirth/getting-the-health-services-you-need-after-childbirth
     category: guidance
     summary_th: ข้อมูลสุขภาพของ WHO เรื่องการรับบริการและสัญญาณอันตรายหลังคลอดสำหรับประชาชน
+  - id: S48
+    title_th: การทดลองปลูกไฟธาตุปี 2025 ในแม่หลังคลอด 60 คน
+    url: https://pubmed.ncbi.nlm.nih.gov/41043593/
+    category: limited_evidence
+    summary_th: ผลปริมาณน้ำนมในเงื่อนไขทดลองระยะสั้น ไม่ใช่คำแนะนำให้ใช้ตำรับเอง
+  - id: S49
+    title_th: การทดลองปลูกไฟธาตุปี 2020 ในแม่หลังคลอด 49 คน
+    url: https://he01.tci-thaijo.org/index.php/JTTAM/article/view/240148
+    category: limited_evidence
+    summary_th: ไม่พบความต่างอย่างมีนัยสำคัญของการเพิ่มปริมาณน้ำนมเฉลี่ยระหว่างกลุ่มภายในสามวัน ต้องอ่านผลและข้อจำกัดควบคู่กัน
 steps:
   - id: ask-service-mother
     chapter_th: ก่อนไปศูนย์บริการ
@@ -83,8 +94,20 @@ steps:
     prompt_th: มะลิโทรไปสอบถามศูนย์บริการแพทย์แผนไทยใกล้บ้านก่อนไปใช้บริการฟื้นฟูหลังคลอด พิมพ์ถามพี่ปลาอย่างสุภาพ เมื่อพอแล้วจึงกดไปต่อ
     abstain_th: เรื่องนี้พี่ยังไม่มีข้อมูลอ้างอิงที่ยืนยันได้ในตอนนี้ ลองถามผู้ให้บริการที่ตรวจดูมะลิโดยตรงนะคะ
     min_reveals: 1
-    source_ids: [S19, S22]
+    source_ids: [S19, S22, S48, S49]
     intents:
+      - id: ASK_FOOD_TRADITION
+        label_th: ถามเรื่องสำรับหลังคลอดกับของแสลง
+        examples_th: [อาหารหลังคลอดควรดูอะไร, ของแสลงต้องงดทุกอย่างไหม, สำรับอาหารของยายมีความหมายอย่างไร]
+        unit_ids: [KB-TM-FOOD-001]
+        dimension: evidence_scope
+        reply_th: เริ่มจากฟังที่มาของสำรับและดูส่วนผสม ความหลากหลาย ความสะอาดกับอาหารที่แพ้ ไม่งดหลายหมวดเพียงเพราะเรียกว่าของแสลง และไม่รับรองว่าเมนูใดเพิ่มน้ำนมได้เสมอค่ะ
+      - id: ASK_MILK_EVIDENCE
+        label_th: ถามว่างานวิจัยสมุนไพรเพิ่มน้ำนมบอกอะไรได้บ้าง
+        examples_th: [มีงานวิจัยสมุนไพรเพิ่มน้ำนมหรือยัง, ปลูกไฟธาตุพิสูจน์แล้วหรือยัง, ผลทดลองสมุนไพรใช้กับทุกคนได้ไหม]
+        unit_ids: [KB-TM-FOOD-001]
+        dimension: evidence_scope
+        reply_th: มีงานทดลอง แต่ผลและเงื่อนไขต่างกัน งานปี 2025 ใน 60 คนรายงานผลระยะสั้น ส่วนงานปี 2020 ใน 49 คนไม่พบความต่างของการเพิ่มปริมาณน้ำนมเฉลี่ยระหว่างกลุ่ม จึงไม่ใช่คำรับรองให้ทุกคนใช้เองค่ะ
       - id: ASK_PURPOSE
         label_th: ถามว่าบริการฟื้นฟูแบบไทยหลังคลอดมีไว้เพื่ออะไร
         examples_th: [บริการนี้ช่วยอะไร, นวดประคบสมุนไพรทำเพื่ออะไร, บริการฟื้นฟูหลังคลอดแบบไทยคืออะไร]
@@ -169,9 +192,9 @@ steps:
     chapter_th: ผู้ใหญ่ดีใจ
     role: father
     speaker_th: ยายสาย
-    prompt_th: ยายสายดีใจมากที่ไปใช้บริการแบบไทย และบอกว่าจะต้มสมุนไพรให้มะลิดื่มด้วย พิมพ์ตอบยายหรือกดเลือกด้านล่างก็ได้
+    prompt_th: ยายสายอยากทำแกงเลียงกับสำรับอุ่นที่บ้านคุ้นเคยให้มะลิได้พัก และบอกว่าจะต้มสมุนไพรให้ดื่มด้วย นนท์จะคุยอย่างไรให้แยกอาหารที่ช่วยกันเตรียมออกจากยาสมุนไพรที่ต้องถามก่อนใช้ พิมพ์ตอบยายหรือกดเลือกด้านล่างก็ได้
     prompt_if:
-      fact:f-herb: ยายสายดีใจมากที่ไปใช้บริการแบบไทย และบอกว่าจะต้มสมุนไพรให้มะลิดื่มด้วย นนท์เพิ่งได้ข้อมูลมาว่าสมุนไพรมีเรื่องที่ควรถามก่อน
+      fact:f-herb: ยายสายอยากทำแกงเลียงกับสำรับอุ่นให้มะลิได้พัก และบอกว่าจะต้มสมุนไพรให้ดื่มด้วย นนท์เพิ่งได้ข้อมูลมาว่าสมุนไพรมีเรื่องที่ควรถามก่อน จะคุยแยกอาหารออกจากยาสมุนไพรอย่างไรดี
     source_ids: [S22, S23]
     card:
       tradition_th: บริการฟื้นฟูหลังคลอดแบบไทย เช่น นวดประคบสมุนไพร อบสมุนไพร และทับหม้อเกลือ เป็นภูมิปัญญาที่ผู้ใหญ่หลายบ้านภูมิใจและสืบต่อกันมา

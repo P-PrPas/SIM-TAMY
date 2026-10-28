@@ -18,7 +18,7 @@ Each unit distinguishes traditional explanation, present-day guidance, and the l
 using the existing claim types, source locators and Thai Wisdom Lens. Unit-level `synthesis` and
 `knowledge_base_2026` provenance do not mean expert review or clinical certification.
 
-## Exercise map (planned follow-up changes)
+## Exercise map
 
 - `thai-elements-family`: stage 1, OBJ-1-03/04; optional typed questions, source comparison and family planning.
 - `thai-birth-conversation`: stage 2, OBJ-2-02/03; history, birth preferences and informed discussion.
