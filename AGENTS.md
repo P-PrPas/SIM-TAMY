@@ -85,6 +85,7 @@ Defined in the root `Makefile` (ticket T-001). If a target is missing, add it ra
 | `make prestage URL=<api> WEB_URL=<web>` | Read-only pre-stage check: API health, web, case list, family stories, replay gallery, CORS; prints PASS/FAIL |
 | `make eval` | Golden Test Suite (T01–T10) with pass/fail table |
 | `make eval-pp001` | The same runner on the PP-001 draft scenario (`eval/golden/pp001/`) |
+| `make eval-v2 [PROVIDER=env]` | AI-01 labeled Thai sets (`eval/v2/`: paraphrase, multi-turn, ambiguous, adversarial; dev + held-out); prints n, accuracy and errors. Mock by default, so numbers describe the mock |
 | `make bench` | Model comparison on the Action dev set |
 | `make rescore SESSION=<id>` | Re-score from the Event Log |
 | `make stats` / `make cost-report` | Latency / LLM cost summaries |

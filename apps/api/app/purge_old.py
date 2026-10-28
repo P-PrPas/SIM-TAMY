@@ -92,7 +92,7 @@ def purge_family(db: Session, *, cutoff: datetime) -> int:
     )
     if not ids:
         return 0
-    db.execute(delete(LlmCall).where(LlmCall.session_id.in_(ids)))
+    db.execute(delete(LlmCall).where(LlmCall.session_id.in_(ids) | LlmCall.room_id.in_(ids)))
     db.execute(delete(FamilyRoom).where(FamilyRoom.id.in_(ids)))
     return len(ids)
 

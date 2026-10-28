@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 PY := $(VENV)/Scripts/python
 endif
 
-.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e test-e2e-live test-e2e-demo validate-content leakcheck eval eval-pp001 eval-parents bench rescore stats cost-report purge-old seed-demo demo-reset prestage loadcheck demo
+.PHONY: help install up down migrate mock-api gen-api gen-content-schemas check-content-schemas lint test test-coverage test-e2e test-e2e-live test-e2e-demo validate-content leakcheck eval eval-pp001 eval-parents eval-v2 bench rescore stats cost-report purge-old seed-demo demo-reset prestage loadcheck demo
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1 | tr '\n' ' '; echo
@@ -80,6 +80,9 @@ eval-pp001:
 # The courses for new dads and moms (eval/golden/parents/T*.yaml, one case per file).
 eval-parents:
 	cd $(API) && CONTENT_DIR=../../content ../../$(PY) ../../eval/run_eval.py --golden-dir ../../eval/golden/parents
+# AI-01 labeled Thai sets (eval/v2/dev.yaml + heldout.yaml); mock by default, `make eval-v2 PROVIDER=env` for the configured LLM.
+eval-v2:
+	cd $(API) && PYTHONPATH=. CONTENT_DIR=../../content ../../$(PY) ../../eval/v2/run_eval_v2.py $(if $(PROVIDER),--provider $(PROVIDER))
 bench:
 	cd $(API) && ../../$(PY) ../../eval/model_bench.py $(BENCH_ARGS)
 # Rebuilds the score from the Event Log and diffs it with the stored report (needs DATABASE_URL).

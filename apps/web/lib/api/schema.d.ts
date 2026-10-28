@@ -614,6 +614,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/family/rooms/{room_id}/debrief": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Debrief */
+        post: operations["getFamilyDebrief"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/family/rooms/{room_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Message */
+        post: operations["sendFamilyMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -654,6 +688,7 @@ export interface components {
         };
         /** FamilyKnowledgeCard */
         FamilyKnowledgeCard: {
+            lens?: components["schemas"]["FamilyLensView"] | null;
             /** Tradition Th */
             tradition_th: string;
             /** Learning Point Th */
@@ -1287,6 +1322,8 @@ export interface components {
              * @enum {string}
              */
             role: "mother" | "father";
+            /** Assignment Id */
+            assignment_id?: string | null;
         };
         /** FamilyCreated */
         FamilyCreated: {
@@ -1361,6 +1398,13 @@ export interface components {
         FamilyReport: {
             /** Safety Status */
             safety_status: string;
+            /** Score Total */
+            score_total?: number | null;
+            /**
+             * Dimensions
+             * @default []
+             */
+            dimensions: components["schemas"]["FamilyDimension"][];
             /** Competencies */
             competencies: components["schemas"]["FamilyCompetency"][];
             /** Evidence */
@@ -1392,6 +1436,24 @@ export interface components {
             joint: boolean;
             vote?: components["schemas"]["FamilyVote"] | null;
             card?: components["schemas"]["FamilyKnowledgeCard"] | null;
+            /**
+             * Kind
+             * @default choice
+             * @enum {string}
+             */
+            kind: "choice" | "discover";
+            /** Character Th */
+            character_th?: string | null;
+            /**
+             * Accepts Text
+             * @default false
+             */
+            accepts_text: boolean;
+            /**
+             * Can Continue
+             * @default true
+             */
+            can_continue: boolean;
         };
         /** FamilySource */
         FamilySource: {
@@ -1474,6 +1536,13 @@ export interface components {
             /** Transcript */
             transcript: components["schemas"]["FamilyExchange"][];
             report: components["schemas"]["FamilyReport"] | null;
+            /**
+             * Dialogue
+             * @default []
+             */
+            dialogue: components["schemas"]["FamilyDialogueTurn"][];
+            /** Assignment Id */
+            assignment_id?: string | null;
         };
         /** KnowledgeReleaseInfo */
         KnowledgeReleaseInfo: {
@@ -1619,6 +1688,150 @@ export interface components {
             release_id: string;
             /** Stages */
             stages: components["schemas"]["StageView"][];
+        };
+        /**
+         * DebriefOutput
+         * @description ai.debrief.v1. Readonly fields are overwritten from the scorer before anything is shown.
+         */
+        DebriefOutput: {
+            /**
+             * Schema Version
+             * @default ai.debrief.v1
+             * @constant
+             */
+            schema_version: "ai.debrief.v1";
+            /** Attempt Id */
+            attempt_id: string;
+            /** Score Total Readonly */
+            score_total_readonly?: number | null;
+            /** Critical Safety Result Readonly */
+            critical_safety_result_readonly?: ("pass" | "fail") | null;
+            /**
+             * Strengths
+             * @default []
+             */
+            strengths: components["schemas"]["DebriefPoint"][];
+            /**
+             * Improvements
+             * @default []
+             */
+            improvements: components["schemas"]["DebriefPoint"][];
+            /**
+             * Recommended Asset Ids
+             * @default []
+             */
+            recommended_asset_ids: string[];
+            /**
+             * Cited Claim Ids
+             * @default []
+             */
+            cited_claim_ids: string[];
+            /**
+             * Fallback Used
+             * @default false
+             */
+            fallback_used: boolean;
+        };
+        /** DebriefPoint */
+        DebriefPoint: {
+            /** Text */
+            text: string;
+            /** Event Ids */
+            event_ids: string[];
+            /** Rubric Dimension Id */
+            rubric_dimension_id?: string | null;
+            /**
+             * Objective Ids
+             * @default []
+             */
+            objective_ids: string[];
+        };
+        /** FamilyCitation */
+        FamilyCitation: {
+            /** Knowledge Id */
+            knowledge_id: string;
+            /** Claim Id */
+            claim_id: string;
+            /** Source Id */
+            source_id: string;
+            /** Title */
+            title: string;
+            /** Locator */
+            locator: string;
+        };
+        /**
+         * FamilyClarification
+         * @description Allowed options as buttons. Discover options are re-sent as text; choice options vote.
+         */
+        FamilyClarification: {
+            /** Options */
+            options: components["schemas"]["FamilyOption"][];
+        };
+        /**
+         * FamilyDialogueTurn
+         * @description One typed question and the character's validated answer, visible to the asker only.
+         */
+        FamilyDialogueTurn: {
+            /** Step Id */
+            step_id: string;
+            /** Speaker Th */
+            speaker_th: string;
+            /** Text Th */
+            text_th: string;
+            /** Reply Th */
+            reply_th: string;
+        };
+        /** FamilyDimension */
+        FamilyDimension: {
+            /** Id */
+            id: string;
+            /** Weight */
+            weight: number;
+            /** Earned */
+            earned: number;
+            /** Possible */
+            possible: number;
+            /** Score */
+            score: number;
+        };
+        /** FamilyLensView */
+        FamilyLensView: {
+            /** Wisdom Th */
+            wisdom_th: string;
+            /** Safety Th */
+            safety_th: string;
+            /** Rights Th */
+            rights_th: string;
+        };
+        /**
+         * FamilyMessage
+         * @description Typed learner text (AI-01). Never commits a critical or joint decision by itself.
+         */
+        FamilyMessage: {
+            /** Text */
+            text: string;
+            /** State Version */
+            state_version: number;
+            /**
+             * Client Turn Id
+             * Format: uuid
+             */
+            client_turn_id: string;
+        };
+        /** FamilyMessageResult */
+        FamilyMessageResult: {
+            view: components["schemas"]["FamilyView"];
+            reply: components["schemas"]["FamilyReply"] | null;
+            clarification: components["schemas"]["FamilyClarification"] | null;
+        };
+        /** FamilyReply */
+        FamilyReply: {
+            /** Speaker Th */
+            speaker_th: string;
+            /** Text Th */
+            text_th: string;
+            /** Citations */
+            citations: components["schemas"]["FamilyCitation"][];
         };
     };
     responses: {
@@ -2719,7 +2932,9 @@ export interface operations {
     createFamilyRoom: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2743,7 +2958,9 @@ export interface operations {
     joinFamilyRoom: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
             path: {
                 room_id: string;
             };
@@ -2947,6 +3164,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LearningPathsView"];
+                };
+            };
+        };
+    };
+    getFamilyDebrief: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DebriefOutput"];
+                };
+            };
+        };
+    };
+    sendFamilyMessage: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+            };
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FamilyMessage"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyMessageResult"];
                 };
             };
         };

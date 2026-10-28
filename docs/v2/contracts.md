@@ -59,6 +59,20 @@ Knowledge unit IDs: `KB-<AREA>-<TOPIC>-NNN`, areas `TM` (Thai midwifery), `ANC`,
   Revealed facts join that role's `my_facts` and can be shared as today.
 - Choices and intents carry `dimension` for the rubric. Critical Safety stays the existing gate.
 
+Implementation notes from stream B (binding for consumers):
+- Intents also carry `reply_th` (authored answer: validator fallback, and the only text when
+  `high_risk: true`); a discover step has `abstain_th` and exactly one `continue` choice; a story may
+  carry `boundary_th`; a card may carry a three-part `lens {wisdom_th, safety_th, rights_th}`.
+  `knowledge_unit_ids` may be unvalidated here: the knowledge stream's validator checks them.
+- `ask` events keep the intent ID in `choice_id`; `continue` needs `min_reveals` distinct revealing
+  intents. Rubric scores (`score_total`, per-dimension earned/possible) exist only in the finished
+  `FamilyReport`; the Critical Safety gate is separate and never averaged.
+- `POST /messages` clarification options: on a discover step the client re-sends the option text as
+  a new message; on a choice step the client commits through `/decisions`. The retry of an
+  already-handled `client_turn_id` returns the current view and the stored reply, if any.
+- `app/ai/evidence.py::evidence_pack` is the only consumer of `retrieve_claims`; with no release it
+  returns `release_id="none"` and knowledge answers abstain.
+
 Events (`family_events.kind`): existing `decision | vote | share`, plus `ask` (`choice_id` = intent ID,
 `reply_th` = the validated reply that was shown). A decision typed as text is a normal `decision`
 event; the text itself is a `family_messages` row. Engine replay stays the only source of state and

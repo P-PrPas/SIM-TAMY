@@ -1,0 +1,43 @@
+"""Cross-stream checks using the released knowledge base, not an injected resolver."""
+
+from collections.abc import Iterator
+from pathlib import Path
+
+import pytest
+
+from app.ai.evidence import current_release_id, evidence_pack
+from app.content.family import load_stories
+from app.content.knowledge import load_knowledge
+from app.core.config import get_settings
+
+
+@pytest.fixture
+def content_dir(monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
+    path = Path(__file__).resolve().parents[5] / "content"
+    monkeypatch.setenv("CONTENT_DIR", str(path))
+    get_settings.cache_clear()
+    yield path
+    get_settings.cache_clear()
+
+
+def test_golden_stories_receive_claims_from_the_pinned_release(content_dir: Path) -> None:
+    release = load_knowledge(content_dir).release
+    assert current_release_id() == release.id
+    for story in load_stories(content_dir):
+        if not story.id.startswith("gs-"):
+            continue
+        pack = evidence_pack(story, story.steps[0], "mother", [], release_id=release.id)
+        assert pack.release_id == release.id
+        assert pack.items
+        assert all(item.knowledge_id in story.knowledge_unit_ids for item in pack.items)
+
+
+def test_golden_objectives_link_back_to_both_stories(content_dir: Path) -> None:
+    paths = load_knowledge(content_dir).paths
+    objectives = {obj.id: obj for stage in paths.stages for obj in stage.objectives}
+    stories = [s for s in load_stories(content_dir) if s.id.startswith("gs-")]
+    assert len(stories) == 2
+    for story in stories:
+        assert story.objective_ids
+        for objective_id in story.objective_ids:
+            assert story.id in objectives[objective_id].story_ids

@@ -13,6 +13,7 @@ def test_export_has_every_loader_document_and_validation_dialect() -> None:
         "case.schema.json",
         "actions.schema.json",
         "rubric.schema.json",
+        "family.schema.json",
         "source.schema.json",
         "knowledge-unit.schema.json",
         "learning-paths.schema.json",
