@@ -6,6 +6,7 @@ import sys
 from pydantic import ValidationError
 
 from app.content.family import load_stories
+from app.content.institution import load_institutions
 from app.content.loader import ContentError, load_case
 from app.content.validate import check
 from app.core.config import get_settings
@@ -43,6 +44,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"OK family/{story.id} {story.version} ({story.status})")
     except (ValidationError, ValueError) as exc:
         print(f"ERROR family stories: {exc}", file=sys.stderr)
+        failed = True
+    try:
+        inst = load_institutions(content_dir)
+        print(f"OK demo/institutions ({len(inst.orgs)} orgs, {len(inst.accounts)} accounts)")
+    except (ValidationError, ValueError, OSError) as exc:
+        print(f"ERROR demo/institutions.yaml: {exc}", file=sys.stderr)
         failed = True
     return 1 if failed else 0
 
