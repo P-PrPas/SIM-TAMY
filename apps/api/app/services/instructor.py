@@ -97,13 +97,13 @@ def _class_info(row: ClassRoom) -> ClassInfo:
     return ClassInfo(class_id=row.id, code=row.code, name=row.name or "", created_at=row.created_at)
 
 
-def create_class(db: Session, name: str) -> ClassInfo:
+def create_class(db: Session, name: str, org_id: str | None = None) -> ClassInfo:
     """Collision-safe random code; no predictable sequence and no schema migration."""
     for _ in range(12):
         code = "".join(secrets.choice(_ALPHABET) for _ in range(6))
         row = db.execute(
             pg_insert(ClassRoom)
-            .values(id=uuid.uuid4(), code=code, name=name)
+            .values(id=uuid.uuid4(), code=code, name=name, org_id=org_id)
             .on_conflict_do_nothing(index_elements=[ClassRoom.code])
             .returning(ClassRoom)
         ).scalar_one_or_none()

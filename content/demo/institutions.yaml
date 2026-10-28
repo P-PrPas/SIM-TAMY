@@ -1,0 +1,75 @@
+# SIM-TAMY 2.0 mock institutions and accounts (S2-01). DEMO DATA ONLY: every organization and person
+# here is fictional. There are no passwords or sessions; the web sends the picked account id as
+# `X-Demo-Account` and the API trusts it (prototype boundary, ADR-15).
+# Roles: org_admin | educator | reviewer | learner. `partner_id` pairs two learners as a couple.
+demo: true
+orgs:
+  - id: org-demo-hospital
+    name_th: โรงเรียนพ่อแม่ โรงพยาบาลตัวอย่าง (ข้อมูลสาธิต)
+    demo_cohort_name_th: รุ่นตัวอย่าง โรงเรียนพ่อแม่ (ข้อมูลสาธิต)
+  - id: org-demo-community
+    name_th: ศูนย์สุขภาพชุมชนตัวอย่าง (ข้อมูลสาธิต)
+    demo_cohort_name_th: รุ่นตัวอย่าง ศูนย์สุขภาพชุมชน (ข้อมูลสาธิต)
+accounts:
+  - id: staff-h-admin
+    org_id: org-demo-hospital
+    display_name_th: ผู้ดูแลระบบ โรงพยาบาลตัวอย่าง (สาธิต)
+    role: org_admin
+  - id: staff-h-edu-1
+    org_id: org-demo-hospital
+    display_name_th: ครูพ่อแม่ สมศรี (สาธิต)
+    role: educator
+  - id: staff-h-edu-2
+    org_id: org-demo-hospital
+    display_name_th: ครูพ่อแม่ วิชัย (สาธิต)
+    role: educator
+  - id: staff-h-reviewer
+    org_id: org-demo-hospital
+    display_name_th: ผู้ตรวจเนื้อหา มาลี (สาธิต)
+    role: reviewer
+  - id: staff-c-admin
+    org_id: org-demo-community
+    display_name_th: ผู้ดูแลระบบ ศูนย์สุขภาพชุมชนตัวอย่าง (สาธิต)
+    role: org_admin
+  - id: staff-c-edu-1
+    org_id: org-demo-community
+    display_name_th: ครูพ่อแม่ นวลจันทร์ (สาธิต)
+    role: educator
+  - id: staff-c-edu-2
+    org_id: org-demo-community
+    display_name_th: ครูพ่อแม่ ประเสริฐ (สาธิต)
+    role: educator
+  - id: staff-c-reviewer
+    org_id: org-demo-community
+    display_name_th: ผู้ตรวจเนื้อหา อรุณ (สาธิต)
+    role: reviewer
+  - id: parent-h-mom-1
+    org_id: org-demo-hospital
+    display_name_th: คุณแม่ใบเตย (สาธิต)
+    role: learner
+    partner_id: parent-h-dad-1
+  - id: parent-h-dad-1
+    org_id: org-demo-hospital
+    display_name_th: คุณพ่อธีร์ (สาธิต)
+    role: learner
+    partner_id: parent-h-mom-1
+  - id: parent-c-mom-1
+    org_id: org-demo-community
+    display_name_th: คุณแม่มะลิ (สาธิต)
+    role: learner
+    partner_id: parent-c-dad-1
+  - id: parent-c-dad-1
+    org_id: org-demo-community
+    display_name_th: คุณพ่อกล้า (สาธิต)
+    role: learner
+    partner_id: parent-c-mom-1
+  - id: parent-free-mom-1
+    org_id: null
+    display_name_th: คุณแม่ข้าวหอม (สาธิต)
+    role: learner
+    partner_id: parent-free-dad-1
+  - id: parent-free-dad-1
+    org_id: null
+    display_name_th: คุณพ่อพายุ (สาธิต)
+    role: learner
+    partner_id: parent-free-mom-1

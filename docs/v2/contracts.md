@@ -97,6 +97,8 @@ score. Event IDs exposed to AI-03 and the UI: `"<room_id>:<idx>"`.
 | `/join/{code}` | GET | C | class + active assignments; expired → helpful error (CT-14) |
 | `/passport/{account_id}` | GET | C | finished attempts of that account, objectives touched, safety result per attempt (never averaged) |
 
+C implementation notes (exact shapes are in `docs/openapi.yaml`, tag `Institution`): staff routes read `X-Demo-Account` (missing or unknown: 401; not educator/org_admin of that org: 403; another org's cohort: 404). `GET /cohorts/{id}/assignments` also exists. `join` errors: unknown code `CLASS_NOT_FOUND` (404), expired assignments `SESSION_EXPIRED` (410). Analytics replay finished rooms through the family engine; `objectives[].numerator` counts finished attempts that met the Critical Safety gate for stories carrying that `objective_id`, and is `null` with `suppressed: true` when `n < 3`. `score_total` is null until the family report exposes it.
+
 `X-Demo-Account` is trusted as-is (prototype). Play-time responses keep AGENTS rule 5: no revealed
 fact IDs, scores or partner-private data before the report.
 

@@ -13,6 +13,7 @@ from app import seed_demo
 from app.api.deps import get_store
 from app.core.config import get_settings
 from app.db.models import ClassRoom, LearnerSession, Report
+from app.db.session import get_engine, get_sessionmaker
 from app.rescore import rescore
 from app.seed_demo import CLASS_CODE, SCENARIOS, main, seed
 
@@ -26,6 +27,8 @@ def database(make_db: Callable[[], str], monkeypatch: pytest.MonkeyPatch) -> str
     monkeypatch.setenv("CONTENT_DIR", str(REPO / "content"))
     get_settings.cache_clear()
     get_store.cache_clear()
+    get_engine.cache_clear()
+    get_sessionmaker.cache_clear()
     monkeypatch.chdir(Path(__file__).resolve().parents[3])  # where alembic.ini is
     return url
 
@@ -165,3 +168,43 @@ def test_reset_replaces_only_the_demo_class(database: str, monkeypatch: pytest.M
             assert len(new_ids) == len(SCENARIOS) and not new_ids & old_ids  # re-seeded
     finally:
         engine.dispose()
+
+
+def test_institution_demo_cohorts_get_existing_golden_stories_only_once(
+    database: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(seed_demo, "GOLDEN_STORY_IDS", ("first-night", "gs-not-written-yet"))
+    monkeypatch.setenv("ALLOW_DRAFT_CASES", "true")
+    get_settings.cache_clear()
+    engine = create_engine(database)
+    try:
+        from app.db.models import Assignment
+
+        seed_demo.migrate(seed_demo.Config("alembic.ini"))
+        with get_sessionmaker().begin() as db:
+            first = seed_demo.seed_institution_cohorts(db)
+        with get_sessionmaker().begin() as db:
+            assert seed_demo.seed_institution_cohorts(db) == 0  # idempotent
+        with Session(engine) as db:
+            cohorts = list(db.scalars(select(ClassRoom).where(ClassRoom.org_id.is_not(None))))
+            assert len(cohorts) == 2 and first == 4  # 2 cohorts + 1 existing story each
+            assert {c.org_id for c in cohorts} == {"org-demo-hospital", "org-demo-community"}
+            rows = list(db.scalars(select(Assignment)))
+            assert sorted(a.story_id for a in rows) == ["first-night"] * 2
+    finally:
+        engine.dispose()
+
+
+def test_reset_removes_the_demo_cohorts_but_not_other_cohorts(
+    database: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("ALLOW_DRAFT_CASES", "true")
+    seed_demo.migrate(seed_demo.Config("alembic.ini"))
+    with get_sessionmaker().begin() as db:
+        seed_demo.seed_institution_cohorts(db)
+        db.add(ClassRoom(code="ORG001", name="real cohort", org_id="org-demo-hospital"))
+    with get_sessionmaker().begin() as db:
+        seed_demo.reset_class(db)
+    with get_sessionmaker().begin() as db:
+        left = list(db.scalars(select(ClassRoom.name).where(ClassRoom.org_id.is_not(None))))
+    assert left == ["real cohort"]
