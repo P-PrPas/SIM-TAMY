@@ -11,13 +11,13 @@ const scene = {
   kind: "discover", character_th: "Mali self", accepts_text: true, can_continue: false, choices: [],
 };
 const view = {
-  room_id: ROOM, story_id: "gs-a-postpartum-warning", title_th: "GS-A", role: "mother", private_brief_th: "Brief", partner_joined: true,
+  room_id: ROOM, story_id: "gs-b-thai-recovery", title_th: "GS-A", role: "mother", private_brief_th: "Brief", partner_joined: true,
   partner_online: true, state_version: 0, completed_steps: 0, total_steps: 3, transcript: [], report: null, my_facts: [], shared_facts: [],
   dialogue: [], scene,
 };
-const card = { id: "gs-a-postpartum-warning", title_th: "t", description_th: "d", mode: "coop", chapters_th: [] };
+const card = { id: "gs-b-thai-recovery", title_th: "t", description_th: "d", mode: "coop", chapters_th: [] };
 
-beforeEach(() => sessionStorage.setItem("sim-tamy-family:gs-a-postpartum-warning", JSON.stringify({ room_id: ROOM, token: "tok" })));
+beforeEach(() => sessionStorage.setItem("sim-tamy-family:gs-b-thai-recovery", JSON.stringify({ room_id: ROOM, token: "tok" })));
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); sessionStorage.clear(); });
 
 function serve(handler: (request: Request) => Response | Promise<Response>) {
@@ -37,7 +37,7 @@ it("shows the typed message at once, then the reply with its citation, and the a
     }
     return Response.json(view);
   });
-  render(<FamilySimulator storyId="gs-a-postpartum-warning" />);
+  render(<FamilySimulator storyId="gs-b-thai-recovery" />);
   const input = await screen.findByLabelText(t("lab.chat.label"));
   fireEvent.change(input, { target: { value: "ask about bleeding" } });
   fireEvent.click(screen.getByRole("button", { name: t("lab.chat.send") }));
@@ -63,7 +63,7 @@ it("keeps the text and the same client_turn_id on a failed send, so Retry never 
     }
     return Response.json(view);
   });
-  render(<FamilySimulator storyId="gs-a-postpartum-warning" />);
+  render(<FamilySimulator storyId="gs-b-thai-recovery" />);
   fireEvent.change(await screen.findByLabelText(t("lab.chat.label")), { target: { value: "question" } });
   fireEvent.click(screen.getByRole("button", { name: t("lab.chat.send") }));
   expect(await screen.findByText(t("lab.chat.error"), {}, { timeout: 8000 })).not.toBeNull();
@@ -85,7 +85,7 @@ it("offers clarification options as buttons that resend the option text on a dis
     }
     return Response.json(view);
   });
-  render(<FamilySimulator storyId="gs-a-postpartum-warning" />);
+  render(<FamilySimulator storyId="gs-b-thai-recovery" />);
   fireEvent.change(await screen.findByLabelText(t("lab.chat.label")), { target: { value: "hmm" } });
   fireEvent.click(screen.getByRole("button", { name: t("lab.chat.send") }));
   fireEvent.click(await screen.findByRole("button", { name: "Ask about chest" }));
@@ -105,7 +105,7 @@ it("on a joint critical step clarification buttons commit through the decision e
     if (request.url.endsWith("/decisions")) { decisions.push(await request.json()); return Response.json({ ...view, scene: joint }); }
     return Response.json({ ...view, scene: joint });
   });
-  render(<FamilySimulator storyId="gs-a-postpartum-warning" />);
+  render(<FamilySimulator storyId="gs-b-thai-recovery" />);
   expect(await screen.findByText(t("lab.chat.buttonsOnly"))).not.toBeNull();
   fireEvent.change(screen.getByLabelText(t("lab.chat.label")), { target: { value: "contact them now" } });
   fireEvent.click(screen.getByRole("button", { name: t("lab.chat.send") }));
@@ -131,7 +131,7 @@ it("renders the Thai Wisdom Lens as three parts and dimension scores without pas
     phase += 1;
     return Response.json(phase === 1 ? { ...view, scene: lensScene } : { ...view, scene: null, completed_steps: 3, report });
   });
-  render(<FamilySimulator storyId="gs-a-postpartum-warning" />);
+  render(<FamilySimulator storyId="gs-b-thai-recovery" />);
   expect(await screen.findByText("Wisdom text")).not.toBeNull();
   expect(screen.getByText(t("lab.lens.safety"))).not.toBeNull();
   expect(screen.getByText("Rights text")).not.toBeNull();

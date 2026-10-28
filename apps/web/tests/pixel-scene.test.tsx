@@ -20,7 +20,7 @@ const view = (story: string) => ({
 const citation = { knowledge_id: "KB-TM-ELEMENT-001", claim_id: "c1", source_id: "S41", title: "Element book", locator: "p.1" };
 
 beforeEach(() => {
-  for (const id of [STORY, "gs-a-postpartum-warning"]) sessionStorage.setItem(`sim-tamy-family:${id}`, JSON.stringify({ room_id: ROOM, token: "tok" }));
+  for (const id of [STORY, "gs-b-thai-recovery"]) sessionStorage.setItem(`sim-tamy-family:${id}`, JSON.stringify({ room_id: ROOM, token: "tok" }));
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); sessionStorage.clear(); });
 
@@ -78,8 +78,8 @@ it("flies a reply citation into the notebook as a card", async () => {
 });
 
 it("leaves every other story without the pixel scene or the example button", async () => {
-  serve("gs-a-postpartum-warning");
-  const { container } = render(<FamilySimulator storyId="gs-a-postpartum-warning" />);
+  serve("gs-b-thai-recovery");
+  const { container } = render(<FamilySimulator storyId="gs-b-thai-recovery" />);
   await screen.findByLabelText(t("lab.chat.label"));
   expect(container.querySelector(".pixel-scene")).toBeNull();
   expect(container.querySelector(".is-rpg")).toBeNull();

@@ -8,7 +8,7 @@ const STAGE1 = { stories: ["thai-elements-family"], lessons: ["KB-TM-ELEMENT-001
 const STAGE2: { stories: string[]; lessons: string[] } = { stories: [], lessons: [] };
 
 // Stage 3 (gs-a-postpartum-warning + KB-PP-WARN-001)
-const STAGE3: { stories: string[]; lessons: string[] } = { stories: [], lessons: [] };
+const STAGE3 = { stories: ["gs-a-postpartum-warning"], lessons: ["KB-PP-WARN-001"] };
 
 // Stage 4 (thai-milk-family + KB-BF-COLOSTRUM-001)
 const STAGE4: { stories: string[]; lessons: string[] } = { stories: [], lessons: [] };

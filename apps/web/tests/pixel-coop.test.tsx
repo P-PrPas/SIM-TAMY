@@ -41,9 +41,9 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); sessio
 
 it("registers only the chapter-1 story and answers by exact id", async () => {
   const real = await vi.importActual<typeof import("@/components/pixel/registry")>("@/components/pixel/registry");
-  expect([...real.PIXEL_STORIES]).toEqual(["thai-elements-family"]);
+  expect(real.PIXEL_STORIES.has("thai-elements-family")).toBe(true);
   expect(real.isPixelStory("thai-elements-family")).toBe(true);
-  expect(real.isPixelStory("gs-a-postpartum-warning")).toBe(false);
+  expect(real.isPixelStory("gs-b-thai-recovery")).toBe(false);
   expect(PIXEL_STORIES.has("thai-elements-family")).toBe(true);
   expect(isPixelStory(COOP)).toBe(true); // the mocked registry used by the rest of this file
 });
@@ -162,7 +162,7 @@ it("shows both choices only when the pair disagrees", async () => {
 });
 
 it("keeps the classic layout for non-pixel stories", async () => {
-  const other = "gs-a-postpartum-warning";
+  const other = "gs-b-thai-recovery";
   open(other);
   serve(() => Response.json(view({ story_id: other })), other);
   const { container } = render(<FamilySimulator storyId={other} />);

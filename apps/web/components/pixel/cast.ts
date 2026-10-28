@@ -14,8 +14,8 @@ export const CASTS: Record<string, Cast> = {
   // Stage 2: placeholder until the stage 2 PR sets the real cast and backdrops
   "thai-birth-conversation": { mother: "ploy", father: "ton", backdrops: { discover: "sala", choice: "kitchen" } },
 
-  // Stage 3: placeholder until the stage 3 PR sets the real cast and backdrops
-  "gs-a-postpartum-warning": { mother: "mali", father: "non", backdrops: { discover: "sala", choice: "kitchen" } },
+  // Stage 3: Mali and Non at home in the family's wooden house at night; reflection in the room, decisions in the hall
+  "gs-a-postpartum-warning": { mother: "mali", father: "non", backdrops: { discover: "postpartumRoom", choice: "postpartumHall" } },
 
   // Stage 4: placeholder until the stage 4 PR sets the real cast and backdrops
   "thai-milk-family": { mother: "ploy", father: "ton", backdrops: { discover: "sala", choice: "kitchen" } },

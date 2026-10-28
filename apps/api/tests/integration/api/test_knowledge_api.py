@@ -96,7 +96,9 @@ def test_unit_detail_exposes_lesson_hotspots(client: TestClient) -> None:
 
     assert [len(c["hotspots"]) for c in claims] == [5, 2, 3, 6, 5]
     assert set(claims[0]["hotspots"][0]) == {"id", "label_th", "text_th"}
-    assert client.get("/v1/knowledge/units/KB-PP-WARN-001").json()["claims"][0]["hotspots"] == []
+    assert (
+        client.get("/v1/knowledge/units/KB-RIGHTS-SCOPE-001").json()["claims"][0]["hotspots"] == []
+    )
 
 
 def test_unknown_unit_is_a_404_envelope(client: TestClient) -> None:
