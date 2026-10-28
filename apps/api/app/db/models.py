@@ -51,6 +51,21 @@ class ClassRoom(Base):
     code: Mapped[str] = mapped_column(CHAR(6), unique=True)
     name: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = _ts()
+    # 2.0 cohort (ADR-15): the mock organization from content/demo/institutions.yaml
+    org_id: Mapped[str | None] = mapped_column(Text)
+
+
+class Assignment(Base):
+    """A story assigned to a cohort; learners reach it by the class code / QR (Blueprint §08)."""
+
+    __tablename__ = "assignments"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    class_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("classes.id", ondelete="CASCADE"))
+    story_id: Mapped[str] = mapped_column(Text)
+    story_version: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = _ts()
+    expires_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True))
 
 
 class LearnerSession(Base):
@@ -140,6 +155,15 @@ class LlmCall(Base):
     ok: Mapped[bool | None] = mapped_column(Boolean)
     error: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = _ts()
+    # AICallTrace (Blueprint §09E): versions and outcome only, never raw text.
+    capability: Mapped[str | None] = mapped_column(Text)  # ai01|ai02|ai03
+    request_id: Mapped[str | None] = mapped_column(Text)
+    prompt_version: Mapped[str | None] = mapped_column(Text)
+    schema_version: Mapped[str | None] = mapped_column(Text)
+    validation_status: Mapped[str | None] = mapped_column(Text)  # valid|rejected|timeout
+    fallback_reason: Mapped[str | None] = mapped_column(Text)
+    release_id: Mapped[str | None] = mapped_column(Text)
+    room_id: Mapped[uuid.UUID | None] = mapped_column(Uuid)  # family room; no FK, like session_id
 
 
 class Report(Base):

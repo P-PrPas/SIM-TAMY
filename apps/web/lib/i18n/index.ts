@@ -1,5 +1,12 @@
 import type { components } from "../api/schema";
-import th from "./th.json";
+import base from "./th.json";
+// 2.0 streams each own one namespace file (ADR-15), so parallel work never edits the same JSON.
+import institution from "./v2/institution.json";
+import knowledge from "./v2/knowledge.json";
+import lab from "./v2/lab.json";
+import platform from "./v2/platform.json";
+
+const th = { ...base, knowledge, lab, institution, platform };
 
 /** Look up a Thai string by dotted key, e.g. t("app.title"). Throws on a missing key. */
 export function t(key: string): string {

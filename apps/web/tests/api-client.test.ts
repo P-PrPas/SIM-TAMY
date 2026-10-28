@@ -35,6 +35,21 @@ const turn = (api: ReturnType<typeof setup>["api"]) =>
   });
 
 describe("api client", () => {
+  it("sends the picked demo account and omits the header when none is picked", async () => {
+    const fetchImpl = vi.fn(async (...args: [Request]) => (void args, json(200, { items: [] })));
+    let account: string | undefined = "edu-demo-1";
+    const client = createApi({
+      baseUrl: "http://api.test", getDemoAccount: () => account,
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    await client.GET("/v1/cases");
+    account = undefined;
+    await client.GET("/v1/cases");
+    const [first, second] = fetchImpl.mock.calls.map((call) => call[0] as unknown as Request);
+    expect(first?.headers.get("X-Demo-Account")).toBe("edu-demo-1");
+    expect(second?.headers.get("X-Demo-Account")).toBeNull();
+  });
+
   it("sends instructor secret only in its dedicated client header", async () => {
     const fetchImpl = vi.fn(async (_request: Request) => json(200, { items: [] }));
     const client = createApi({

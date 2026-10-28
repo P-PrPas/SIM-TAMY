@@ -13,6 +13,7 @@ It is an **education tool, not a medical device**. It never diagnoses, never rec
 | File | Use it for |
 |---|---|
 | `docs/SIM-TAMY_2.0_AI_Updated_Blueprint_v2.1.md` | **2.0 scope, pillars, AI-01/02/03 contracts, backlog (S0-* .. S3-*, AI-*), acceptance tests (CT-*, AI-T*). Authoritative for 2.0.** |
+| `docs/v2/contracts.md` + `docs/adr/ADR-15-*` | **Binding 2.0 contracts:** stream ownership, merge order, content files, family-story extension, API routes, AI pipeline, web routes. Read before any 2.0 task. |
 | `docs/knowledge base/` | Content team's research: `Thai_Midwifery_Knowledge_Base_2026.pdf` (sources S01–S40) and `Midwifery_Textbook_Catalog_2026.json` (84 catalog records). **The only source for new clinical/Thai-wisdom content.** |
 | `docs/PRD.md` | 1.x requirements (FR-*), API, data model, AI specs, scoring, tests, backlog (T-*). Still authoritative where the Blueprint is silent. |
 | `docs/CONCEPT.md` | Product concept and business context (background only) |
@@ -52,7 +53,7 @@ apps/api/app/
                generator.py, validator.py, debrief.py, lexical.py, prompts/*.md
   content/     loader + validate-content CLI
   db/          models, session, repo   (migrations in apps/api/migrations)
-apps/web/      Next.js (App Router) + TypeScript + Tailwind; i18n in lib/i18n/th.json
+apps/web/      Next.js (App Router) + TypeScript + Tailwind; i18n in lib/i18n/th.json (+ v2/<namespace>.json per 2.0 stream)
 content/       cases/<id>/{case,actions,rubric}.yaml  ← Content team owns; schemas/ is generated
 eval/          model_bench.py, run_eval.py, devset/, golden/T01..T10.yaml
 recordings/    recorded sessions for Replay Mode
@@ -96,7 +97,7 @@ Local default is `LLM_PROVIDER=mock` so everything runs offline and deterministi
 ## Conventions
 
 **General**
-- Code, identifiers, comments, commit messages: **English**. User-facing strings: **Thai**, only in `apps/web/lib/i18n/th.json`, `content/`, or `ai/prompts/`. No Thai string literals scattered in components or services.
+- Code, identifiers, comments, commit messages: **English**. User-facing strings: **Thai**, only in `apps/web/lib/i18n/th.json` (or its `v2/*.json` namespaces), `content/`, or `ai/prompts/`. No Thai string literals scattered in components or services.
 - Conventional Commits. Reference IDs: `feat(engine): unlock hidden facts (FR-ENG-02, T-021)`.
 - PRs ≤ ~400 lines, one concern each. No direct pushes to `main`.
 - Don't add a dependency without saying why in the PR; prefer the standard library / what's already used.
@@ -161,13 +162,13 @@ Use these as work modes; one agent may hold several, but respect the boundaries.
 | **content** | `content/` cases, family stories, knowledge units, source registry; loader, validator CLI, schemas | add claims without a knowledge-base source and locator; claim expert review |
 | **reviewer** | read-only review against the rules above and PRD | approve PRs that violate a non-negotiable rule |
 
-Hand-offs go through the contracts in PRD §7 (Case schema), §8 (API), §9 (AI I/O). If a contract must change, update the PRD section and the schema in the same PR.
+Hand-offs go through the contracts in `docs/v2/contracts.md` (2.0) and PRD §7 (Case schema), §8 (API), §9 (AI I/O). If a contract must change, update the PRD section and the schema in the same PR.
 
 ## Gotchas
 
 - Streaming: **buffer-then-chunk** — only emit text after the Validator accepts it.
 - `idx` is the *learner turn index* (starts at 1) and is the unit of "time" in rubric checks; don't substitute timestamps.
 - Repeating an already-fired Action does not unlock again but is logged as `ACTION_REPEATED`.
-- Decisions are committed via the Decision Panel endpoint, not inferred from chat text.
+- Decisions are committed via the Decision Panel endpoint, not inferred from chat text. Exception (2.0): a non-critical, non-joint family `choice` step may commit from typed text the Interpreter mapped confidently; `critical` and `joint` steps always need the explicit button (`docs/v2/contracts.md` §3).
 - Pressure-phase lines (Variant C) are scripted in the case file, not LLM-generated.
 - `ALLOW_DRAFT_CASES=true` is expected during the hackathon so Draft cases stay playable; learner screens show sources, not review badges (rule 9).
