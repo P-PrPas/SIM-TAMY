@@ -117,29 +117,27 @@ const spotUnit: UnitDetail = {
   claims: [{ ...unit.claims[0]!, hotspots: [{ id: "h1", label_th: "spot-one", text_th: "short one" }, { id: "h2", label_th: "spot-two", text_th: "short two" }] }, ...unit.claims.slice(1)],
 };
 
-it("opens a sheet with the short text, marks the spot explored and returns focus on Esc", () => {
+it("shows the short text in the info window beside the picture and marks the spot explored", () => {
   render(<PixelLesson unit={spotUnit} />);
+  expect(screen.getByText(t("pixelLesson.infoEmpty"))).toBeTruthy();
   const spot = screen.getByRole("button", { name: "spot-one" });
-  spot.focus();
   fireEvent.click(spot);
-  const dlg = screen.getByRole("dialog");
-  expect(dlg.textContent).toContain("short one");
-  expect(document.activeElement).toBe(screen.getByRole("button", { name: t("pixelLesson.close") }));
-  fireEvent.keyDown(document, { key: "Escape" });
-  expect(screen.queryByRole("dialog")).toBeNull();
-  expect(document.activeElement).toBe(spot);
+  expect(screen.queryByRole("dialog")).toBeNull(); // nothing covers the picture
+  const info = screen.getByRole("complementary", { name: t("pixelLesson.infoTitle") });
+  expect(info.textContent).toContain("short one");
+  expect(spot.getAttribute("aria-pressed")).toBe("true");
   expect(spot.textContent).toContain(t("pixelLesson.explored"));
   expect(screen.getByRole("button", { name: t("pixelLesson.next") }).hasAttribute("disabled")).toBe(false);
 });
 
-it("closes the sheet from the close button and the backdrop", () => {
+it("swaps the info window from one spot to the next without closing anything", () => {
   render(<PixelLesson unit={spotUnit} />);
+  fireEvent.click(screen.getByRole("button", { name: /spot-one/ }));
   fireEvent.click(screen.getByRole("button", { name: /spot-two/ }));
-  fireEvent.click(screen.getByRole("button", { name: t("pixelLesson.close") }));
-  expect(screen.queryByRole("dialog")).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: /spot-two/ }));
-  fireEvent.click(screen.getByRole("dialog").parentElement!);
-  expect(screen.queryByRole("dialog")).toBeNull();
+  const info = screen.getByRole("complementary", { name: t("pixelLesson.infoTitle") });
+  expect(info.textContent).toContain("short two");
+  expect(info.textContent).not.toContain("short one");
+  expect(screen.getByRole("button", { name: /spot-one/ }).getAttribute("aria-pressed")).toBe("false");
 });
 
 it("keeps the full claim behind read more and the sources behind the info button", () => {
@@ -149,7 +147,7 @@ it("keeps the full claim behind read more and the sources behind the info button
   fireEvent.click(screen.getByRole("button", { name: t("pixelLesson.readMore") }));
   expect(screen.getByText("tradition claim one")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: new RegExp(t("pixelLesson.sourcesBtn")) }));
-  expect(screen.getByRole("dialog").textContent).toContain("S41 · T · page 1");
+  expect(screen.getByRole("complementary", { name: t("pixelLesson.infoTitle") }).textContent).toContain("S41 · T · page 1");
 });
 
 it("falls back to the plain card when a claim has no hotspots", () => {

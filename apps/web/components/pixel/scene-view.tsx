@@ -30,21 +30,24 @@ function Rects({ rects }: { rects: readonly (readonly [number, number, number, n
  * Living pixel scene: 320x180 logical px, integer-scaled to the container. Decorative only (aria-hidden);
  * every visual change is also written in the sr-only status line and the notebook list.
  */
-export function PixelScene({ speaker, backdrop, talking = false, mood = null, cards = [], items = [], beat = false, compact = false, children }: {
+export function PixelScene({ speaker, backdrop, talking = false, mood = null, cards = [], items = [], beat = false, compact = false, scale: fixed, children }: {
   speaker: string; backdrop: Backdrop; talking?: boolean; mood?: Mood | null; cards?: readonly SceneCard[];
   /** Stage mode: props on the table, the consequence beat, no notebook list below (HUD has it), overlay children. */
   items?: readonly ItemKey[]; beat?: boolean; compact?: boolean; children?: ReactNode;
+  /** Integer scale chosen by the caller (the stage lays out around it); omit to fit the container. */
+  scale?: number;
 }) {
   const box = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
+  const [fit, setFit] = useState(1);
+  const scale = fixed ?? fit;
   const [initial] = useState(cards.length);
   useEffect(() => {
     const el = box.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(() => setScale(Math.min(4, Math.max(1, Math.floor((el.clientWidth - 8) / SCENE_W)))));
+    if (fixed !== undefined || !el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => setFit(Math.min(4, Math.max(1, Math.floor((el.clientWidth - 8) / SCENE_W)))));
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [fixed]);
 
   const who = characterOf(speaker);
   const state = mood ?? (talking ? "talk" : "idle");
