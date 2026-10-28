@@ -4186,6 +4186,12 @@ components:
             $ref: '#/components/schemas/ClaimSource'
           type: array
           title: Sources
+        hotspots:
+          items:
+            $ref: '#/components/schemas/HotspotView'
+          type: array
+          title: Hotspots
+          default: []
       type: object
       required:
       - id
@@ -4193,6 +4199,23 @@ components:
       - text_th
       - sources
       title: ClaimView
+    HotspotView:
+      properties:
+        id:
+          type: string
+          title: Id
+        label_th:
+          type: string
+          title: Label Th
+        text_th:
+          type: string
+          title: Text Th
+      type: object
+      required:
+      - id
+      - label_th
+      - text_th
+      title: HotspotView
     LensView:
       properties:
         wisdom_th:

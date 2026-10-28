@@ -3,40 +3,22 @@
 import { useEffect, useRef, useState } from "react";
 
 import { t } from "@/lib/i18n";
-import type { SourceRef, UnitDetail } from "@/lib/v2-api";
+import type { UnitDetail } from "@/lib/v2-api";
 
 import "./lesson.css";
-import { ART, claimArt, type ArtKind } from "./lesson-art";
+import { claimArt } from "./lesson-art";
+import { StoryCard, type Card } from "./lesson-card";
 import { buildSortItems, isSortable, LessonSort } from "./lesson-sort";
-import { Sprite } from "./sprite";
-
-type Card = { key: string; heading: string; text: string; art: ArtKind; sources: SourceRef[] };
 
 /** One card per claim in order, then the lens parts. Text is passed through untouched. */
 export function buildCards(unit: UnitDetail): Card[] {
-  const cards: Card[] = unit.claims.map((c, i) => ({ key: c.id, heading: c.id, text: c.text_th, art: claimArt(unit.id, i), sources: c.sources }));
+  const cards: Card[] = unit.claims.map((c, i) => ({ key: c.id, heading: c.id, text: c.text_th, art: claimArt(unit.id, i), sources: c.sources, hotspots: c.hotspots ?? [] }));
   if (unit.lens) {
     for (const [k, text] of [["wisdom", unit.lens.wisdom_th], ["safety", unit.lens.safety_th], ["rights", unit.lens.rights_th]] as const) {
-      cards.push({ key: `lens-${k}`, heading: t(`platform.knowledge.lens${k[0]!.toUpperCase()}${k.slice(1)}`), text, art: k, sources: [] });
+      cards.push({ key: `lens-${k}`, heading: t(`platform.knowledge.lens${k[0]!.toUpperCase()}${k.slice(1)}`), text, art: k, sources: [], hotspots: [] });
     }
   }
   return cards;
-}
-
-function StoryCard({ card }: { card: Card }) {
-  const art = ART[card.art];
-  const [on, setOn] = useState<boolean[]>(() => Array(art.taps).fill(false));
-  return <article className="pl-card" aria-label={card.heading}>
-    <div className="pl-art"><Sprite frames={[art.draw(on)]} scale={3} /></div>
-    <div className="pl-taps" role="group" aria-label={t("pixelLesson.illustration")}>
-      {on.map((v, i) => <button key={i} type="button" className="pl-btn pl-tap" aria-pressed={v}
-        onClick={() => setOn(on.map((x, j) => (j === i ? !x : x)))}>{t(`pixelLesson.tap_${card.art}_${i}`)}</button>)}
-    </div>
-    <p className="pl-text">{card.text}</p>
-    {card.sources.length > 0 && <ul className="pl-sources" aria-label={t("pixelLesson.source")}>
-      {card.sources.map((s) => <li key={`${s.source_id}:${s.locator}`}>{s.source_id}{s.locator ? ` · ${s.locator}` : ""}</li>)}
-    </ul>}
-  </article>;
 }
 
 /** Story cards, then the sort game when the unit has both kinds of statements. `onComplete` fires once at the end. */

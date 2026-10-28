@@ -175,3 +175,8 @@ from finished attempts in `GET /passport/{account_id}`: the table item needs a f
 `FamilyEvidence` in the finished `FamilyReport` (post-completion only, never in play views) gains
 `skills`, `dimension`, `critical`, `kind` so the web reveal can replay each choice. The three meters are a
 visual reflection, not a score; scoring, rubric and `safety_status` are unchanged.
+
+Lesson hotspots (LP-01, additive): a `KnowledgeClaim` may carry `hotspots: [{id: ^h\d+$, label_th, text_th}]`
+(ids unique per claim, label/text non-blank). Each is a short, faithful shortening of its own claim's
+`text_th` (label 1-3 words, one plain sentence) shown in the pixel lesson's tap-to-learn sheet; provenance is
+the claim's `locators`. `GET /v1/knowledge/units/{id}` returns them as `claims[].hotspots` (default `[]`).

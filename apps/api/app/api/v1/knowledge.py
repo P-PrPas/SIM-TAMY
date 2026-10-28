@@ -56,11 +56,18 @@ class ClaimSource(BaseModel):
     locator: str
 
 
+class HotspotView(BaseModel):
+    id: str
+    label_th: str
+    text_th: str
+
+
 class ClaimView(BaseModel):
     id: str
     type: str
     text_th: str
     sources: list[ClaimSource]
+    hotspots: list[HotspotView] = []
 
 
 class LensView(BaseModel):
@@ -122,7 +129,15 @@ def _detail(kb: KnowledgeBase, unit: KnowledgeUnit) -> UnitDetail:
                     locator=loc.locator,
                 )
             )
-        claims.append(ClaimView(id=c.id, type=c.type, text_th=c.text_th, sources=sources))
+        claims.append(
+            ClaimView(
+                id=c.id,
+                type=c.type,
+                text_th=c.text_th,
+                sources=sources,
+                hotspots=[HotspotView(**h.model_dump()) for h in c.hotspots],
+            )
+        )
     return UnitDetail(
         id=unit.id,
         version=unit.version,
