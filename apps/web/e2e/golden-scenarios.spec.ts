@@ -131,10 +131,17 @@ test("GS-A: typed discovery, role-private facts, share, joint vote mismatch then
     await pick(host, await text("say-what-you-see", host, mother));
     await expect.poll(step).toBe("ask-grandmother");
 
-    // knowledge question with no released evidence abstains (no citation) and never invents a claim
-    const abstain = await say(partner, example(file, "ASK_TRADITION"));
-    expect(abstain.reply?.citations).toEqual([]);
-    expect(abstain.reply?.text_th).toBe(field(file, "ask-grandmother", "abstain_th"));
+    // The integrated knowledge stream supplies released claims and matching source locators.
+    const answer = await say(partner, example(file, "ASK_TRADITION"));
+    expect(answer.reply?.citations.length).toBeGreaterThan(0);
+    for (const cite of answer.reply!.citations) {
+      const unit = await partner.request.get(`${apiUrl}/v1/knowledge/units/${cite.knowledge_id}`);
+      expect(unit.ok()).toBeTruthy();
+      const claims = (await unit.json()).claims as components["schemas"]["ClaimView"][];
+      expect(claims.find((c) => c.id === cite.claim_id)?.sources).toContainEqual(
+        expect.objectContaining({ source_id: cite.source_id, locator: cite.locator }),
+      );
+    }
     await cont(partner, father);
     await expect.poll(step).toBe("elder-suggestion");
 

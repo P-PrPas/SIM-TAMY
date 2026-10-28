@@ -278,7 +278,8 @@ def test_trace_columns_are_written_without_any_raw_text(room: Room) -> None:
         assert {c.capability for c in rows} == {"ai01", "ai02"}
         for c in rows:
             assert c.prompt_version and c.schema_version and c.validation_status == "valid"
-            assert c.release_id == evidence.NO_RELEASE and c.purpose in {"interpreter", "generator"}
+            assert c.release_id == evidence.current_release_id()
+            assert c.purpose in {"interpreter", "generator"}
             assert "เจ็บหน้าอก" not in " ".join(str(v) for v in vars(c).values())
 
 
@@ -303,7 +304,10 @@ def test_invalid_generator_output_falls_back_and_never_reaches_the_learner(api: 
     assert len(gen) == 3 and gen[-1].fallback_reason.startswith("validator:")  # 1 + 2 retries
 
 
-def test_knowledge_answer_abstains_without_the_knowledge_stream(room: Room) -> None:
+def test_knowledge_answer_abstains_without_the_knowledge_stream(
+    room: Room, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(evidence, "_resolve", lambda: None)
     room.say(room.mother, "เลือดที่ออกเป็นยังไงบ้าง")
     room.press(room.mother, "continue")
     room.say(room.father, "มะลิหายใจเป็นยังไง")
@@ -314,7 +318,7 @@ def test_knowledge_answer_abstains_without_the_knowledge_stream(room: Room) -> N
 
 
 def test_knowledge_answer_cites_the_pack_when_a_release_exists(
-    room: Room, monkeypatch: pytest.MonkeyPatch
+    api: Api, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     item = EvidenceItem(
         knowledge_id="KB-TM-REST-001",
@@ -330,6 +334,8 @@ def test_knowledge_answer_cites_the_pack_when_a_release_exists(
         "_resolve",
         lambda: (lambda _r, **kw: EvidencePack(release_id="rel-test", items=[item]), release),
     )
+    use(api, MockProvider())
+    room = Room(api)
     room.say(room.mother, "เลือดที่ออกเป็นยังไงบ้าง")
     room.press(room.mother, "continue")
     room.say(room.father, "มะลิหายใจเป็นยังไง")

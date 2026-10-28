@@ -1,16 +1,13 @@
-"""Evidence-pack seam (contracts section 5): Stream A's retriever when present, else abstain.
-
-`app.services.knowledge.retrieve_claims` and the release loader land with the knowledge stream.
-Until then (or when no release exists) the pack is empty with `release_id="none"`, which the
-AI-02 pipeline treats as "no support": authored abstain text, never an invented claim.
-"""
+"""Bounded evidence from the released knowledge base; abstain if the release is unavailable."""
 
 from collections.abc import Callable
 from typing import Any
 
 from app.ai.contracts import EvidencePack
+from app.content.knowledge import load_knowledge
 from app.core.config import get_settings
 from app.domain.family import FamilyStep, FamilyStory
+from app.services.knowledge import retrieve_claims
 
 NO_RELEASE = "none"
 Resolver = Callable[[], tuple[Callable[..., EvidencePack], Any] | None]
@@ -19,12 +16,7 @@ Resolver = Callable[[], tuple[Callable[..., EvidencePack], Any] | None]
 def _resolve() -> tuple[Callable[..., EvidencePack], Any] | None:
     """(retrieve_claims, release) from the knowledge stream, or None while it is absent."""
     try:
-        from app.content.knowledge import load_release  # type: ignore[import-not-found,unused-ignore]
-        from app.services.knowledge import retrieve_claims  # type: ignore[import-not-found,unused-ignore]
-    except ImportError:
-        return None
-    try:
-        return retrieve_claims, load_release(get_settings().content_dir)
+        return retrieve_claims, load_knowledge(get_settings().content_dir).release
     except Exception:  # a broken release must degrade to abstain, never break a room
         return None
 
