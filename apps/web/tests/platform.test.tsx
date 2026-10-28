@@ -16,6 +16,11 @@ import { storyHref, v2Get } from "../lib/v2-api";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/learn", useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("next/image", () => ({ default: () => null }));
+// These tests describe the chapter-1 house and registry; later stages register without changing what they check.
+vi.mock("@/components/pixel/registry", () => ({
+  isPixelStory: (id: string) => id === "thai-elements-family",
+  isPixelLesson: (id: string) => id === "KB-TM-ELEMENT-001",
+}));
 
 const paths = {
   release_id: "r1",
