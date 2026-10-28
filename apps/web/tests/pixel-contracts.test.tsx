@@ -18,7 +18,11 @@ vi.mock("@/components/pixel/registry", () => ({
   isPixelLesson: (id: string) => id === "KB-TM-ELEMENT-001",
 }));
 
-afterEach(() => { cleanup(); vi.doUnmock("@/components/pixel/registry"); vi.resetModules(); });
+afterEach(() => {
+  cleanup();
+  for (const m of ["registry", "art/scene-stage2", "art/scene-stage3"]) vi.doUnmock(`@/components/pixel/${m}`);
+  vi.resetModules();
+});
 
 const CAST: CharacterKey[] = ["ploy", "ton", "teacher", "mom", "mali", "non", "yai", "counselor", "neutral"];
 
@@ -90,7 +94,41 @@ describe("nursery house zones follow the registry", () => {
     expect(screen.getByRole("link", { name: new RegExp(t("pixelHouse.zones.2")) }).getAttribute("href")).toBe("/learn/2");
   });
 
+  it("names the items of an open zone after its own stage, not after stage 1", async () => {
+    vi.resetModules();
+    vi.doMock("@/components/pixel/registry", () => ({
+      isPixelStory: (id: string) => id === "thai-birth-conversation",
+      isPixelLesson: (id: string) => id === "KB-IP-HERITAGE-001",
+    }));
+    const { NurseryHouse: House } = await import("@/components/pixel/house");
+    render(<House attempts={null} />);
+    const zone = document.querySelector("[data-zone='2']")!;
+    expect(zone.getAttribute("data-open")).toBe("true");
+    expect(screen.getByText(new RegExp(t("pixelHouse.zoneItems.2.book")))).toBeTruthy();
+    expect(screen.getByText(new RegExp(t("pixelHouse.zoneItems.2.tableHint")))).toBeTruthy();
+    expect(screen.queryByText(new RegExp(t("pixelHouse.items.book")))).toBeNull(); // the stage-1 name stays out of zone 2
+  });
+
   it("still reads stage 1 through the default zone", () => {
     expect(houseItems([attempt()]).table).toBe(1);
+  });
+});
+
+describe("icon to prop mapping across stages", () => {
+  it("lets two stages map the same icon to different props and picks the one shown on the current backdrop", async () => {
+    vi.resetModules();
+    const item = (on: string) => ({ art: ["k"], at: [0, 0] as const, on: [on] });
+    vi.doMock("@/components/pixel/art/scene-stage2", () => ({
+      STAGE2_BACKDROPS: {}, STAGE2_CARD_SLOTS: {}, STAGE2_ITEMS: { garland: item("veranda") }, STAGE2_ITEM_OF: { heart: "garland" },
+    }));
+    vi.doMock("@/components/pixel/art/scene-stage3", () => ({
+      STAGE3_BACKDROPS: {}, STAGE3_CARD_SLOTS: {}, STAGE3_ITEMS: { phone: item("hall") }, STAGE3_ITEM_OF: { heart: "phone" },
+    }));
+    const { itemFor } = await import("@/components/pixel/scene-art");
+    expect(itemFor("heart", "veranda")).toBe("garland");
+    expect(itemFor("heart", "hall")).toBe("phone");
+    expect(itemFor("heart", "kitchen")).toBeUndefined();
+    expect(itemFor("pot", "kitchen")).toBe("pot"); // stage 1 mapping is untouched
+    expect(itemFor(null, "kitchen")).toBeUndefined();
   });
 });

@@ -22,7 +22,7 @@ import { sceneSetup } from "./pixel/cast";
 import { PixelScene, characterOf, type SceneCard } from "./pixel/scene-view";
 import { PixelStage, type BeatLines } from "./pixel/stage";
 import { ChoiceCards } from "./pixel/choice-cards";
-import { ITEM_OF, type ItemKey } from "./pixel/scene-art";
+import { itemFor, type ItemKey } from "./pixel/scene-art";
 import type { Say } from "./family-chat";
 
 type View = components["schemas"]["FamilyView"];
@@ -165,7 +165,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
       const chosen = view.scene?.choices.find((c) => c.id === choiceId);
       const turn = data.transcript.at(-1);
       if (pixel && view.scene?.kind !== "discover" && chosen && turn) {
-        const item = chosen.icon ? ITEM_OF[chosen.icon] : undefined;
+        const item = itemFor(chosen.icon, setup.backdrop);
         if (item) setItems((prior) => prior.includes(item) ? prior : [...prior, item]);
         if (!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) setBeat({ you: chosen.text_th, reply: turn.reply_th });
       }

@@ -157,7 +157,16 @@ const BASE_ITEMS = {
 } satisfies Record<string, ItemDef>;
 export const ITEMS = { ...BASE_ITEMS, ...STAGE2_ITEMS, ...STAGE3_ITEMS, ...STAGE4_ITEMS } satisfies Record<string, ItemDef>;
 export type ItemKey = keyof typeof ITEMS;
-export const ITEM_OF: Partial<Record<ChoiceIcon, ItemKey>> = {
-  pot: "pot", notebook: "notes", menu: "notes", book: "notes", ...STAGE2_ITEM_OF, ...STAGE3_ITEM_OF, ...STAGE4_ITEM_OF,
-};
+const BASE_ITEM_OF = { pot: "pot", notebook: "notes", menu: "notes", book: "notes" } as const;
+export const ITEM_OF: Partial<Record<ChoiceIcon, ItemKey>> = { ...BASE_ITEM_OF, ...STAGE2_ITEM_OF, ...STAGE3_ITEM_OF, ...STAGE4_ITEM_OF };
+const ITEM_MAPS: readonly Partial<Record<string, string>>[] = [BASE_ITEM_OF, STAGE2_ITEM_OF, STAGE3_ITEM_OF, STAGE4_ITEM_OF];
+/** The prop a choice icon leaves behind on this backdrop. Stages may map the same icon to different props, so none overrides another. */
+export function itemFor(icon: ChoiceIcon | null | undefined, backdrop: string): ItemKey | undefined {
+  if (!icon) return undefined;
+  for (const map of ITEM_MAPS) {
+    const key = map[icon];
+    if (key && key in ITEMS && itemShownOn(key as ItemKey, backdrop)) return key as ItemKey;
+  }
+  return undefined;
+}
 export const itemShownOn = (k: ItemKey, backdrop: string) => ((ITEMS[k] as ItemDef).on ?? ["kitchen"]).includes(backdrop);
