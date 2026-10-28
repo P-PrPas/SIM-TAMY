@@ -70,6 +70,11 @@ Implementation notes from stream B (binding for consumers):
 - `POST /messages` clarification options: on a discover step the client re-sends the option text as
   a new message; on a choice step the client commits through `/decisions`. The retry of an
   already-handled `client_turn_id` returns the current view and the stored reply, if any.
+- Pixel scene (LP-01): `FamilyExchange.mood` (`warm | open`) is the coarse reaction to the committed
+  choice: `warm` iff the choice has non-empty `skills` and `safe` is true, else `open`. Skills,
+  feedback, dimension, `safe` and scores are never exposed during play. `FamilyScene.examples_th`
+  lists the first example question of each intent for the current discover step (sample strings only,
+  no intent IDs or labels); empty on other steps.
 - `app/ai/evidence.py::evidence_pack` is the only consumer of `retrieve_claims`; with no release it
   returns `release_id="none"` and knowledge answers abstain.
 

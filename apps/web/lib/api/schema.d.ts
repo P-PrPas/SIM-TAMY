@@ -1517,6 +1517,8 @@ export interface components {
             text_th: string;
             /** Reply Th */
             reply_th: string;
+            /** Mood */
+            mood?: ("warm" | "open") | null;
         };
         /** FamilyJoin */
         FamilyJoin: {
@@ -1592,6 +1594,11 @@ export interface components {
              * @default true
              */
             can_continue: boolean;
+            /**
+             * Examples Th
+             * @default []
+             */
+            examples_th: string[];
         };
         /** FamilySource */
         FamilySource: {

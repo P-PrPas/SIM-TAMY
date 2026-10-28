@@ -3673,6 +3673,14 @@ components:
         reply_th:
           type: string
           title: Reply Th
+        mood:
+          anyOf:
+          - type: string
+            enum:
+            - warm
+            - open
+          - type: 'null'
+          title: Mood
       additionalProperties: false
       type: object
       required:
@@ -3811,6 +3819,12 @@ components:
           type: boolean
           title: Can Continue
           default: true
+        examples_th:
+          items:
+            type: string
+          type: array
+          title: Examples Th
+          default: []
       additionalProperties: false
       type: object
       required:

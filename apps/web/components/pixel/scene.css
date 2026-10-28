@@ -1,0 +1,32 @@
+/* Living pixel scene + RPG dialogue box (LP-01). Shared sprite rules live in app/pixel.css. */
+.pixel-scene-wrap { display: grid; gap: 12px; margin-bottom: 16px; }
+.pixel-scene { position: relative; width: 100%; overflow: hidden; background: #231e18; border: 4px solid #231e18; box-sizing: content-box; image-rendering: pixelated; }
+.pixel-scene-stage { position: relative; transform-origin: 0 0; }
+.pixel-scene-stage svg { display: block; }
+.pixel-char, .pixel-prop { position: absolute; display: block; line-height: 0; transition: transform 0.4s steps(4); }
+.pixel-char.is-warm.is-speaker { transform: translateX(-14px); }
+.pixel-char.is-warm:not(.is-speaker) { transform: translateX(8px); }
+.pixel-heart { animation: pixel-heart 1.6s steps(8) infinite; }
+@keyframes pixel-heart { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-14px); opacity: 0; } }
+.pixel-fly { animation: pixel-fly 1.2s steps(10) forwards; }
+@keyframes pixel-fly { from { transform: translate(0, 0); opacity: 1; } 85% { opacity: 1; } to { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
+.pixel-notebook { padding: 12px 16px; background: #fff9eb; border: 3px solid #231e18; color: #231e18; font-size: 1rem; }
+.pixel-notebook h3 { margin: 0 0 8px; font-size: 1rem; }
+.pixel-notebook ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.pixel-notebook p { margin: 0; }
+.pixel-notebook .family-source-category { display: inline; margin: 0 6px 0 0; color: #7c5314; }
+@media (prefers-reduced-motion: reduce) {
+  .pixel-char, .pixel-prop { transition: none; }
+  .pixel-heart { animation: none; }
+  .pixel-fly { display: none; }
+}
+
+/* RPG dialogue box: same FamilyChat markup, restyled. Contrast: cream/paper on stone-950 >= 11:1. */
+.family-chat.is-rpg { background: #231e18; color: #fff9eb; border: 4px solid #efbd51; border-radius: 0; box-shadow: 0 0 0 4px #231e18; }
+.family-chat.is-rpg h3, .family-chat.is-rpg label, .family-chat.is-rpg .family-muted, .family-chat.is-rpg .family-typing { color: #efd698; }
+.family-chat.is-rpg .family-bubble { border-radius: 0; border: 3px solid #231e18; background: #fff9eb; color: #231e18; }
+.family-chat.is-rpg .family-bubble-relative { border-color: #efbd51; }
+.family-chat.is-rpg .family-bubble strong { color: #7c5314; }
+.family-chat.is-rpg .family-citations { color: #231e18; }
+.family-chat.is-rpg textarea { border-radius: 0; }
+.family-chat.is-rpg .family-dontknow { justify-self: start; }
