@@ -1,10 +1,10 @@
 # SIM-TAMY 2.0 learning paths (Blueprint §05, LP-01/02). Stages follow the Blueprint table;
 # unit_ids point at content/knowledge/units, story_ids at existing family stories or cases.
-# Stream B adds the GS-A/GS-B story IDs later.
+# Thai heritage additions follow the user-supplied four-stage research synthesis (2026-10-28).
 stages:
   - stage: 1
-    title_th: เตรียมครอบครัว
-    summary_th: เริ่มจากเส้นทางฝากครรภ์และการเตรียมคำถามไปพบบุคลากร และรู้ว่าสมุนไพรต้องถามเป็นรายตำรับก่อนใช้
+    title_th: ก่อนตั้งครรภ์และระหว่างครรภ์
+    summary_th: รู้จักธาตุกำเนิด ธาตุปัจจุบัน อาหาร และปฐมจินดา เชื่อมการเตรียมครอบครัวกับความเข้าใจครรภ์แต่ละไตรมาส การฝากครรภ์ และคำถามที่อยากคุยกับทีมสุขภาพ
     objectives:
       - id: OBJ-1-01
         title_th: อธิบายแผนติดตามครรภ์และเตรียมคำถามที่จะถามในนัดฝากครรภ์ได้
@@ -16,9 +16,19 @@ stages:
         dimension: evidence_scope
         unit_ids: [KB-TM-HERB-001]
         story_ids: [bridge-herbs]
+      - id: OBJ-1-03
+        title_th: แยกธาตุกำเนิด ธาตุปัจจุบัน และรสอาหารในตำรา ออกจากการประเมินสุขภาพก่อนมีบุตร
+        dimension: evidence_scope
+        unit_ids: [KB-TM-ELEMENT-001]
+        story_ids: []
+      - id: OBJ-1-04
+        title_th: อ่านมุมมองปฐมจินดาคู่กับความรู้ครรภ์ปัจจุบัน และรับฟังอาการแพ้ท้องโดยไม่โทษแม่
+        dimension: communication
+        unit_ids: [KB-ANC-HERITAGE-001, KB-ANC-PLAN-001]
+        story_ids: []
   - stage: 2
     title_th: เตรียมคลอด
-    summary_th: ร่วมกันวางแผนคลอด บทบาทคู่สมรส การเดินทาง และแผนฉุกเฉิน โดยสื่อสารอย่างเคารพและขอความยินยอม
+    summary_th: เข้าใจรากหมอตำแยและคัมภีร์ครรภ์ทรักษา แล้วร่วมกันเตรียมคำถามเรื่องทางเลือกคลอด สิทธิของแม่ ผู้ช่วยดูแล การเดินทาง และแผนขอความช่วยเหลือ
     objectives:
       - id: OBJ-2-01
         title_th: ร่วมกันเตรียมแผนคลอด การเดินทาง และแผนฉุกเฉิน รวมถึงรู้ช่องทางบริการ
@@ -30,9 +40,14 @@ stages:
         dimension: communication
         unit_ids: [KB-RIGHTS-CONSENT-001]
         story_ids: [parenthood]
+      - id: OBJ-2-03
+        title_th: เคารพเรื่องเล่าการคลอดของครอบครัว พร้อมอธิบายสิทธิและทางเลือกโดยไม่ใช้วันเกิดทำนายอนาคตลูก
+        dimension: evidence_scope
+        unit_ids: [KB-IP-HERITAGE-001, KB-RIGHTS-CONSENT-001]
+        story_ids: []
   - stage: 3
     title_th: หลังคลอดและฟื้นฟู
-    summary_th: รู้สัญญาณอันตรายหลังคลอดและขอความช่วยเหลือทันที พร้อมตัดสินใจเรื่องบริการฟื้นฟูแบบไทยอย่างปลอดภัย
+    summary_th: เชื่อมความห่วงใยผ่านการอยู่ไฟ สำรับอาหาร และสมุนไพรกับการพักฟื้นและการอ่านหลักฐาน พร้อมรู้ทันสัญญาณอันตรายและเลือกขอความช่วยเหลือก่อนใช้บริการ
     objectives:
       - id: OBJ-3-01
         title_th: รู้สัญญาณอันตรายหลังคลอดและขอความช่วยเหลือทันที
@@ -49,9 +64,14 @@ stages:
         dimension: communication
         unit_ids: [KB-TM-REST-001, KB-RIGHTS-CONSENT-001]
         story_ids: [bridge-fire, MOM-002, gs-a-postpartum-warning, gs-b-thai-recovery]
+      - id: OBJ-3-04
+        title_th: อ่านอาหารและสมุนไพรหลังคลอดโดยแยกความเชื่อ สารอาหาร ผลทดลอง และข้อจำกัดก่อนตัดสินใจ
+        dimension: evidence_scope
+        unit_ids: [KB-TM-FOOD-001, KB-TM-HERB-001]
+        story_ids: []
   - stage: 4
     title_th: ทารกและครอบครัว
-    summary_th: รู้ว่าเมื่อทารกดูดนมไม่ดีหรือซึมลงควรให้บุคลากรประเมินโดยไม่ชักช้า และรู้ที่ขอความช่วยเหลือเรื่องนมแม่
+    summary_th: จากเรื่องน้ำนมในคัมภีร์สู่การช่วยแม่ให้นมและแผนดูแลลูก 0–24 เดือน ฝึกคุยกับคนต่างรุ่น แบ่งหน้าที่ผู้ดูแล และรู้ว่าเมื่อใดต้องขอการประเมินจากทีมสุขภาพ
     objectives:
       - id: OBJ-4-01
         title_th: เมื่อทารกดูดนมไม่ดีหรือซึมลง ตัดสินใจให้บุคลากรประเมินโดยไม่ชักช้า
@@ -63,3 +83,13 @@ stages:
         dimension: discovery
         unit_ids: [KB-BF-HELP-001]
         story_ids: [first-night, bridge-food]
+      - id: OBJ-4-03
+        title_th: อธิบายน้ำนมเหลืองโดยเคารพผู้ใหญ่ และช่วยแม่เข้าถึงความช่วยเหลือโดยไม่ใช้สีตัดสินคุณภาพน้ำนม
+        dimension: communication
+        unit_ids: [KB-BF-COLOSTRUM-001]
+        story_ids: []
+      - id: OBJ-4-04
+        title_th: ร่วมกันวางแผนให้นม อาหารตามวัย การนอนปลอดภัย และการส่งต่อข้อมูลระหว่างผู้ดูแลลูก
+        dimension: decision
+        unit_ids: [KB-NB-FAMILY-001, KB-BF-COLOSTRUM-001]
+        story_ids: []

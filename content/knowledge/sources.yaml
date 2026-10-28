@@ -993,3 +993,88 @@
   url: https://multimedia.anamai.moph.go.th/ebooks/03-parenting-school-3rd-trimester/
   rights_status: public_web
   note: คู่มือไตรมาส 3
+- id: S41
+  kind: kb_source
+  title: องค์ความรู้ธาตุเจ้าเรือนในการดูแลสุขภาพ
+  publisher: กรมการแพทย์แผนไทยและการแพทย์ทางเลือก
+  url: https://www.dtam.moph.go.th/wp-content/uploads/e-book/2025/book-dtam-011.pdf
+  rights_status: public_web
+  note: แหล่งอธิบายทฤษฎีและประวัติศาสตร์ ไม่ใช่หลักฐานทำนายสุขภาพรายบุคคล
+- id: S42
+  kind: kb_source
+  title: อาหารตามธาตุเจ้าเรือน
+  publisher: ศูนย์การแพทย์กาญจนาภิเษก มหาวิทยาลัยมหิดล
+  year: '2563'
+  url: https://www.gj.mahidol.ac.th/main/tard/
+  rights_status: public_web
+  note: ใช้ศึกษาหมวดรสและกรอบคิดแผนไทย ไม่ใช่โภชนบำบัดหญิงตั้งครรภ์เฉพาะบุคคล
+- id: S43
+  kind: kb_source
+  title: คัมภีร์ประถมจินดา — เกร็ดความรู้จากเอกสารโบราณ
+  publisher: หอสมุดแห่งชาติ กรมศิลปากร
+  year: '2567'
+  url: https://manuscript.nlt.go.th/องค์ความรู้/เกร็ดความรู้จากเอกสารโบราณ/รายละเอียดเกร็ดความรู้จากเอกสารโบราณ/ArticleId/606/-5-8
+  rights_status: public_web
+  note: อ้างบทความและบรรณานุกรมสมุดไทยดำเลขที่ 1009 ไม่ได้นำต้นฉบับคัมภีร์ทั้งเล่มเข้าระบบ
+- id: S44
+  kind: kb_source
+  title: แรกรับวิชาผดุงครรภ์แผนตะวันตกในสยาม
+  publisher: กรมศิลปากร
+  url: https://www.finearts.go.th/architecture/view/22430-แรกรับวิชาผดุงครรภ์แผนตะวันตกในสยาม
+  rights_status: public_web
+  note: ประวัติศาสตร์การผดุงครรภ์และคัมภีร์ ไม่ใช้เหตุการณ์ในอดีตเป็นการทดลองประสิทธิผล
+- id: S45
+  kind: kb_source
+  title: GDF15 linked to maternal risk of nausea and vomiting during pregnancy
+  publisher: Nature; Fejzo et al.
+  year: '2024'
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC10808057/
+  rights_status: public_web
+  note: งานวิจัยกลไกและความไวต่อฮอร์โมน ไม่ใช่เครื่องมือวินิจฉัยหรือคำแนะนำรักษาของแอป
+- id: S46
+  kind: kb_source
+  title: Infant and young child feeding
+  publisher: WHO
+  year: '2026'
+  url: https://www.who.int/news-room/fact-sheets/detail/infant-and-young-child-feeding
+  rights_status: public_web
+  note: แนวทางทั่วไปเรื่องนมแม่ อาหารตามวัย และการช่วยเหลือครอบครัว
+- id: S47
+  kind: kb_source
+  title: Early initiation of breastfeeding to promote exclusive breastfeeding
+  publisher: WHO
+  year: '2023'
+  url: https://www.who.int/tools/elena/interventions/early-breastfeeding
+  rights_status: public_web
+  note: น้ำนมเหลืองและการสนับสนุนให้เริ่มและคงการให้นม รวมถึงขอความช่วยเหลือเมื่อมีปัญหา
+- id: S48
+  kind: kb_source
+  title: Efficacy and safety of the Plook-Fire-Thatu recipe on breast milk volume and breast milk macronutrient composition in postpartum women
+  publisher: Complementary Therapies in Medicine; Sintupattanapun et al.
+  year: '2025'
+  url: https://pubmed.ncbi.nlm.nih.gov/41043593/
+  rights_status: public_web
+  note: การทดลอง 60 คน ใช้อ่านเงื่อนไขและข้อจำกัด ไม่ถ่ายทอดขนาดยาหรือสั่งใช้เอง
+- id: S49
+  kind: kb_source
+  title: Efficacy and Safety of Plook-fai-tat Formula to Increase Milk Volume in Post-partum Women with Lactation Insufficiency
+  publisher: Journal of Thai Traditional and Alternative Medicine
+  year: '2020'
+  url: https://he01.tci-thaijo.org/index.php/JTTAM/article/view/240148
+  rights_status: public_web
+  note: การทดลอง 49 คน ต้องแยกผลภายในกลุ่มจากผลเปรียบเทียบระหว่างกลุ่ม
+- id: S50
+  kind: kb_source
+  title: Providing Care for Babies to Sleep Safely
+  publisher: CDC
+  year: '2024'
+  url: https://www.cdc.gov/sudden-infant-death/sleep-safely/index.html
+  rights_status: public_web
+  note: การจัดพื้นที่นอนที่ปลอดภัยสำหรับทารก
+- id: S51
+  kind: kb_source
+  title: SIM-TANY — องค์ความรู้ผดุงครรภ์ไทยตลอด 4 ช่วงชีวิต
+  publisher: เอกสารวิจัยประกอบหลักสูตรที่ทีมจัดหา
+  year: '2026'
+  rights_status: unknown
+  note: เอกสารที่ผู้ใช้ให้มา docs/knowledge base/SIM_TANY_4_Stage_Thai_Midwifery_Knowledge_Base_2026.pdf ฉบับ 28 ต.ค. 2569 จำนวน 22 หน้า ใช้อ้างหน้าของบทสังเคราะห์และข้อเสนอออกแบบ ไม่อ้างว่ามีใบอนุญาตเผยแพร่ต้นฉบับหรือผ่านผู้เชี่ยวชาญ
