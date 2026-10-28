@@ -117,7 +117,7 @@ def test_resharing_is_idempotent_and_jointless_stories_keep_four_skills():
 def test_schema_is_backward_compatible_and_rejects_bad_new_references():
     for story in STORIES.values():
         assert FamilyStory.model_validate(story.model_dump(mode="json")) == story
-        if story.id != GOLDEN.id:
+        if story.id != GOLDEN.id and story.stage is None:  # 2.0 stories carry facts and votes
             assert not story.facts and not any(step.joint for step in story.steps)
     raw = GOLDEN.model_dump(mode="json")
     for mutate in (

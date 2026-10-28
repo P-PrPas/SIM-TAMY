@@ -4,7 +4,15 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import NamedTuple
 
-from app.domain.family import FamilyChoice, FamilyRole, FamilySkill, FamilyStory
+from app.domain.family import (
+    CONTINUE,
+    Dimension,
+    FamilyChoice,
+    FamilyRole,
+    FamilySkill,
+    FamilyStep,
+    FamilyStory,
+)
 
 
 class Assessment(NamedTuple):
@@ -54,6 +62,8 @@ def choose(story: FamilyStory, choices: list[str], role: FamilyRole, choice_id: 
         story.mode == "coop" and story.steps[len(choices)].role != role
     ):
         raise ValueError("not this role's turn")
+    if choice_id == CONTINUE and story.steps[len(choices)].kind != "discover":
+        raise ValueError("unknown decision")
     updated = [*choices, choice_id]
     selections(story, updated)
     return updated
@@ -70,8 +80,13 @@ def prompt(story: FamilyStory, choices: list[str], facts: Iterable[str] = ()) ->
     return next((line for flag, line in step.prompt_if.items() if flag in flags), step.prompt_th)
 
 
+def revealing(step: "FamilyStep", asked: Iterable[str]) -> int:
+    """Distinct asked intents that reveal facts: the count a discover step's min_reveals needs."""
+    return sum(1 for i in step.intents if i.reveals and i.id in set(asked))
+
+
 class FamilyEventRecord(NamedTuple):
-    """The replay-relevant part of a stored event: decision, joint vote or fact share."""
+    """The replay-relevant part of a stored event: decision, joint vote, fact share or ask."""
 
     kind: str
     role: FamilyRole
@@ -88,6 +103,9 @@ class Progress:
     votes: dict[str, str] = field(default_factory=dict)  # open round, role -> choice
     split: dict[str, str] | None = None  # last round that disagreed
     events: int = 0
+    asks: list[tuple[int, str, str | None]] = field(default_factory=list)  # step, intent, reply
+    revealed: set[str] = field(default_factory=set)  # discoverable facts unlocked by asking
+    locked_at: list[int] = field(default_factory=list)  # 1-based event idx that locked each step
 
     @property
     def version(self) -> int:
@@ -97,6 +115,13 @@ class Progress:
     @property
     def facts(self) -> frozenset[str]:
         return frozenset(fact for _, fact in self.shared)
+
+    def asked(self, step_index: int) -> list[str]:
+        """Intent IDs asked in a step, in order, repeats kept (they are logged, not re-revealed)."""
+        return [intent for i, intent, _ in self.asks if i == step_index]
+
+    def reply_for(self, step_index: int, intent_id: str) -> str | None:
+        return next((r for i, n, r in self.asks if (i, n) == (step_index, intent_id)), None)
 
 
 def replay(story: FamilyStory, events: Iterable[FamilyEventRecord]) -> Progress:
@@ -108,6 +133,8 @@ def replay(story: FamilyStory, events: Iterable[FamilyEventRecord]) -> Progress:
             fact = next((f for f in story.facts if f.id == event.choice_id), None)
             if fact is None or fact.role != event.role:
                 raise ValueError("unknown or foreign fact")
+            if fact.id in story.discoverable and fact.id not in done.revealed:
+                raise ValueError("fact is not revealed yet")
             if event.choice_id not in done.facts:
                 done.shared.append((event.role, event.choice_id))
             continue
@@ -115,14 +142,24 @@ def replay(story: FamilyStory, events: Iterable[FamilyEventRecord]) -> Progress:
         if index >= len(story.steps):
             raise ValueError("too many decisions")
         step = story.steps[index]
+        if event.kind == "ask":
+            intent = next((i for i in step.intents if i.id == event.choice_id), None)
+            if intent is None or (story.mode == "coop" and step.role != event.role):
+                raise ValueError("unknown intent or not this role's turn")
+            done.asks.append((index, intent.id, event.reply_th))
+            done.revealed.update(intent.reveals)
+            continue
         if not any(c.id == event.choice_id for c in step.choices):
             raise ValueError("unknown decision")
         if event.kind == "decision":
             if step.joint or (story.mode == "coop" and step.role != event.role):
                 raise ValueError("not this role's turn")
+            if step.kind == "discover" and revealing(step, done.asked(index)) < step.min_reveals:
+                raise ValueError("not enough answers yet")
             done.choices.append(event.choice_id)
             done.replies.append(event.reply_th)
             done.step_facts.append(done.facts)
+            done.locked_at.append(done.events)
         elif event.kind == "vote":
             if not step.joint or event.role in done.votes:
                 raise ValueError("not a joint step or already voted")
@@ -132,6 +169,7 @@ def replay(story: FamilyStory, events: Iterable[FamilyEventRecord]) -> Progress:
                     done.choices.append(event.choice_id)
                     done.replies.append(None)
                     done.step_facts.append(done.facts)
+                    done.locked_at.append(done.events)
                     done.split = None
                 else:
                     done.split = dict(done.votes)
@@ -139,3 +177,56 @@ def replay(story: FamilyStory, events: Iterable[FamilyEventRecord]) -> Progress:
         else:
             raise ValueError("unknown event kind")
     return done
+
+
+class DimensionScore(NamedTuple):
+    id: Dimension
+    weight: int
+    earned: int
+    possible: int
+    score: int  # 0-100
+
+
+class RubricScore(NamedTuple):
+    total: int  # 0-100, weighted over the dimensions that had opportunities
+    dimensions: tuple[DimensionScore, ...]
+
+
+def rubric_score(story: FamilyStory, state: Progress) -> RubricScore | None:
+    """Weighted dimension scores from the replayed state alone. Not a pass mark and never mixed
+    with the Critical Safety gate (`assess().safety_met`), which stays a separate result."""
+    if not story.scored:
+        return None
+    earned: dict[Dimension, int] = {}
+    possible: dict[Dimension, int] = {}
+
+    def opportunity(dimension: Dimension, got: bool) -> None:
+        possible[dimension] = possible.get(dimension, 0) + 1
+        earned[dimension] = earned.get(dimension, 0) + int(got)
+
+    chosen = selections(story, state.choices)
+    for index, step in enumerate(story.steps):
+        asked = set(state.asked(index))
+        for intent in step.intents:
+            opportunity(intent.dimension, intent.id in asked)
+        if step.kind == "choice":
+            picked = chosen[index].dimension if index < len(chosen) else None
+            for dimension in dict.fromkeys(c.dimension for c in step.choices if c.dimension):
+                opportunity(dimension, picked == dimension)
+    for fact_id in sorted(story.discoverable):
+        opportunity("communication", fact_id in state.facts)
+    weights = story.weights
+    scored = [d for d in weights if possible.get(d)]
+    parts = tuple(
+        DimensionScore(
+            d,
+            weights[d],
+            earned.get(d, 0),
+            possible[d],
+            round(100 * earned.get(d, 0) / possible[d]),
+        )
+        for d in scored
+    )
+    weight = sum(p.weight for p in parts)
+    mass = sum(p.weight * p.earned / p.possible for p in parts)
+    return RubricScore(round(100 * mass / weight) if weight else 0, parts)

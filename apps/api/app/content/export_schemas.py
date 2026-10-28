@@ -10,6 +10,7 @@ from pydantic import TypeAdapter
 
 from app.domain.action import Action
 from app.domain.case import Case
+from app.domain.family import FamilyStory
 from app.domain.rubric import Rubric
 
 _DIALECT = "https://json-schema.org/draft/2020-12/schema"
@@ -17,6 +18,7 @@ _ADAPTERS: dict[str, TypeAdapter[Any]] = {
     "case.schema.json": TypeAdapter(Case),
     "actions.schema.json": TypeAdapter(list[Action]),
     "rubric.schema.json": TypeAdapter(Rubric),
+    "family.schema.json": TypeAdapter(FamilyStory),
 }
 
 
