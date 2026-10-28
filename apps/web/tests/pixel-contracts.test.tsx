@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { LESSON_ART_2 } from "@/components/pixel/art/lesson-stage2";
 import { CASTS, sceneSetup } from "@/components/pixel/cast";
-import { NurseryHouse, houseItems } from "@/components/pixel/house";
+import { houseItems } from "@/components/pixel/house";
 import { ART, claimArt } from "@/components/pixel/lesson-art";
 import { BACKDROPS, CHAR_H, CHAR_W, ICONS, ITEMS, ITEM_OF, characterFrames } from "@/components/pixel/scene-art";
 import type { CharacterKey } from "@/components/pixel/scene-art";
@@ -65,8 +65,15 @@ describe("nursery house zones follow the registry", () => {
     score_total: null, objective_ids: [], strong: false, ...over,
   });
 
-  it("keeps stages 2-4 locked until their lesson and scenario are both registered", () => {
-    render(<NurseryHouse attempts={null} />);
+  it("keeps stages 2-4 locked until their lesson and scenario are both registered", async () => {
+    // Only stage 1 registered, whatever the stage PRs have merged since: the rule is "locked until registered".
+    vi.resetModules();
+    vi.doMock("@/components/pixel/registry", () => ({
+      isPixelStory: (id: string) => id === "thai-elements-family",
+      isPixelLesson: (id: string) => id === "KB-TM-ELEMENT-001",
+    }));
+    const { NurseryHouse: House } = await import("@/components/pixel/house");
+    render(<House attempts={null} />);
     expect(screen.getAllByText(t("pixelHouse.locked"))).toHaveLength(3);
     expect(document.querySelector("[data-zone='2']")!.getAttribute("data-open")).toBe("false");
   });
