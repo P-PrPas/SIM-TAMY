@@ -16,6 +16,12 @@ const attempt = (over: Partial<Attempt> = {}): Attempt => ({
   room_id: "r", story_id: "thai-elements-family", title_th: "x", finished_at: "2026-10-01", safety_status: "SAFETY_MET", score_total: 50, objective_ids: [], strong: false, ...over,
 });
 
+// These tests describe the stage 1 house; stage PRs register more ids, so pin the registry to stage 1 here.
+vi.mock("@/components/pixel/registry", () => ({
+  isPixelStory: (id: string) => id === "thai-elements-family",
+  isPixelLesson: (id: string) => id === "KB-TM-ELEMENT-001",
+}));
+
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe("NurseryHouse", () => {
