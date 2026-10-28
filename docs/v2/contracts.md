@@ -33,7 +33,7 @@ Shared rules:
 
 | File | Owner | Schema | Notes |
 |---|---|---|---|
-| `content/knowledge/sources.yaml` | A | `list[SourceRecord]` | all 84 catalog records (`rights_status: metadata_only`) + KB sources `S01`..`S40` (`public_web`) |
+| `content/knowledge/sources.yaml` | A | `list[SourceRecord]` | all 84 catalog records (`rights_status: metadata_only`) + KB sources `S01`..`S40` (`public_web`). Catalog section `S` codes (`S01`..`S20` in the JSON) are stored as **`CS01`..`CS20`** because `S01`..`S40` already name KB sources; every other catalog code is unchanged (`SOURCE_ID` accepts `CSnn`) |
 | `content/knowledge/units/<id>.yaml` | A | `KnowledgeUnit` | claim text is our own Thai summary of the KB report → `rights_status: own_summary`, `publish_status: published`, `review_basis: knowledge_base_2026`; every claim has ≥1 locator (`source_id` + section/page) |
 | `content/curriculum/paths.yaml` | A | `stages[]` → `objectives[]` | 4 stages (Blueprint §05); objective `{id: OBJ-<STAGE>-NN, title_th, unit_ids, story_ids, dimension}` |
 | `content/family/gs-a-*.yaml`, `gs-b-*.yaml` | B | extended `FamilyStory` (§3) | GS-A critical-safety route, GS-B positive Thai-service route; `knowledge_unit_ids` scope the evidence pack |

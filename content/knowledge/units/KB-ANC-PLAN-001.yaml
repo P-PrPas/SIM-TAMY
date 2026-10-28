@@ -1,0 +1,39 @@
+id: KB-ANC-PLAN-001
+version: 1.0.0
+title_th: การฝากครรภ์ตามแผนและการเตรียมคำถามไปพบบุคลากร
+audience: parent
+care_stage: antenatal
+domain: 3
+evidence_status: proposed
+rights_status: own_summary
+publish_status: published
+review_basis: knowledge_base_2026
+reviewed_on: '2026-10-28'
+tags: [antenatal, anc, appointment, questions, health-book, contacts, plan]
+claims:
+  - id: c1
+    type: guidance
+    text_th: WHO ปี 2016 เสนอรูปแบบการดูแลระหว่างตั้งครรภ์อย่างน้อย 8 contacts พร้อมการประเมินและการให้ข้อมูล
+    locators:
+      - {source_id: S03, locator: 'KB 2026 §3.2, p.5'}
+  - id: c2
+    type: guidance
+    text_th: 8 contacts คือจำนวนครั้งที่ติดต่อรับบริการสุขภาพ ไม่ใช่จำนวนคาบเรียนในคลาสโรงเรียนพ่อแม่
+    locators:
+      - {source_id: S03, locator: 'KB 2026 §1, p.3'}
+  - id: c3
+    type: guidance
+    text_th: เรื่องการดูแลระหว่างตั้งครรภ์ครอบคลุมการติดตามครรภ์ โภชนาการ การคัดกรอง รวมถึงยาและวัคซีนที่ให้โดยทีมรักษา
+    locators:
+      - {source_id: S03, locator: 'KB 2026 §2 หมวด 03, p.4'}
+  - id: c4
+    type: guidance
+    text_th: ข้อเสนอโมดูลแรกของ KB คือเส้นทางฝากครรภ์ สมุดสุขภาพ และคำถามที่จะถามในนัดแพทย์ โดยผู้เรียนควรอธิบายแผนติดตามครรภ์ได้
+    locators:
+      - {source_id: S03, locator: 'KB 2026 §8 โมดูล M1, p.10'}
+  - id: c5
+    type: guidance
+    text_th: กรมอนามัยมีชุดคู่มือโรงเรียนพ่อแม่แยกตามไตรมาสและช่วงวัยของเด็ก ใช้เป็นสื่อเรียนรู้สำหรับพ่อแม่ได้
+    locators:
+      - {source_id: S24, locator: 'KB 2026 §7.1, p.9'}
+      - {source_id: P01, locator: 'บัญชีตำรา 2026 รายการ P01 (ข้อมูลทะเบียนเท่านั้น)'}

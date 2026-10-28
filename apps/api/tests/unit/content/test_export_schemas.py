@@ -6,10 +6,17 @@ from pathlib import Path
 from app.content.export_schemas import default_schema_dir, main, render_schemas
 
 
-def test_export_has_the_three_loader_documents_and_validation_dialect() -> None:
+def test_export_has_every_loader_document_and_validation_dialect() -> None:
     rendered = render_schemas()
 
-    assert set(rendered) == {"case.schema.json", "actions.schema.json", "rubric.schema.json"}
+    assert set(rendered) == {
+        "case.schema.json",
+        "actions.schema.json",
+        "rubric.schema.json",
+        "source.schema.json",
+        "knowledge-unit.schema.json",
+        "learning-paths.schema.json",
+    }
     assert all(text.endswith("\n") for text in rendered.values())
     assert all(
         json.loads(text)["$schema"].endswith("/draft/2020-12/schema") for text in rendered.values()

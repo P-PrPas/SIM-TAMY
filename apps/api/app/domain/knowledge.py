@@ -12,7 +12,7 @@ from pydantic import Field, model_validator
 
 from app.domain.case import Model, NonBlank
 
-SourceKind = Literal["catalog", "kb_source"]  # catalog = M/S/T/P/I/G codes; kb_source = S01-S40
+SourceKind = Literal["catalog", "kb_source"]  # catalog = M/CS/T/P/I/G codes; kb_source = S01-S40
 RightsStatus = Literal["unknown", "metadata_only", "public_web", "own_summary"]
 CareStage = Literal["preconception", "antenatal", "intrapartum", "postpartum", "newborn"]
 UnitAudience = Literal["parent", "educator"]
@@ -24,7 +24,8 @@ ReviewBasis = Literal["knowledge_base_2026"]  # AGENTS rule 9: provenance, never
 # Units whose claims may be retrieved: the claim text is our own summary of a public source.
 USABLE_RIGHTS: frozenset[str] = frozenset({"public_web", "own_summary"})
 
-SOURCE_ID = r"^(S\d{2}|[MSTPIG]\d{2})$"
+# CSnn = catalog section S, renamed so it cannot clash with the KB report's sources S01-S40
+SOURCE_ID = r"^(S\d{2}|CS\d{2}|[MTPIG]\d{2})$"
 UNIT_ID = r"^KB-[A-Z]+-[A-Z]+-\d{3}$"
 
 

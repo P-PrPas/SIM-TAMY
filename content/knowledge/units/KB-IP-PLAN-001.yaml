@@ -1,0 +1,40 @@
+id: KB-IP-PLAN-001
+version: 1.0.0
+title_th: แผนคลอด บทบาทคู่สมรส การเดินทาง และแผนฉุกเฉิน
+audience: parent
+care_stage: intrapartum
+domain: 4
+evidence_status: proposed
+rights_status: own_summary
+publish_status: published
+review_basis: knowledge_base_2026
+reviewed_on: '2026-10-28'
+tags: [birth-plan, partner, travel, emergency-plan, consent, labour, preparation]
+claims:
+  - id: c1
+    type: guidance
+    text_th: WHO ปี 2018 เน้นการดูแลที่เคารพและยึดผู้คลอดเป็นศูนย์กลาง สื่อสารให้ชัด และสนับสนุนผู้คลอด
+    locators:
+      - {source_id: S04, locator: 'KB 2026 §3.2, p.5'}
+  - id: c2
+    type: guidance
+    text_th: ข้อเสนอโมดูลแผนคลอดและสิทธิของ KB ครอบคลุมทางเลือกการคลอด การสื่อสารความต้องการ และบทบาทคู่สมรส โดยผู้เรียนควรออกแบบแผนคลอดและขอความยินยอมได้
+    locators:
+      - {source_id: S04, locator: 'KB 2026 §8 โมดูล M4, p.10'}
+  - id: c3
+    type: guidance
+    text_th: ในฉากที่คู่สมรสต้องเตรียมของและแผนเดินทางเมื่อใกล้คลอด ผู้เรียนฝึกเตรียมพร้อมสื่อสารและประสานผู้ดูแล มีแผนฉุกเฉิน และรู้ช่องทางบริการ
+    locators:
+      - {source_id: S24, locator: 'KB 2026 §10, p.12'}
+      - {source_id: S04, locator: 'KB 2026 §10, p.12'}
+  - id: c4
+    type: guidance
+    text_th: ทักษะก่อนคลอด เช่น การผ่อนคลายและการหายใจ ให้เคลื่อนไหวตามที่บุคลากรประเมิน และซ้อมกับผู้สอนอย่างปลอดภัย
+    locators:
+      - {source_id: S04, locator: 'KB 2026 §8 โมดูล M5, p.10'}
+  - id: c5
+    type: scope
+    text_th: ฉากฝึกเน้นการประเมินความเสี่ยง การสื่อสาร การหยุดและส่งต่อ ไม่ใช่การฝึกหัตถการโดยไม่มีผู้กำกับ และหัตถการเป็นสิทธิเฉพาะผู้ที่มีสิทธิ
+    locators:
+      - {source_id: S04, locator: 'KB 2026 §2 หมวด 05 และ §10, p.4 และ p.12'}
+escalation_th: ก่อนใกล้คลอด ควรมีแผนฉุกเฉินและรู้ช่องทางบริการของสถานพยาบาลที่ดูแลอยู่
