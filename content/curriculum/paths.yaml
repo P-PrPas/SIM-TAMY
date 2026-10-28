@@ -38,17 +38,17 @@ stages:
         title_th: รู้สัญญาณอันตรายหลังคลอดและขอความช่วยเหลือทันที
         dimension: decision
         unit_ids: [KB-PP-WARN-001, KB-TM-SAFE-001]
-        story_ids: [golden-first-night, PP-001]
+        story_ids: [golden-first-night, PP-001, gs-a-postpartum-warning]
       - id: OBJ-3-02
         title_th: ถามคำถามที่ถูกต้องก่อนรับบริการฟื้นฟูแบบไทย ทั้งวัตถุประสงค์ ขอบเขต ความปลอดภัย ผู้ให้บริการ และความยินยอม
         dimension: discovery
         unit_ids: [KB-TM-REST-001, KB-TM-SAFE-001, KB-RIGHTS-SCOPE-001, KB-RIGHTS-CONSENT-001]
-        story_ids: [bridge-compress, STF-002]
+        story_ids: [bridge-compress, STF-002, gs-b-thai-recovery]
       - id: OBJ-3-03
         title_th: เคารพความเชื่อของผู้ใหญ่ในบ้านพร้อมกับดูแลความปลอดภัยของแม่
         dimension: communication
         unit_ids: [KB-TM-REST-001, KB-RIGHTS-CONSENT-001]
-        story_ids: [bridge-fire, MOM-002]
+        story_ids: [bridge-fire, MOM-002, gs-a-postpartum-warning, gs-b-thai-recovery]
   - stage: 4
     title_th: ทารกและครอบครัว
     summary_th: รู้ว่าเมื่อทารกดูดนมไม่ดีหรือซึมลงควรให้บุคลากรประเมินโดยไม่ชักช้า และรู้ที่ขอความช่วยเหลือเรื่องนมแม่
