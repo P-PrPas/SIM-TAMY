@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { t } from "@/lib/i18n";
+import { storyReady } from "@/lib/learning-path";
 import { useDemoAccount } from "@/lib/use-demo-account";
 import { useV2 } from "@/lib/use-v2";
 import { GOLDEN_STORY_IDS, storyHref, v2 } from "@/lib/v2-api";
@@ -40,7 +41,7 @@ function Continue() {
 
 export function Home() {
   const stories = useV2((s) => v2.stories(s), "stories");
-  const featured = GOLDEN_STORY_IDS.map((id) => stories.data?.find((s) => s.id === id)).filter((s) => s !== undefined);
+  const featured = GOLDEN_STORY_IDS.filter(storyReady).map((id) => stories.data?.find((s) => s.id === id)).filter((s) => s !== undefined);
   return <main className="pf-page">
     <section className="pf-hero">
       <p className="eyebrow"><span className="eyebrow-dot" aria-hidden="true" />{t("platform.home.eyebrow")}</p>

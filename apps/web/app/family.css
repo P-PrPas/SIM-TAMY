@@ -81,6 +81,7 @@
 .family-leave { min-height: 44px; padding: 8px 12px; border: 1px solid var(--color-stone-300); border-radius: 10px; color: var(--color-muted); }
 .family-room-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 32px; align-items: start; }
 .family-room-sidebar { position: sticky; top: 24px; }
+.family-course-nav:empty { display: none; }
 .family-room-main { min-width: 0; }
 .family-room-grid.is-stage { grid-template-columns: minmax(0, 1fr); }
 .family-private { border: 1px solid var(--color-brand-200); background: var(--color-brand-50); border-radius: 16px; padding: 20px; }

@@ -4,10 +4,12 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { t } from "@/lib/i18n";
+import { unitReady } from "@/lib/learning-path";
 import { PixelLesson } from "@/components/pixel/lesson-cards";
 import { useV2 } from "@/lib/use-v2";
 import { v2, type Claim, type Lens, type Source, type UnitDetail, type UnitSummary } from "@/lib/v2-api";
 
+import { Disabled, NotReadyPage } from "./not-ready";
 import { Async, formatDate, labelOr } from "./shared";
 
 const STAGE_ORDER = ["pregnancy", "intrapartum", "postpartum", "newborn"];
@@ -59,7 +61,7 @@ export function KnowledgeIndex() {
       : <>{groupByStage(items).map(([stage, group]) => <section key={stage} className="pf-section" aria-labelledby={`stage-${stage}`}>
         <h2 id={`stage-${stage}`}>{stageLabel(stage)}</h2>
         <ul className="pf-grid pf-list">{group.map((u) => <li key={u.id} className="pf-card">
-          <h3><Link href={`/knowledge/${encodeURIComponent(u.id)}`} className="pf-link">{u.title_th}</Link></h3>
+          <h3>{unitReady(u.id) ? <Link href={`/knowledge/${encodeURIComponent(u.id)}`} className="pf-link">{u.title_th}</Link> : <Disabled>{u.title_th}</Disabled>}</h3>
           <p className="pf-meta">{u.id}{u.has_lens && <> · {t("platform.knowledge.hasLens")}</>}</p>
         </li>)}</ul>
       </section>)}</>}</Async>
@@ -124,7 +126,9 @@ function Detail({ u }: { u: UnitDetail }) {
 }
 
 export function KnowledgeUnit({ id }: { id: string }) {
-  const unit = useV2((s) => v2.unit(id, s), `unit:${id}`);
+  const ready = unitReady(id);
+  const unit = useV2(ready ? (s) => v2.unit(id, s) : null, `unit:${id}`);
+  if (!ready) return <NotReadyPage />;
   return <main className="pf-page">
     <Link href="/knowledge" className="pf-link"><span aria-hidden="true">← </span>{t("platform.knowledge.allUnits")}</Link>
     {unit.error?.status === 404 ? <p role="alert" className="pf-alert">{t("platform.knowledge.notFound")}</p>

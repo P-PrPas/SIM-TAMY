@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createApi, ApiError } from "@/lib/api/client";
 import type { components } from "@/lib/api/schema";
 import { t } from "@/lib/i18n";
+import { storyReady } from "@/lib/learning-path";
 import { FamilyArtwork, FamilyIcon } from "./family-art";
 import { FamilyReportPanel } from "./family-report";
 import { HOUSE_STORY } from "./pixel/house";
@@ -232,7 +233,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
   return <main className={`family-page ${view ? "is-active" : ""}`}>
     <Link href="/" className="family-back"><span aria-hidden="true">←</span>{t("family.home")}</Link>
     <nav aria-label={t("family.courses")} className="family-course-nav">
-      {([[GOLDEN_STORY, '/golden', 'heart', 'golden'], ['first-night', '/family', 'family', 'link'], ['parenthood', '/parenthood', 'journey', 'journey'], ['bridge', '/bridge', 'bridge', 'bridge']] as const).map(([id, href, icon, label]) => <Link key={id} href={href} aria-current={(storyId === id || (id === 'bridge' && experience === 'bridge')) ? "page" : undefined}>
+      {([[GOLDEN_STORY, '/golden', 'heart', 'golden'], ['first-night', '/family', 'family', 'link'], ['parenthood', '/parenthood', 'journey', 'journey'], ['bridge', '/bridge', 'bridge', 'bridge']] as const).filter(([id]) => storyReady(id === 'bridge' ? 'bridge-fire' : id)).map(([id, href, icon, label]) => <Link key={id} href={href} aria-current={(storyId === id || (id === 'bridge' && experience === 'bridge')) ? "page" : undefined}>
         <FamilyIcon name={icon} /><span>{t(`family.design.nav.${label}`)}</span>
       </Link>)}
     </nav>
