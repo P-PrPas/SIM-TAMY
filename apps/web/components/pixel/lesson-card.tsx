@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
 import { t } from "@/lib/i18n";
 import type { Hotspot, SourceRef } from "@/lib/v2-api";
 
 import { ART, type ArtKind } from "./lesson-art";
-import { LessonSheet } from "./lesson-sheet";
 import { Sprite } from "./sprite";
 
 export type Card = { key: string; heading: string; text: string; art: ArtKind; sources: SourceRef[]; hotspots: Hotspot[] };
@@ -36,40 +35,45 @@ function PlainCard({ card }: { card: Card }) {
   </article>;
 }
 
-/** Tap a spot: it lights up in the picture and a short explanation opens in a sheet. The full claim and sources stay one tap away. */
+/**
+ * Tap a spot: it lights up in the picture and its short explanation fills the info window beside it
+ * (under it on phones). Nothing covers the picture, so the learner keeps flowing from spot to spot.
+ * The full claim and the sources stay one tap away inside the same window.
+ */
 function SpotCard({ card }: { card: Card }) {
   const art = ART[card.art];
   const spots = card.hotspots;
   const [lit, setLit] = useState<boolean[]>(() => Array(art.taps).fill(false));
   const [seen, setSeen] = useState<ReadonlySet<number>>(new Set());
-  const [open, setOpen] = useState<number | "sources" | null>(null);
+  const [now, setNow] = useState<number | null>(null);
   const [more, setMore] = useState(false);
-  const closeSheet = useCallback(() => setOpen(null), []);
-  const tapSpot = (i: number) => { setLit((cur) => cur.map((x, j) => x || j === i)); setSeen(new Set(seen).add(i)); setOpen(i); };
-  const spot = typeof open === "number" ? spots[open] : undefined;
-  return <article className="pl-card" aria-label={card.heading}>
-    <div className="pl-art"><Sprite frames={[art.draw(lit)]} scale={3} /></div>
-    <p className="pl-hint">{t("pixelLesson.spotsHint")} ({t("pixelLesson.spotsSeen")} {seen.size} {t("pixelLesson.cardOfSep")} {spots.length})</p>
-    <div className="pl-taps" role="group" aria-label={t("pixelLesson.illustration")}>
-      {spots.map((h, i) => <button key={h.id} type="button" className="pl-btn pl-tap" aria-haspopup="dialog" data-sparkle={!seen.has(i)} onClick={() => tapSpot(i)}>
-        {h.label_th}{seen.has(i) && <><Check /><span className="pl-sr">{t("pixelLesson.explored")}</span></>}
-      </button>)}
+  const [src, setSrc] = useState(false);
+  const tapSpot = (i: number) => { setLit((cur) => cur.map((x, j) => x || j === i)); setSeen(new Set(seen).add(i)); setNow(i); };
+  const spot = now === null ? undefined : spots[now];
+  return <article className="pl-card pl-split" aria-label={card.heading}>
+    <div className="pl-stage">
+      <div className="pl-art"><Sprite frames={[art.draw(lit)]} scale={3} /></div>
+      <p className="pl-hint">{t("pixelLesson.spotsHint")} ({t("pixelLesson.spotsSeen")} {seen.size} {t("pixelLesson.cardOfSep")} {spots.length})</p>
+      <div className="pl-taps" role="group" aria-label={t("pixelLesson.illustration")}>
+        {spots.map((h, i) => <button key={h.id} type="button" className="pl-btn pl-tap" aria-pressed={now === i} aria-controls="pl-info" data-sparkle={!seen.has(i)} onClick={() => tapSpot(i)}>
+          {h.label_th}{seen.has(i) && <><Check /><span className="pl-sr">{t("pixelLesson.explored")}</span></>}
+        </button>)}
+      </div>
     </div>
-    <div className="pl-extra">
-      <button type="button" className="pl-btn" aria-expanded={more} onClick={() => setMore(!more)}>{more ? t("pixelLesson.readLess") : t("pixelLesson.readMore")}</button>
-      {card.sources.length > 0 && <button type="button" className="pl-btn" aria-haspopup="dialog" onClick={() => setOpen("sources")}>
-        <span aria-hidden="true">ⓘ </span>{t("pixelLesson.sourcesBtn")}
-      </button>}
-    </div>
-    {more && <p className="pl-text">{card.text}</p>}
-    {spot && <LessonSheet titleId="pl-sheet-title" onClose={closeSheet}>
-      <h2 id="pl-sheet-title" className="pl-sheet-title">{spot.label_th}</h2>
-      <p className="pl-sheet-text">{spot.text_th}</p>
-    </LessonSheet>}
-    {open === "sources" && <LessonSheet titleId="pl-sheet-title" onClose={closeSheet}>
-      <h2 id="pl-sheet-title" className="pl-sheet-title">{t("pixelLesson.sourcesTitle")}</h2>
-      <Sources list={card.sources} full />
-    </LessonSheet>}
+    <aside id="pl-info" className="pl-info" aria-label={t("pixelLesson.infoTitle")}>
+      <div key={now ?? "empty"} className="pl-info-body" aria-live="polite">
+        {spot ? <><h3 className="pl-info-title">{spot.label_th}</h3><p className="pl-info-text">{spot.text_th}</p></>
+          : <p className="pl-info-empty">{t("pixelLesson.infoEmpty")}</p>}
+      </div>
+      <div className="pl-extra">
+        <button type="button" className="pl-btn" aria-expanded={more} onClick={() => setMore(!more)}>{more ? t("pixelLesson.readLess") : t("pixelLesson.readMore")}</button>
+        {card.sources.length > 0 && <button type="button" className="pl-btn" aria-expanded={src} onClick={() => setSrc(!src)}>
+          <span aria-hidden="true">ⓘ </span>{t("pixelLesson.sourcesBtn")}
+        </button>}
+      </div>
+      {more && <p className="pl-text">{card.text}</p>}
+      {src && <Sources list={card.sources} full />}
+    </aside>
   </article>;
 }
 

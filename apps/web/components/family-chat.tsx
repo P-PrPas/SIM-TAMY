@@ -103,7 +103,7 @@ export function FamilyChat({ view, credentials, onView, onChoice, pixel }: {
       reply: !pending && last?.reply ? { text: last.reply.text_th, fresh: Boolean(last.fresh) } : null });
   }, [compact, log, pending, failed]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => { if (compact) onSay?.(null); }, [compact]); // eslint-disable-line react-hooks/exhaustive-deps
-  return <section className={compact ? "family-chat is-rpg is-bar" : pixel ? "family-chat is-rpg" : "family-chat"} aria-labelledby="family-chat-title">
+  return <section className={compact ? "family-chat is-bar" : pixel ? "family-chat is-rpg" : "family-chat"} aria-labelledby="family-chat-title">
     <h3 id="family-chat-title" className={compact ? "sr-only" : undefined}><FamilyIcon name="chat" />{t("lab.chat.title")}</h3>
     <p className={compact ? "sr-only" : "family-muted"}>{t("lab.chat.hint")}</p>
     {(scene.joint || scene.choices.length > 0 && !discover) && <p className={compact ? "sr-only" : "family-muted"}>{t("lab.chat.buttonsOnly")}</p>}

@@ -50,11 +50,7 @@
 .pixel-hud-notebook ul { margin: 0; padding-left: 18px; }
 .pixel-hud-notebook p { margin: 0; }
 .pixel-leave { min-width: 44px; min-height: 44px; background: #231e18; color: #fff9eb; border: 0; font-size: 1.5rem; cursor: pointer; }
-.pixel-bubble { position: absolute; max-width: 62%; max-height: 38%; overflow-y: auto; padding: 8px 12px; background: #fff9eb; color: #231e18; border: 3px solid #231e18; font-size: 1rem; line-height: 1.4; }
-.pixel-bubble p { margin: 0; }
-.pixel-bubble.is-speaker { right: 8px; bottom: 44%; }
-.pixel-bubble.is-you { left: 8px; bottom: 56%; background: #efd698; max-width: 50%; max-height: 28%; }
-.pixel-bubble:focus-visible, .pixel-skip:focus-visible, .pixel-card input:focus-visible + .pixel-card-icon { outline: 3px solid #efbd51; outline-offset: 2px; }
+.pixel-line:focus-visible, .pixel-skip:focus-visible { outline: 3px solid #7c5314; outline-offset: 2px; }
 .pixel-skip { position: absolute; right: 8px; bottom: 8px; min-height: 44px; padding: 0 14px; background: #231e18; color: #fff9eb; border: 2px solid #efbd51; cursor: pointer; font-size: 1rem; }
 .pixel-item.is-new { animation: pixel-pop 0.6s steps(4); }
 @keyframes pixel-pop { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -71,9 +67,30 @@
 .pixel-card-label { font-size: 1rem; font-weight: 700; }
 .pixel-card-detail { margin: 8px 0; padding: 10px 12px; background: #fff9eb; border-left: 6px solid #efbd51; color: #231e18; }
 .pixel-commit { min-height: 44px; }
-.family-chat.is-bar { margin: 8px 0; padding: 8px; gap: 8px; }
-.family-chat.is-bar .family-chat-form { grid-template-columns: 1fr auto; align-items: stretch; }
-.family-chat.is-bar textarea { min-height: 44px; resize: none; }
-.family-chat.is-bar .button-primary, .family-chat.is-bar .family-dontknow { min-height: 44px; }
 @media (prefers-reduced-motion: reduce) { .pixel-item.is-new { animation: none; } }
 .pixel-card-item { display: grid; }
+
+/* Stage: scene beside (wide) or over (phone) a dialogue panel that also holds the chat bar and choice cards.
+   The scale and column width come from stageLayout() in stage.tsx. Contrast: #231e18 on #fff9eb >= 14:1. */
+.pixel-stage { display: grid; gap: 16px; align-items: start; }
+.pixel-stage .pixel-scene-wrap { margin-bottom: 0; }
+.pixel-stage:not(.is-wide) .pixel-panel { width: var(--stage-w); max-width: 100%; margin-inline: auto; }
+.pixel-stage.is-wide .pixel-panel { min-height: var(--stage-h); }
+.pixel-panel { display: grid; gap: 12px; align-content: start; box-sizing: border-box; padding: 16px; background: #fff9eb; color: #231e18; border: 4px solid #231e18; }
+.pixel-nameplate { justify-self: start; margin: 0; padding: 4px 12px; background: #231e18; color: #efd698; font-weight: 700; }
+.pixel-line { padding: 10px 14px; border: 3px solid #231e18; line-height: 1.7; font-size: 1.125rem; }
+.pixel-line p { margin: 0; }
+.pixel-line.is-you { background: #efd698; font-size: 1rem; }
+.pixel-line.is-you strong { display: block; color: #47351f; }
+.pixel-line.is-speaker { background: #fff; border-left: 8px solid #efbd51; }
+.pixel-panel-body { display: grid; gap: 12px; min-width: 0; }
+.pixel-panel-body .family-turn-status { margin: 0; }
+.family-scene.is-stage { padding: 0; background: none; border: 0; box-shadow: none; }
+.family-chat.is-bar { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.family-chat.is-bar .family-chat-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
+.family-chat.is-bar textarea { min-height: 44px; resize: none; }
+.family-chat.is-bar .button-primary, .family-chat.is-bar .family-dontknow { min-height: 44px; }
+.family-chat.is-bar .family-dontknow { justify-self: start; }
+.family-chat.is-bar .family-dontknow { width: auto; margin-top: 0; justify-content: center; gap: 8px; color: #231e18; background: #fff; border: 2px solid #231e18; border-radius: 0; }
+.family-chat.is-bar .family-dontknow:hover:not(:disabled) { background: #efd698; }
+@media (max-width: 420px) { .family-chat.is-bar .family-chat-form { grid-template-columns: 1fr; } }

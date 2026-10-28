@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { FamilySimulator } from "@/components/family-simulator";
+import { stageLayout } from "@/components/pixel/stage";
 import { t } from "@/lib/i18n";
 
 const ROOM = "44444444-4444-4444-4444-444444444444";
@@ -40,7 +41,7 @@ it("hides hero and progress text during play and keeps text equivalents", async 
   expect(screen.queryByText("HeroTitle")).toBeNull();
   expect(container.querySelector(".pixel-hud .sr-only")?.textContent).toContain("1 / 3");
   expect(screen.getByLabelText(t("pixelSim.notebook.count").replace("{n}", "0"))).not.toBeNull();
-  expect(container.querySelector(".pixel-bubble.is-speaker")?.textContent).toContain("Which way");
+  expect(container.querySelector(".pixel-line.is-speaker")?.textContent).toContain("Which way");
   expect(Array.from(container.querySelectorAll("[aria-live='polite'].sr-only")).some((n) => n.textContent === "Which way")).toBe(true);
 });
 
@@ -64,8 +65,8 @@ it("runs a skippable consequence beat that changes the scene", async () => {
   const skip = await screen.findByRole("button", { name: t("pixelSim.skip") });
   expect(container.querySelector(".pixel-scene.is-beat")).not.toBeNull();
   expect(container.querySelector(".pixel-item.is-new")).not.toBeNull(); // pot appears on the table
-  expect(container.querySelector(".pixel-bubble.is-speaker")?.textContent).toContain("Reply text");
-  expect(container.querySelector(".pixel-bubble.is-you")?.textContent).toContain(FULL);
+  expect(container.querySelector(".pixel-line.is-speaker")?.textContent).toContain("Reply text");
+  expect(container.querySelector(".pixel-line.is-you")?.textContent).toContain(FULL);
   fireEvent.click(skip);
   expect(container.querySelector(".pixel-scene.is-beat")).toBeNull();
   expect(container.querySelector(".pixel-item")).not.toBeNull(); // the table keeps the item
@@ -101,4 +102,20 @@ it("keeps the old layout for other stories", async () => {
   expect(container.querySelector(".pixel-stage-frame")).toBeNull();
   expect(container.querySelector(".pixel-cards")).toBeNull();
   expect(container.querySelector(".practice-activity")).not.toBeNull();
+});
+
+it("lays the panel beside the scene only when the scene can stay at 2x or more", () => {
+  expect(stageLayout(328)).toEqual({ wide: false, scale: 1 });
+  expect(stageLayout(700)).toEqual({ wide: false, scale: 2 });
+  expect(stageLayout(1000)).toEqual({ wide: false, scale: 3 });
+  expect(stageLayout(1180)).toEqual({ wide: true, scale: 2 });
+  expect(stageLayout(1400)).toEqual({ wide: true, scale: 3 });
+});
+
+it("keeps the choice cards inside the dialogue panel", async () => {
+  serve();
+  const { container } = render(<FamilySimulator storyId={STORY} />);
+  await screen.findByText(t("pixelSim.choose"));
+  expect(container.querySelector(".pixel-panel .pixel-cards")).not.toBeNull();
+  expect(container.querySelector(".family-room-grid.is-stage")).not.toBeNull();
 });
