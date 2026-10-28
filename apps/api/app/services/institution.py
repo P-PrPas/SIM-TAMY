@@ -23,7 +23,7 @@ from app.core.errors import ApiError
 from app.db.family import FamilyEvent, FamilyMessage, FamilyRoom
 from app.db.models import Assignment, ClassRoom
 from app.domain.family import FamilyRole, FamilyStory
-from app.engine.family import FamilyEventRecord, assess, replay
+from app.engine.family import FamilyEventRecord, assess, replay, rubric_score
 from app.services import instructor
 
 MIN_OBJECTIVE_N = 3  # per-objective rates stay hidden below this many finished attempts (CT-12)
@@ -244,7 +244,8 @@ def attempts(db: Session, rooms: Sequence[FamilyRoom]) -> list[Attempt]:
             if len(state.choices) == len(story.steps):
                 assessment = assess(story, state.choices, state.facts)
                 finished, safety_met = True, assessment.safety_met
-                score = getattr(assessment, "score_total", None)  # null until the scorer exposes it
+                rubric = rubric_score(story, state)
+                score = rubric.total if rubric else None
         except ValueError:
             pass
         result.append(Attempt(room, story, finished, safety_met, score, activity))

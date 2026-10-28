@@ -78,13 +78,30 @@ async function pick(page: Page, text: string) {
   await page.getByRole("button", { name: t("experience.commit"), exact: true }).click();
 }
 
-async function setup(browser: Browser, id: string) {
+async function setup(browser: Browser, id: string, assigned = false) {
   const hostContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const partnerContext = await browser.newContext({ viewport: { width: 360, height: 780 } });
   const host = await hostContext.newPage();
   const partner = await partnerContext.newPage();
   await requireMockApi(host);
-  await host.goto(`/simulate/${id}`);
+  let cohortId: string | undefined;
+  let assignmentId: string | undefined;
+  if (assigned) {
+    const headers = { "X-Demo-Account": "staff-h-edu-1" };
+    const cohort = await host.request.post(`${apiUrl}/v1/orgs/org-demo-hospital/cohorts`, {
+      headers, data: { name: "Golden integration" },
+    });
+    expect(cohort.status()).toBe(201);
+    cohortId = (await cohort.json()).id;
+    const assignment = await host.request.post(`${apiUrl}/v1/cohorts/${cohortId}/assignments`, {
+      headers, data: { story_id: id },
+    });
+    expect(assignment.status()).toBe(201);
+    assignmentId = (await assignment.json()).id;
+    await host.addInitScript(() => localStorage.setItem("sim-tamy-demo-account", "parent-h-mom-1"));
+    await partner.addInitScript(() => localStorage.setItem("sim-tamy-demo-account", "parent-h-dad-1"));
+  }
+  await host.goto(`/simulate/${id}${assignmentId ? `?assignment=${assignmentId}` : ""}`);
   await host.getByRole("button", { name: t("family.create"), exact: true }).click();
   await partner.goto(await host.locator("#family-share").inputValue());
   await partner.getByRole("button", { name: t("family.join"), exact: true }).click();
@@ -98,11 +115,11 @@ async function setup(browser: Browser, id: string) {
   const cont = async (tab: Page, saved: Saved) =>
     tab.getByRole("button", { name: (await read(tab, saved)).scene!.choices[0]!.text_th }).click();
   const step = async () => (await read(host, mother)).scene?.id;
-  return { hostContext, partnerContext, host, partner, mother, father, read, text, cont, step };
+  return { hostContext, partnerContext, host, partner, mother, father, read, text, cont, step, cohortId };
 }
 
 test("GS-A: typed discovery, role-private facts, share, joint vote mismatch then agreement, report and debrief", async ({ browser }) => {
-  const s = await setup(browser, "gs-a-postpartum-warning");
+  const s = await setup(browser, "gs-a-postpartum-warning", true);
   const { host, partner, mother, father, read, text, cont, step } = s;
   try {
     const file = story("gs-a-postpartum-warning");
@@ -172,6 +189,23 @@ test("GS-A: typed discovery, role-private facts, share, joint vote mismatch then
     }
     await expect(host.getByText(t("family.safetyObserved"))).toBeVisible();
     await audit(partner);
+    const analytics = await host.request.get(`${apiUrl}/v1/cohorts/${s.cohortId}/analytics`, {
+      headers: { "X-Demo-Account": "staff-h-edu-1" },
+    });
+    expect(analytics.ok()).toBeTruthy();
+    expect(await analytics.json()).toMatchObject({
+      n_started: 1, n_finished: 1,
+      objectives: [
+        { objective_id: "OBJ-3-01", n: 1, numerator: null, suppressed: true },
+        { objective_id: "OBJ-3-03", n: 1, numerator: null, suppressed: true },
+      ],
+    });
+    await host.goto("/passport");
+    const passport = await host.request.get(`${apiUrl}/v1/passport/parent-h-mom-1`);
+    const attempt = (await passport.json()).attempts.find((a: { room_id: string }) => a.room_id === mother.room_id);
+    expect(attempt).toMatchObject({ score_total: expect.any(Number), objective_ids: ["OBJ-3-01", "OBJ-3-03"] });
+    await expect(host.getByRole("heading", { name: attempt.title_th }).first()).toBeVisible();
+    await expect(host.getByText(t("platform.passport.score") + ":", { exact: false }).first()).toBeVisible();
   } finally {
     await s.hostContext.close();
     await s.partnerContext.close();
