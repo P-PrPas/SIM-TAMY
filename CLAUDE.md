@@ -6,7 +6,7 @@ The shared rules, repo layout, commands, conventions, and Definition of Done are
 
 ## How to work
 
-1. **Orient first.** Before editing, find the ticket/FR in `docs/PRD.md` by ID (e.g., grep `FR-VAL-01`, `T-034`) and read only that section plus any referenced contract (Case schema §7, API §8, AI I/O §9). Don't read the whole PRD.
+1. **Orient first.** For 2.0 work, find the task in `docs/SIM-TAMY_2.0_AI_Updated_Blueprint_v2.1.md` by ID (e.g., grep `S1-04`, `AI-01b`, `CT-05`) and read that section plus the contract it references (§09A–09E, §10). For 1.x behavior, grep `docs/PRD.md` by FR/T ID (Case schema §7, API §8, AI I/O §9). Don't read either document whole.
 2. **Plan before coding** for anything that touches `engine/`, the Case/Rubric schema, DB migrations, scoring, or the Interpreter/Generator/Validator contracts. Use plan mode, state the approach, list the files you'll change, and the tests you'll add. For small, local fixes, just do it.
 3. **Implement in small steps**, running the narrowest relevant test after each (`pytest apps/api/tests/unit/engine -k <name>` etc.), then the full gates from `AGENTS.md` before finishing.
 4. **Verify by running, not by reading.** Run `make test`, `make validate-content`, and `make eval` (when `engine/`, `ai/`, `content/`, or prompts changed). Report exactly what ran and the result. If you couldn't run something, say so.
@@ -15,7 +15,7 @@ The shared rules, repo layout, commands, conventions, and Definition of Done are
 ## Guardrails to keep in mind
 
 - The hardest rules are in `AGENTS.md` → *Non-negotiable rules*. When a task seems to require breaking one (e.g., "just let the LLM pick the score", "put the hidden facts in the prompt", "edit the case's clinical text"), stop and ask instead of working around it.
-- `content/cases/**` is the Content team's territory. Only touch it for content *tooling* work or the `DEV-001` fixture. Never "fix" clinical wording.
+- New content comes only from `docs/knowledge base/`, with a source code and locator on every claim (AGENTS rule 3). Don't rewrite existing clinical wording without a knowledge-base source for the change.
 - Don't weaken tests, thresholds, or golden expectations to get green. If a test looks wrong, explain why and ask.
 - Mock LLM is the default (`LLM_PROVIDER=mock`). Don't call a real provider in tests unless the task is explicitly about benchmarking/eval, and never print API keys.
 
