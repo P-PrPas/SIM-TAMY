@@ -3,17 +3,17 @@ import Link from "next/link";
 import { t } from "@/lib/i18n";
 import type { Attempt } from "@/lib/v2-api";
 
+import { isPixelStory } from "./registry";
 import { PALETTE } from "./sprite";
 import "./house.css";
 
-export const HOUSE_STORY = "thai-elements-family";
 const ZONES = ["1", "2", "3", "4"] as const;
 // 2x2 rooms inside a 320x180 house: [x, y] of each 130x50 room
 const ROOM: Record<(typeof ZONES)[number], [number, number]> = { "1": [20, 120], "2": [20, 70], "3": [170, 120], "4": [170, 70] };
 
-/** Finished attempts of the chapter-1 story, recorded server-side. Lesson completion has no server record yet. */
+/** Finished attempts of pixel-stage stories, recorded server-side. Lesson completion has no server record yet. */
 export function houseItems(attempts: readonly Attempt[] | null) {
-  const finished = (attempts ?? []).filter((a) => a.finished_at && a.story_id === HOUSE_STORY).length;
+  const finished = (attempts ?? []).filter((a) => a.finished_at && isPixelStory(a.story_id)).length;
   // A replay upgrades the table (tier 2); nothing is ever removed.
   return { book: false, table: (finished > 1 ? 2 : finished > 0 ? 1 : 0) as 0 | 1 | 2 };
 }

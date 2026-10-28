@@ -94,3 +94,30 @@
 .family-chat.is-bar .family-dontknow { width: auto; margin-top: 0; justify-content: center; gap: 8px; color: #231e18; background: #fff; border: 2px solid #231e18; border-radius: 0; }
 .family-chat.is-bar .family-dontknow:hover:not(:disabled) { background: #efd698; }
 @media (max-width: 420px) { .family-chat.is-bar .family-chat-form { grid-template-columns: 1fr; } }
+
+/* Co-op (LP-01): partner presence chip on the HUD and the "what you know" disclosure at the top of the panel. */
+.pixel-partner { display: flex; align-items: center; gap: 6px; margin: 0; min-height: 28px; padding: 4px 8px; background: #231e18; color: #fff9eb; font-size: 0.875rem; font-weight: 700; }
+.pixel-partner-dot { width: 10px; height: 10px; flex-shrink: 0; border: 2px solid #efd698; background: transparent; }
+.pixel-partner.is-online .pixel-partner-dot { background: #7bd67b; border-color: #7bd67b; }
+.pixel-partner.is-offline .pixel-partner-dot { background: #8a8174; border-color: #8a8174; }
+@media (max-width: 520px) { .pixel-partner-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
+.pixel-know { border: 3px solid #231e18; background: #fff; min-width: 0; }
+.pixel-know summary { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 12px; font-weight: 700; cursor: pointer; list-style: none; }
+.pixel-know summary::-webkit-details-marker { display: none; }
+.pixel-know summary > span:not(.family-disclosure) { flex: 1; }
+.pixel-know summary .family-icon { width: 18px; }
+.pixel-know summary:focus-visible { outline: 3px solid #7c5314; outline-offset: -3px; }
+.pixel-know-count { min-width: 24px; padding: 0 6px; text-align: center; background: #231e18; color: #efd698; }
+.pixel-know-body { display: grid; gap: 12px; padding: 0 12px 12px; }
+.pixel-know-body section { min-width: 0; }
+.pixel-know-body h3 { margin: 0 0 4px; font-size: 1rem; }
+.pixel-know-body p { margin: 0; line-height: 1.7; }
+.pixel-know-body .family-facts { margin-top: 0; padding-top: 12px; border-top: 2px solid #231e18; }
+.pixel-know-body .family-facts h2 { font-size: 1rem; margin: 0 0 8px; }
+.pixel-know-body .family-fact-list li, .pixel-know-body .family-timeline li { border-radius: 0; border: 2px solid #231e18; background: #fff9eb; }
+.pixel-know-body .family-fact-list button { border-radius: 0; }
+.pixel-panel-body .family-turn-status { padding: 8px 12px; background: #efd698; border: 2px solid #231e18; font-weight: 700; }
+.pixel-panel-body .family-vote { margin: 0; border-radius: 0; border: 3px solid #231e18; background: #fff9eb; }
+
+.family-room-grid.is-stage .family-room-sidebar { position: static; }
+.pixel-panel-body .family-vote-waiting { display: none; } /* the status strip above already says it (aria-live) */
