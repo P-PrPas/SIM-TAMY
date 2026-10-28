@@ -14,7 +14,7 @@ async function noHorizontalOverflow(page: import("@playwright/test").Page) {
 }
 
 test("Join and Briefing render a Draft case at 360px against Prism", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/lab/solo");
   await expect(page.getByRole("heading", { name: t("join.title") })).toBeVisible();
   await expect(page.getByText(t("status.draftFull"))).toHaveCount(0);
   await expect(page.getByText(t("banner.educationOnly"))).toHaveCount(0);
@@ -30,7 +30,7 @@ test("Join and Briefing render a Draft case at 360px against Prism", async ({ pa
 });
 
 test("Join explains an invalid class code without leaving the page", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/lab/solo");
   await expect(page.getByText(t("status.draftFull"))).toHaveCount(0);
   await page.route("**/v1/sessions", (route) => route.fulfill({
     status: 404,
@@ -42,11 +42,11 @@ test("Join explains an invalid class code without leaving the page", async ({ pa
   await page.getByRole("textbox", { name: t("join.classCode") }).fill("ABC123");
   await page.getByRole("button", { name: t("join.start") }).click();
   await expect(page.getByText(t("join.classNotFound"))).toBeVisible();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/lab\/solo$/);
 });
 
 test("Chat keeps a failed optimistic turn and retries it with the same ID", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/lab/solo");
   await page.getByRole("textbox", { name: t("join.nickname") }).fill("Learner");
   await page.getByRole("button", { name: t("join.start") }).click();
   await page.getByRole("link", { name: t("briefing.begin") }).click();
@@ -77,7 +77,7 @@ test("Chat keeps a failed optimistic turn and retries it with the same ID", asyn
 });
 
 test("Quick prompts fill but do not submit the chat at 360px", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/lab/solo");
   await page.getByRole("textbox", { name: t("join.nickname") }).fill("Learner");
   await page.getByRole("button", { name: t("join.start") }).click();
   await page.getByRole("link", { name: t("briefing.begin") }).click();

@@ -64,7 +64,7 @@ async function ask(page: Page, text: string) {
 
 test("solo: ask, decide, safety-gated report with evidence, then branch and example replay", async ({ page }) => {
   await requireMockApi(page);
-  await page.goto("/");
+  await page.goto("/lab/solo");
   await page.locator("#case").selectOption("PP-001");
   await page.locator("#variant").selectOption("A");
   await page.getByRole("textbox", { name: t("join.nickname") }).fill("DEMO-solo");
