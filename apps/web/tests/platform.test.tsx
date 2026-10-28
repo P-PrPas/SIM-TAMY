@@ -326,3 +326,26 @@ describe("Knowledge & Sources", () => {
     expect(await screen.findByText(t("platform.knowledge.notFound"))).toBeTruthy();
   });
 });
+
+it("shows loading and lets a learner retry failed house progress without losing attempts", async () => {
+  setDemoAccount("acc-l1");
+  let resolvePassport!: (response: Response) => void;
+  vi.stubGlobal("fetch", vi.fn(async (input: string | Request) => {
+    const url = typeof input === "string" ? input : input.url;
+    if (url.endsWith("/passport/acc-l1")) return new Promise<Response>((resolve) => { resolvePassport = resolve; });
+    return Response.json(paths);
+  }));
+  render(<StageCards />);
+  await screen.findByText("Stage one");
+  expect(screen.queryByText(t("pixelHouse.itemState.table"), { exact: false })).toBeNull();
+  expect(screen.getByRole("status").textContent).toBe(t("platform.common.loading"));
+  resolvePassport(Response.json({ error: { code: "X" } }, { status: 500 }));
+  const alert = await screen.findByRole("alert");
+  expect(within(alert).getByText(t("platform.common.loadError"))).toBeTruthy();
+  expect(screen.queryByText(t("pixelHouse.itemState.table"), { exact: false })).toBeNull();
+  mockApi({ ...base, "/passport/acc-l1": { account: { id: "acc-l1", display_name_th: "Learner One" },
+    attempts: [attempt({ story_id: "thai-elements-family" })] } });
+  fireEvent.click(within(alert).getByRole("button", { name: t("platform.common.retry") }));
+  expect(await screen.findByText(t("pixelHouse.itemState.have"), { exact: false })).toBeTruthy();
+  expect(screen.queryByRole("alert")).toBeNull();
+});

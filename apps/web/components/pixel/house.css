@@ -1,0 +1,17 @@
+.nh { margin: 1rem 0; }
+.nh-art { display: block; width: 100%; max-width: 640px; height: auto; image-rendering: pixelated; }
+.nh-list { list-style: none; padding: 0; display: grid; gap: .5rem; margin: .75rem 0 0; }
+.nh-zone { border: 2px solid #7c5314; border-radius: 4px; padding: .5rem .75rem; background: #fff9eb; color: #231e18; }
+.nh-zone[data-open="false"] { background: #47351f; color: #fff9eb; border-color: #231e18; }
+.nh-zone ul { margin: .25rem 0 0; padding-left: 1.25rem; }
+.nh-state { font-size: .875rem; }
+.nh-zone a { color: #47351f; font-weight: 600; }
+.nr { border: 2px solid #7c5314; border-radius: 4px; background: #fff9eb; color: #231e18; padding: 1rem; margin: 1rem 0; }
+.nr-meters { display: grid; gap: .5rem; margin: .75rem 0; }
+.nr-meter { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.nr-cells { display: flex; gap: 2px; }
+.nr-cell { width: 14px; height: 14px; border: 2px solid #231e18; background: #fff9eb; }
+.nr-cell[data-on="true"] { background: #c68d1c; }
+.nr-table { display: flex; gap: 6px; min-height: 24px; align-items: end; }
+.nr-item { width: 16px; height: 16px; background: #6f8f4e; border: 2px solid #231e18; }
+.nr-beat { min-height: 3rem; }

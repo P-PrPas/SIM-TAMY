@@ -3641,6 +3641,34 @@ components:
         safe:
           type: boolean
           title: Safe
+        skills:
+          items:
+            type: string
+            enum:
+            - communication
+            - responsibility
+            - safety
+            - support
+            - shared_decision
+          type: array
+          title: Skills
+          default: []
+        dimension:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Dimension
+        critical:
+          type: boolean
+          title: Critical
+          default: false
+        kind:
+          type: string
+          enum:
+          - choice
+          - discover
+          title: Kind
+          default: choice
       additionalProperties: false
       type: object
       required:

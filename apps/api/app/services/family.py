@@ -142,6 +142,10 @@ def view(db: Session, row: FamilyRoom, role: FamilyRole) -> FamilyView:
                     feedback_th=choice.feedback_th,
                     source_ids=step.source_ids,
                     safe=choice.safe,
+                    skills=choice.skills,
+                    dimension=choice.dimension,
+                    critical=step.critical,
+                    kind=step.kind,
                 )
                 for i, (step, choice) in enumerate(zip(story.steps, chosen, strict=True))
             ],

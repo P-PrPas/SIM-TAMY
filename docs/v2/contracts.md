@@ -159,3 +159,13 @@ in `/lab`. Existing routes, sessions, objective progress and scoring are unchang
 The knowledge index combines preconception and antenatal references into one
 navigation group and collapses the source registry; unit detail metadata and
 citations retain their original meaning. This does not retire or approve content.
+
+### Pixel nursery house and end-of-chapter reveal (LP-03)
+
+`/learn` renders a code-drawn "บ้านต้อนรับลูก" with four stage zones (only stage 1 open). Items come only
+from finished attempts in `GET /passport/{account_id}`: the table item needs a finished
+`thai-elements-family` attempt (a second finished attempt upgrades it). The palm-leaf-book item (lesson
+`KB-TM-ELEMENT-001`) stays empty because lesson completion is not recorded server-side yet; no local storage is used.
+`FamilyEvidence` in the finished `FamilyReport` (post-completion only, never in play views) gains
+`skills`, `dimension`, `critical`, `kind` so the web reveal can replay each choice. The three meters are a
+visual reflection, not a score; scoring, rubric and `safety_status` are unchanged.
