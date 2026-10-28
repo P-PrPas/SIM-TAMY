@@ -12,6 +12,8 @@ import { PracticeStage } from "./practice-stage";
 import { PracticeChoice } from "./practice-choice";
 import { FamilyChapterGate, FamilyJournal } from "./family-story";
 import { FamilyFacts, FamilyKnowledgeCard, FamilyVoteStatus } from "./family-cosim";
+import { FamilyChat } from "./family-chat";
+import { FamilyLabReport } from "./family-lab-report";
 
 type View = components["schemas"]["FamilyView"];
 type Role = View["role"];
@@ -119,7 +121,10 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         remember({ room_id, token }); setView(data);
         window.history.replaceState(null, "", window.location.pathname);
       } else {
-        const { data } = await client(null).POST("/v1/family/rooms", { body: { story_id: storyId, role } });
+        const assignment = new URLSearchParams(window.location.search).get("assignment");
+        const { data } = await client(null).POST("/v1/family/rooms", {
+          body: { story_id: storyId, role, ...(assignment ? { assignment_id: assignment } : {}) },
+        });
         if (!data) throw new Error("Missing room");
         remember(data);
       }
@@ -165,7 +170,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
     catch { setCopyFailed(true); }
   }
 
-  const experience = storyId === "first-night" || storyId === GOLDEN_STORY ? "coop" : storyId === "parenthood" ? "journey" : "bridge";
+  const experience = storyId === "first-night" || storyId === GOLDEN_STORY || storyId.startsWith("gs-") ? "coop" : storyId === "parenthood" ? "journey" : "bridge";
   const lastTurn = view?.transcript.at(-1);
   const earlierTurns = view?.transcript.slice(0, -1) ?? [];
   const voted = Boolean(view?.scene?.vote?.my_choice_id);
@@ -261,13 +266,17 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
             <p className="family-scene-prompt">{view.scene.prompt_th}</p>
             {view.scene.card && <FamilyKnowledgeCard card={view.scene.card} />}
             <FamilyVoteStatus scene={view.scene} />
-            {view.scene.choices.length > 0 && <PracticeChoice key={`${view.room_id}:${view.state_version}:${view.scene.vote?.my_choice_id ?? ""}`} choices={view.scene.choices} disabled={busy || !view.partner_joined || !!pending} onCommit={(id) => void decide(id)} />}
+            {view.scene.accepts_text && credentials && view.partner_joined && <FamilyChat key={`${view.room_id}:${view.scene.id}`} view={view} credentials={credentials} onView={setView} onChoice={(id) => void decide(id)} />}
+            {view.scene.kind === "discover" && !view.scene.can_continue && <p className="family-muted" role="status">{t("lab.chat.askMore")}</p>}
+            {view.scene.kind === "discover" && view.scene.choices.map((choice) => <button key={choice.id} type="button" className="button-primary family-continue" disabled={busy || !!pending} onClick={() => void decide(choice.id)}>{choice.text_th}<FamilyIcon name="arrow" /></button>)}
+            {view.scene.kind !== "discover" && view.scene.choices.length > 0 && <PracticeChoice key={`${view.room_id}:${view.state_version}:${view.scene.vote?.my_choice_id ?? ""}`} choices={view.scene.choices} disabled={busy || !view.partner_joined || !!pending} onCommit={(id) => void decide(id)} />}
             {pending && !busy && <button className="button-primary family-retry" onClick={() => void decide(pending.choice_id)}>{t("family.retry")}</button>}
           </section></FamilyChapterGate>}
         </div>
       </div>
       <FamilyJournal turns={view.transcript} coop={experience === "coop"} waiting={t(status)} />
       {view.report && <FamilyReportPanel report={view.report} turns={view.transcript} grandmother={experience === "bridge"} coop={experience === "coop"} onRestart={() => { setRole(view.role); leave(); }} />}
+      {view.report && view.report.score_total != null && credentials && <FamilyLabReport report={view.report} roomId={credentials.room_id} token={credentials.token} />}
     </>}
   </main>;
 }

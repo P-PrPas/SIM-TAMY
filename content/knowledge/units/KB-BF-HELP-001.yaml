@@ -1,0 +1,41 @@
+id: KB-BF-HELP-001
+version: 1.0.0
+title_th: การสนับสนุนการให้นมแม่และที่ขอความช่วยเหลือ
+audience: parent
+care_stage: newborn
+domain: 8
+evidence_status: proposed
+rights_status: own_summary
+publish_status: published
+review_basis: knowledge_base_2026
+reviewed_on: '2026-10-28'
+tags: [breastfeeding, latch, support, help, hospital-class, bfhi]
+claims:
+  - id: c1
+    type: guidance
+    text_th: เรื่องนมแม่ครอบคลุมการสนับสนุนการเข้าเต้า การรับมือปัญหา และช่องทางปรึกษา
+    locators:
+      - {source_id: S07, locator: 'KB 2026 §2 หมวด 08, p.4'}
+  - id: c2
+    type: guidance
+    text_th: Baby-friendly Hospital Initiative ของ WHO และ UNICEF เป็นกรอบสนับสนุนการเลี้ยงลูกด้วยนมแม่ในสถานบริการ ไม่ใช่ใบรับรองสำหรับทุกคลาสเตรียมคลอด และการที่โรงพยาบาลสอนเรื่องนมแม่ไม่ได้แปลว่าได้สถานะ Baby-friendly โดยอัตโนมัติ
+    locators:
+      - {source_id: S07, locator: 'KB 2026 §1, p.3'}
+      - {source_id: S07, locator: 'KB 2026 §7.2, p.9'}
+  - id: c3
+    type: service
+    text_th: ตัวอย่างที่ KB พบ คือโรงพยาบาลสมิติเวชระบุว่ามีการอบรมมารดาก่อนคลอดเรื่องนมแม่เป็นประจำทุกเดือนโดยไม่มีค่าบริการเพิ่ม เงื่อนไขและราคาอาจเปลี่ยน จึงควรสอบถามโรงพยาบาลโดยตรง
+    locators:
+      - {source_id: S29, locator: 'KB 2026 §6, p.8'}
+  - id: c4
+    type: guidance
+    text_th: โรงเรียนพ่อแม่ที่พบมักเริ่มจากแพทย์หรือพยาบาลอธิบาย แล้วทำกิจกรรม ฝึกผู้ดูแลและคู่สมรส เปิดให้ถามตอบ และให้ช่องทางปรึกษาหลังกลับบ้าน
+    locators:
+      - {source_id: S27, locator: 'KB 2026 §6, p.8'}
+      - {source_id: S29, locator: 'KB 2026 §6, p.8'}
+  - id: c5
+    type: guidance
+    text_th: ข้อเสนอโมดูลนมแม่ของ KB เน้นพื้นฐานการให้นม ปัญหาที่พบบ่อย และการส่งต่อปรึกษา โดยผู้เรียนควรระบุจุดช่วยเหลือและแนวทางปรึกษาได้
+    locators:
+      - {source_id: S07, locator: 'KB 2026 §8 โมดูล M7, p.10'}
+escalation_th: หากมีปัญหาการให้นมหรือทารกดูดนมไม่ดี ให้ใช้ช่องทางปรึกษาของสถานบริการที่ดูแลอยู่ หรือติดต่อบุคลากรสุขภาพ

@@ -1,0 +1,65 @@
+# SIM-TAMY 2.0 learning paths (Blueprint §05, LP-01/02). Stages follow the Blueprint table;
+# unit_ids point at content/knowledge/units, story_ids at existing family stories or cases.
+# Stream B adds the GS-A/GS-B story IDs later.
+stages:
+  - stage: 1
+    title_th: เตรียมครอบครัว
+    summary_th: เริ่มจากเส้นทางฝากครรภ์และการเตรียมคำถามไปพบบุคลากร และรู้ว่าสมุนไพรต้องถามเป็นรายตำรับก่อนใช้
+    objectives:
+      - id: OBJ-1-01
+        title_th: อธิบายแผนติดตามครรภ์และเตรียมคำถามที่จะถามในนัดฝากครรภ์ได้
+        dimension: discovery
+        unit_ids: [KB-ANC-PLAN-001]
+        story_ids: [parenthood]
+      - id: OBJ-1-02
+        title_th: ถามส่วนประกอบและข้อห้ามของสมุนไพรเป็นรายตำรับก่อนใช้ ไม่เหมารวมว่าปลอดภัยเพราะเป็นธรรมชาติ
+        dimension: evidence_scope
+        unit_ids: [KB-TM-HERB-001]
+        story_ids: [bridge-herbs]
+  - stage: 2
+    title_th: เตรียมคลอด
+    summary_th: ร่วมกันวางแผนคลอด บทบาทคู่สมรส การเดินทาง และแผนฉุกเฉิน โดยสื่อสารอย่างเคารพและขอความยินยอม
+    objectives:
+      - id: OBJ-2-01
+        title_th: ร่วมกันเตรียมแผนคลอด การเดินทาง และแผนฉุกเฉิน รวมถึงรู้ช่องทางบริการ
+        dimension: decision
+        unit_ids: [KB-IP-PLAN-001]
+        story_ids: [parenthood, first-night]
+      - id: OBJ-2-02
+        title_th: สื่อสารความต้องการอย่างเคารพ ให้ข้อมูลประกอบการตัดสินใจ และไม่บังคับหรือบิดเบือนข้อมูล
+        dimension: communication
+        unit_ids: [KB-RIGHTS-CONSENT-001]
+        story_ids: [parenthood]
+  - stage: 3
+    title_th: หลังคลอดและฟื้นฟู
+    summary_th: รู้สัญญาณอันตรายหลังคลอดและขอความช่วยเหลือทันที พร้อมตัดสินใจเรื่องบริการฟื้นฟูแบบไทยอย่างปลอดภัย
+    objectives:
+      - id: OBJ-3-01
+        title_th: รู้สัญญาณอันตรายหลังคลอดและขอความช่วยเหลือทันที
+        dimension: decision
+        unit_ids: [KB-PP-WARN-001, KB-TM-SAFE-001]
+        story_ids: [golden-first-night, PP-001]
+      - id: OBJ-3-02
+        title_th: ถามคำถามที่ถูกต้องก่อนรับบริการฟื้นฟูแบบไทย ทั้งวัตถุประสงค์ ขอบเขต ความปลอดภัย ผู้ให้บริการ และความยินยอม
+        dimension: discovery
+        unit_ids: [KB-TM-REST-001, KB-TM-SAFE-001, KB-RIGHTS-SCOPE-001, KB-RIGHTS-CONSENT-001]
+        story_ids: [bridge-compress, STF-002]
+      - id: OBJ-3-03
+        title_th: เคารพความเชื่อของผู้ใหญ่ในบ้านพร้อมกับดูแลความปลอดภัยของแม่
+        dimension: communication
+        unit_ids: [KB-TM-REST-001, KB-RIGHTS-CONSENT-001]
+        story_ids: [bridge-fire, MOM-002]
+  - stage: 4
+    title_th: ทารกและครอบครัว
+    summary_th: รู้ว่าเมื่อทารกดูดนมไม่ดีหรือซึมลงควรให้บุคลากรประเมินโดยไม่ชักช้า และรู้ที่ขอความช่วยเหลือเรื่องนมแม่
+    objectives:
+      - id: OBJ-4-01
+        title_th: เมื่อทารกดูดนมไม่ดีหรือซึมลง ตัดสินใจให้บุคลากรประเมินโดยไม่ชักช้า
+        dimension: decision
+        unit_ids: [KB-NB-WARN-001]
+        story_ids: [golden-first-night]
+      - id: OBJ-4-02
+        title_th: ระบุจุดขอความช่วยเหลือและช่องทางปรึกษาเรื่องการให้นมแม่ได้
+        dimension: discovery
+        unit_ids: [KB-BF-HELP-001]
+        story_ids: [first-night, bridge-food]

@@ -10,7 +10,7 @@ import type { components } from "@/lib/api/schema";
 type Competency = components["schemas"]["FamilyCompetency"];
 const item = (skill: Competency["skill"], observed: number, opportunities: number): Competency => ({ skill, observed, opportunities });
 // Actual engine counts for the reviewed six-choice Parenthood path.
-const report = { safety_status: "SAFETY_NOT_MET", competencies: [item("communication", 1, 5), item("responsibility", 2, 5), item("safety", 1, 2), item("support", 1, 5)], evidence: [], sources: [] };
+const report = { safety_status: "SAFETY_NOT_MET", competencies: [item("communication", 1, 5), item("responsibility", 2, 5), item("safety", 1, 2), item("support", 1, 5)], dimensions: [], evidence: [], sources: [] };
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 it("uses exploration when the critical gate fails despite safety being the leading domain", () => {

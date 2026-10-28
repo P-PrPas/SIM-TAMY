@@ -1,0 +1,49 @@
+id: KB-RIGHTS-SCOPE-001
+version: 1.0.0
+title_th: ใครให้บริการได้ ใบอนุญาตและขอบเขตวิชาชีพ
+audience: parent
+care_stage: postpartum
+domain: 11
+evidence_status: synthesis
+rights_status: own_summary
+publish_status: published
+review_basis: knowledge_base_2026
+reviewed_on: '2026-10-28'
+tags: [licence, scope-of-practice, provider, course, certificate, thai-midwifery, rights]
+claims:
+  - id: c1
+    type: scope
+    text_th: แนวทางคลินิก หลักสูตร ใบรับรองเข้าอบรม และใบอนุญาตประกอบวิชาชีพ เป็นคนละอย่างกัน
+    locators:
+      - {source_id: S09, locator: 'KB 2026 §1, p.3'}
+      - {source_id: S11, locator: 'KB 2026 §1, p.3'}
+  - id: c2
+    type: scope
+    text_th: รายงานไม่ได้ยืนยันว่าการเรียนหลักสูตร 62 ชั่วโมง หรือการเข้าโรงเรียนพ่อแม่ ทำให้มีสิทธิประกอบวิชาชีพเพิ่มขึ้น ผู้ใช้ต้องตรวจหลักเกณฑ์และใบอนุญาตจริงก่อนปฏิบัติงาน
+    locators:
+      - {source_id: S18, locator: 'KB 2026 §1, p.3'}
+  - id: c3
+    type: scope
+    text_th: การประกอบวิชาชีพเกี่ยวข้องกับกฎหมายและผู้อนุญาตของแต่ละระบบ ฝั่งพยาบาลและผดุงครรภ์ตรวจกับสภาการพยาบาล ส่วนการแพทย์แผนไทยตรวจข้อกำหนดของสภาการแพทย์แผนไทยและกฎหมายที่เกี่ยวข้อง
+    locators:
+      - {source_id: S20, locator: 'KB 2026 §1, p.3'}
+      - {source_id: S21, locator: 'KB 2026 §1, p.3'}
+      - {source_id: S11, locator: 'KB 2026 §1, p.3'}
+  - id: c4
+    type: scope
+    text_th: ผู้เรียนผดุงครรภ์ไทยต้องสอบและขึ้นทะเบียนตามข้อกำหนด ไม่เกิดสิทธิอัตโนมัติ และการอบรมเพิ่มเติมไม่เทียบเท่าการมีใบอนุญาตใหม่
+    locators:
+      - {source_id: S17, locator: 'KB 2026 §5, p.7'}
+      - {source_id: S18, locator: 'KB 2026 §5, p.7'}
+  - id: c5
+    type: scope
+    text_th: ไม่ควรสรุปว่าผู้สืบทอดภูมิปัญญาพื้นบ้านมีใบอนุญาตหรือมีสิทธิทำคลอด
+    locators:
+      - {source_id: S20, locator: 'KB 2026 §4.1 หลักการประเมินก่อนเผยแพร่, p.6'}
+  - id: c6
+    type: guidance
+    text_th: ก่อนสมัครหรือนำหลักสูตรมาใช้ ควรถามว่าสถาบันและรุ่นนั้นได้รับการรับรองหรือให้ความเห็นชอบจากใคร เมื่อไร และหลังเรียนได้วุฒิหรือประกาศนียบัตร หรือมีสิทธิสอบใบอนุญาตแยกต่างหาก
+    locators:
+      - {source_id: S09, locator: 'KB 2026 §5, p.7'}
+      - {source_id: S10, locator: 'KB 2026 §5, p.7'}
+escalation_th: ไม่แน่ใจว่าผู้ให้บริการมีสิทธิหรือไม่ ให้ตรวจใบอนุญาตกับหน่วยงานที่เกี่ยวข้องก่อนรับบริการ
