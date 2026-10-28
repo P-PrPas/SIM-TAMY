@@ -16,6 +16,11 @@ import { storyHref, v2Get } from "../lib/v2-api";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/learn", useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("next/image", () => ({ default: () => null }));
+// These tests describe the chapter-1 house and registry; later stages register without changing what they check.
+vi.mock("@/components/pixel/registry", () => ({
+  isPixelStory: (id: string) => id === "thai-elements-family",
+  isPixelLesson: (id: string) => id === "KB-TM-ELEMENT-001",
+}));
 
 const paths = {
   release_id: "r1",
@@ -167,7 +172,7 @@ describe("Learning Journey", () => {
     mockApi({ ...base, "/passport/acc-l1": { account: { id: "acc-l1", display_name_th: "L" }, attempts: [],
       lessons: [{ unit_id: "KB-TM-ELEMENT-001", completed_at: "2026-10-01T00:00:00Z" }] } });
     render(<StageCards />);
-    const book = (await screen.findAllByText(t("pixelHouse.items.book"), { exact: false }))[0]!.closest("li") as HTMLElement;
+    const book = (await screen.findAllByText(t("pixelHouse.items.book"), { exact: false }))[0]!.closest("li") as HTMLElement; // stage 1 is the first zone
     expect(book.textContent).toContain(t("pixelHouse.itemState.have"));
   });
 

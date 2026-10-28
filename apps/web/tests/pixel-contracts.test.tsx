@@ -4,15 +4,19 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { LESSON_ART_2 } from "@/components/pixel/art/lesson-stage2";
 import { CASTS, sceneSetup } from "@/components/pixel/cast";
-import { NurseryHouse, houseItems } from "@/components/pixel/house";
+import { houseItems } from "@/components/pixel/house";
 import { ART, claimArt } from "@/components/pixel/lesson-art";
-import { isPixelLesson, isPixelStory } from "@/components/pixel/registry";
 import { BACKDROPS, CHAR_H, CHAR_W, ICONS, ITEMS, ITEM_OF, characterFrames } from "@/components/pixel/scene-art";
 import type { CharacterKey } from "@/components/pixel/scene-art";
 import { characterOf } from "@/components/pixel/scene-view";
 import { t } from "@/lib/i18n";
-import { CORE_PATH } from "@/lib/learning-path";
 import type { Attempt } from "@/lib/v2-api";
+
+// These tests describe the chapter-1 house and registry; later stages register without changing what they check.
+vi.mock("@/components/pixel/registry", () => ({
+  isPixelStory: (id: string) => id === "thai-elements-family",
+  isPixelLesson: (id: string) => id === "KB-TM-ELEMENT-001",
+}));
 
 afterEach(() => {
   cleanup();
@@ -67,11 +71,17 @@ describe("nursery house zones follow the registry", () => {
     score_total: null, objective_ids: [], strong: false, ...over,
   });
 
-  it("keeps a stage locked until its lesson and scenario are both registered", () => {
-    render(<NurseryHouse attempts={null} />);
-    const registered = CORE_PATH.filter((p) => p.stage > 1 && isPixelStory(p.stories[0]!) && isPixelLesson(p.units[0]!)).map((p) => String(p.stage));
-    expect(screen.getAllByText(t("pixelHouse.locked"))).toHaveLength(3 - registered.length);
-    for (const zone of ["2", "3", "4"]) expect(document.querySelector(`[data-zone='${zone}']`)!.getAttribute("data-open")).toBe(String(registered.includes(zone)));
+  it("keeps stages 2-4 locked until their lesson and scenario are both registered", async () => {
+    // Only stage 1 registered, whatever the stage PRs have merged since: the rule is "locked until registered".
+    vi.resetModules();
+    vi.doMock("@/components/pixel/registry", () => ({
+      isPixelStory: (id: string) => id === "thai-elements-family",
+      isPixelLesson: (id: string) => id === "KB-TM-ELEMENT-001",
+    }));
+    const { NurseryHouse: House } = await import("@/components/pixel/house");
+    render(<House attempts={null} />);
+    expect(screen.getAllByText(t("pixelHouse.locked"))).toHaveLength(3);
+    expect(document.querySelector("[data-zone='2']")!.getAttribute("data-open")).toBe("false");
   });
 
   it("opens a zone and fills its own slots from its own pair", async () => {

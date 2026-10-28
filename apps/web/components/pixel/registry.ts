@@ -5,13 +5,13 @@
 const STAGE1 = { stories: ["thai-elements-family"], lessons: ["KB-TM-ELEMENT-001"] };
 
 // Stage 2 (thai-birth-conversation + KB-IP-HERITAGE-001)
-const STAGE2: { stories: string[]; lessons: string[] } = { stories: [], lessons: [] };
+const STAGE2 = { stories: ["thai-birth-conversation"], lessons: ["KB-IP-HERITAGE-001"] };
 
 // Stage 3 (gs-a-postpartum-warning + KB-PP-WARN-001)
 const STAGE3 = { stories: ["gs-a-postpartum-warning"], lessons: ["KB-PP-WARN-001"] };
 
 // Stage 4 (thai-milk-family + KB-BF-COLOSTRUM-001)
-const STAGE4: { stories: string[]; lessons: string[] } = { stories: [], lessons: [] };
+const STAGE4 = { stories: ["thai-milk-family"], lessons: ["KB-BF-COLOSTRUM-001"] };
 
 const STAGES = [STAGE1, STAGE2, STAGE3, STAGE4];
 

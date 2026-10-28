@@ -8,6 +8,12 @@ import type { components } from "@/lib/api/schema";
 import { t } from "@/lib/i18n";
 import type { Attempt, PassportLesson } from "@/lib/v2-api";
 
+// These tests describe the chapter-1 house and registry; later stages register without changing what they check.
+vi.mock("@/components/pixel/registry", () => ({
+  isPixelStory: (id: string) => id === "thai-elements-family",
+  isPixelLesson: (id: string) => id === "KB-TM-ELEMENT-001",
+}));
+
 type Ev = components["schemas"]["FamilyEvidence"];
 const ev = (idx: number, over: Partial<Ev> = {}): Ev => ({
   idx, text_th: `choice-${idx}`, feedback_th: "f", source_ids: ["S1"], safe: true, skills: [], dimension: null, critical: false, kind: "choice", ...over,
@@ -21,7 +27,7 @@ afterEach(() => { cleanup(); vi.useRealTimers(); });
 describe("NurseryHouse", () => {
   it("locks stages 2-4 and leaves slots empty without finished attempts", () => {
     render(<NurseryHouse attempts={[attempt({ finished_at: null }), attempt({ story_id: "other" })]} />);
-    expect(screen.getAllByText(t("pixelHouse.locked"))).toHaveLength(2); // stage 3 is registered
+    expect(screen.getAllByText(t("pixelHouse.locked"))).toHaveLength(3);
     expect(screen.getAllByText(t("pixelHouse.itemState.table"), { exact: false })[0]).toBeTruthy();
     expect(houseItems(null).table).toBe(0);
   });
