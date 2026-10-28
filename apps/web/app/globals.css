@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./family.css";
 @import "./experience.css";
+@import "./pixel.css";
 @import "./platform.css";
 
 @theme {
