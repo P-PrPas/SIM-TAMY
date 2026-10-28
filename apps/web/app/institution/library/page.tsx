@@ -3,6 +3,7 @@
 import { LoadState } from "@/components/institution-bits";
 import { api } from "@/lib/api/runtime";
 import { t } from "@/lib/i18n";
+import { storyReady } from "@/lib/learning-path";
 import { useLoad } from "@/lib/use-load";
 
 export default function LibraryPage() {
@@ -23,6 +24,7 @@ export default function LibraryPage() {
             <p className="text-lg font-bold">{story.title_th}</p>
             <p className="text-stone-800">{story.description_th}</p>
             <p className="mt-1 text-stone-700">{t(`institution.library.mode.${story.mode}`)}</p>
+            {!storyReady(story.id) && <p className="mt-1 text-stone-700">{t("platform.notReadyLearners")}</p>}
           </li>
         ))}
       </ul>

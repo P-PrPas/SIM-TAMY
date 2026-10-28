@@ -76,6 +76,7 @@ Implementation notes from stream B (binding for consumers):
   lists the first example question of each intent for the current discover step (sample strings only,
   no intent IDs or labels); empty on other steps.
 - Pixel stage (LP-01): `FamilyChoice` gains optional display-only `short_th` (non-blank, <= 30 chars, a faithful shortening of that choice's `text_th`) and `icon` (`book|notebook|pot|talk|pause|menu|arrow`). Play-time `FamilyOption` exposes only these two beside `id`/`text_th`; skills, feedback, dimension and `safe` stay hidden. Without `short_th` the web shows `text_th`; the full sentence is always readable before committing. The web's consequence beat uses only `mood`, the committed choice's `icon` and step.
+- Pixel stage registry (LP-01): `apps/web/components/pixel/registry.ts` (`PIXEL_STORIES`, `isPixelStory`) is the single list of stories drawn with the pixel stage; each stage PR only adds its id. Co-op stories use the same stage: the dialogue panel starts with a `<details>` "what you know" (role-private brief, my facts with the share action, shared timeline; open while unshared facts remain), the HUD shows partner presence, and the status strip carries the waiting/turn text. No API change.
 - `app/ai/evidence.py::evidence_pack` is the only consumer of `retrieve_claims`; with no release it
   returns `release_id="none"` and knowledge answers abstain.
 
@@ -166,6 +167,16 @@ in `/lab`. Existing routes, sessions, objective progress and scoring are unchang
 The knowledge index combines preconception and antenatal references into one
 navigation group and collapses the source registry; unit detail metadata and
 citations retain their original meaning. This does not retire or approve content.
+
+### Ready registry (LP-01, LP-04)
+
+`apps/web/lib/learning-path.ts` (`CORE_PATH`) is the single list of what learners can open: one lesson and one
+scenario per stage (stage 1 `KB-TM-ELEMENT-001` + `thai-elements-family`, stage 2 `KB-IP-HERITAGE-001` +
+`thai-birth-conversation`, stage 3 `KB-PP-WARN-001` + `gs-a-postpartum-warning`, stage 4 `KB-BF-COLOSTRUM-001` +
+`thai-milk-family`). `unitReady()` / `storyReady()` gate the stage page, lab, knowledge index and unit page, home,
+join-code assignments, the story routes and the course tabs. Everything else is listed greyed out with an availability
+label (not a review label, rule 9) and direct URLs show a notice. `NEXT_PUBLIC_SHOW_ALL_CONTENT=true` opens everything
+(dev, CI and the e2e web servers). Content, APIs, sessions and scoring are unchanged.
 
 ### Pixel nursery house and end-of-chapter reveal (LP-03)
 

@@ -7,6 +7,7 @@ import { LoadState } from "@/components/institution-bits";
 import { ApiError } from "@/lib/api/client";
 import { api } from "@/lib/api/runtime";
 import { t } from "@/lib/i18n";
+import { storyReady } from "@/lib/learning-path";
 import { useLoad } from "@/lib/use-load";
 
 export default function JoinCodePage() {
@@ -44,12 +45,12 @@ export default function JoinCodePage() {
                 {data.assignments.map((a) => (
                   <li key={a.id} className="rounded-2xl border border-stone-300 bg-white p-4">
                     <p className="text-lg font-bold">{a.title_th}</p>
-                    <Link
+                    {storyReady(a.story_id) ? <Link
                       href={`/simulate/${a.story_id}?assignment=${a.id}`}
                       className="mt-3 inline-flex min-h-11 items-center rounded-lg bg-brand-900 px-5 font-semibold text-white"
                     >
                       {t("institution.join.start")}
-                    </Link>
+                    </Link> : <p className="mt-3 text-stone-700">{t("platform.notReady")}</p>}
                   </li>
                 ))}
               </ul>

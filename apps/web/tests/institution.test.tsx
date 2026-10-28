@@ -87,7 +87,7 @@ beforeEach(() => {
   mocks.params = {}; mocks.search = new URLSearchParams(); localStorage.clear();
   routes();
 });
-afterEach(() => cleanup());
+afterEach(() => { cleanup(); vi.unstubAllEnvs(); });
 
 describe("S2 institution shell", () => {
   it("lists only educators and org admins, gates content on a pick, and stores the account", async () => {
@@ -201,11 +201,19 @@ describe("S2 analytics, library and staff", () => {
 
 describe("S2 join landing", () => {
   it("links each assignment to the simulation room with the assignment id", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SHOW_ALL_CONTENT", "true");
     mocks.params = { code: "ABC234" };
     render(<JoinCodePage />);
     const link = await screen.findByRole("link", { name: t("institution.join.start") });
     expect(link.getAttribute("href")).toBe("/simulate/first-night?assignment=a-1");
     expect(screen.getByText(t("institution.join.noIntake"))).toBeTruthy();
+  });
+
+  it("shows a not-ready label instead of a link for an assignment whose story is not ready", async () => {
+    mocks.params = { code: "ABC234" };
+    render(<JoinCodePage />);
+    expect(await screen.findByText(t("platform.notReady"))).toBeTruthy();
+    expect(screen.queryByRole("link", { name: t("institution.join.start") })).toBeNull();
   });
 
   it.each([

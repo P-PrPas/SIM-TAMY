@@ -30,11 +30,15 @@ export function stageLayout(width: number) {
  * choice cards) render inside the panel so reading and answering happen in one place. Art stays
  * aria-hidden; every HUD item has a text equivalent.
  */
-export function PixelStage({ scene, step, prompt, say, beat, onTalking, onSkip, done, total, onLeave, leaveDisabled, children }: {
+export function PixelStage({ scene, step, prompt, say, beat, onTalking, onSkip, done, total, onLeave, leaveDisabled, partner, know, children }: {
   scene: Omit<ComponentProps<typeof PixelScene>, "compact" | "children" | "beat" | "scale">;
   step: string; prompt: string; say: Say | null; beat: BeatLines | null;
   onTalking: (talking: boolean) => void; onSkip: () => void;
-  done: number; total: number; onLeave: () => void; leaveDisabled: boolean; children?: ReactNode;
+  done: number; total: number; onLeave: () => void; leaveDisabled: boolean;
+  /** Co-op only: partner presence for the HUD. `null` for solo stories. */
+  partner?: "online" | "offline" | "waiting" | null;
+  /** Optional "what you know" disclosure rendered at the top of the dialogue panel. */
+  know?: ReactNode; children?: ReactNode;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const focus = useRef<HTMLDivElement>(null);
@@ -66,6 +70,7 @@ export function PixelStage({ scene, step, prompt, say, beat, onTalking, onSkip, 
         <ol className="pixel-pips" aria-hidden="true">
           {Array.from({ length: total }, (_, i) => <li key={i} className={i < done ? "is-done" : i === done ? "is-now" : ""} />)}
         </ol>
+        {partner && <p className={`pixel-partner is-${partner}`}><span className="pixel-partner-dot" aria-hidden="true" /><span className="pixel-partner-text">{t(`pixelSim.partner.${partner}`)}</span></p>}
         <details className="pixel-hud-notebook">
           <summary aria-label={t("pixelSim.notebook.count").replace("{n}", String(cards.length))}>
             <Sprite frames={[NOTEBOOK]} scale={2} /><b aria-hidden="true">{cards.length}</b>
@@ -82,6 +87,7 @@ export function PixelStage({ scene, step, prompt, say, beat, onTalking, onSkip, 
       {beat && <button type="button" className="pixel-skip" onClick={onSkip}>{t("pixelSim.skip")}</button>}
     </PixelScene>
     <div className="pixel-panel">
+      {know}
       {scene.speaker && <p className="pixel-nameplate">{scene.speaker}</p>}
       {you && <div className="pixel-line is-you"><strong>{t("lab.chat.you")}</strong><p>{you}</p></div>}
       <div ref={focus} className="pixel-line is-speaker" role="group" aria-label={t("pixelSim.stage")} tabIndex={0}>

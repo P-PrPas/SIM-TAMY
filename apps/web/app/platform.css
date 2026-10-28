@@ -51,3 +51,6 @@
 .pf-disclosure { border-top: 1px solid var(--color-line); padding-top: 8px; }
 .pf-disclosure > summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-weight: 650; color: var(--color-brand-800); }
 .pf-disclosure > summary:focus-visible { outline: 2px solid var(--color-brand-700); outline-offset: 4px; border-radius: 4px; }
+.pf-disabled { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 44px; color: var(--color-stone-600); cursor: not-allowed; }
+.pf-notready { padding: 2px 10px; border: 1px dashed var(--color-stone-400); border-radius: 999px; background: var(--color-stone-100); color: var(--color-stone-700); font-size: 1rem; }
+.pf-card.is-disabled { background: var(--color-stone-100); border-style: dashed; color: var(--color-stone-600); }

@@ -6,11 +6,12 @@ import type { Attempt, PassportLesson } from "@/lib/v2-api";
 import { PALETTE } from "./sprite";
 import "./house.css";
 
-export const HOUSE_STORY = "thai-elements-family";
 const ZONES = ["1", "2", "3", "4"] as const;
 // 2x2 rooms inside a 320x180 house: [x, y] of each 130x50 room
 const ROOM: Record<(typeof ZONES)[number], [number, number]> = { "1": [20, 120], "2": [20, 70], "3": [170, 120], "4": [170, 70] };
 
+// The stage-1 pair whose records fill the porch (other stages open their zones as they are registered).
+export const HOUSE_STORY = "thai-elements-family";
 export const HOUSE_LESSON = "KB-TM-ELEMENT-001";
 
 /** Everything comes from the passport (server-side records only): finished chapter-1 attempts and completed lessons. */

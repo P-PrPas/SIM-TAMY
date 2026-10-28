@@ -3,14 +3,16 @@
 import Link from "next/link";
 
 import { t } from "@/lib/i18n";
-import { CORE_PATH, CORE_STORY_IDS, FOLLOW_UP_STORY_IDS } from "@/lib/learning-path";
+import { CORE_PATH, CORE_STORY_IDS, storyReady } from "@/lib/learning-path";
 import { useV2 } from "@/lib/use-v2";
 import { storyHref, v2, type StoryCard } from "@/lib/v2-api";
 
+import { NotReadyTag } from "./not-ready";
 import { Async } from "./shared";
 
 function StoryItem({ story, kicker }: { story: StoryCard; kicker?: string }) {
-  return <li className="pf-card">
+  const ready = storyReady(story.id);
+  return <li className={ready ? "pf-card" : "pf-card is-disabled"}>
     {kicker && <span className="pf-kicker">{kicker}</span>}
     <h3>{story.title_th}</h3>
     <p className="pf-muted">{story.description_th}</p>
@@ -18,7 +20,8 @@ function StoryItem({ story, kicker }: { story: StoryCard; kicker?: string }) {
       {t(story.mode === "coop" ? "platform.lab.modeCoop" : "platform.lab.modeSolo")}
       {story.chapters_th.length > 1 && <> · {story.chapters_th.length} {t("platform.lab.chapters")}</>}
     </p>
-    <Link href={storyHref(story.id)} className="button-gold">{t("platform.lab.start")}<span aria-hidden="true"> →</span></Link>
+    {ready ? <Link href={storyHref(story.id)} className="button-gold">{t("platform.lab.start")}<span aria-hidden="true"> →</span></Link>
+      : <NotReadyTag />}
   </li>;
 }
 
@@ -32,8 +35,7 @@ export function Lab() {
 
     <Async r={stories}>{(all) => {
       const featured = CORE_STORY_IDS.map((id) => all.find((s) => s.id === id)).filter((s) => s !== undefined);
-      const followUp = all.filter((s) => FOLLOW_UP_STORY_IDS.includes(s.id));
-      const others = all.filter((s) => !CORE_STORY_IDS.includes(s.id) && !FOLLOW_UP_STORY_IDS.includes(s.id));
+      const others = all.filter((s) => !CORE_STORY_IDS.includes(s.id));
       return <>
         {featured.length > 0 && <section aria-labelledby="featured-title" className="pf-section">
           <h2 id="featured-title">{t("platform.lab.featured")}</h2>
@@ -43,10 +45,6 @@ export function Lab() {
           </ul>
         </section>}
         {featured.length === 0 && <p className="pf-note">{t("platform.lab.empty")}</p>}
-        {followUp.length > 0 && <details className="pf-section pf-disclosure">
-          <summary>{t("platform.lab.followUp")}</summary>
-          <ul className="pf-grid pf-list">{followUp.map((s) => <StoryItem key={s.id} story={s} />)}</ul>
-        </details>}
         {others.length > 0 && <details className="pf-section pf-disclosure">
           <summary>{t("platform.lab.otherStories")}</summary>
           <ul className="pf-grid pf-list">{others.map((s) => <StoryItem key={s.id} story={s} />)}</ul>

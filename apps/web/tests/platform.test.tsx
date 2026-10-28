@@ -8,8 +8,10 @@ import { KnowledgeIndex, KnowledgeUnit } from "../components/platform/knowledge"
 import { Lab } from "../components/platform/lab";
 import { StageCards, StageDetail } from "../components/platform/learn";
 import { Passport } from "../components/platform/passport";
+import { StoryGate } from "../components/platform/not-ready";
 import { setDemoAccount } from "../lib/demo-account";
 import { t } from "../lib/i18n";
+import { CORE_PATH, storyReady, unitReady } from "../lib/learning-path";
 import { storyHref, v2Get } from "../lib/v2-api";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/learn", useRouter: () => ({ push: vi.fn() }) }));
@@ -19,7 +21,7 @@ const paths = {
   release_id: "r1",
   stages: [
     { stage: 1, title_th: "Stage one", summary_th: "Stage one summary", objectives: [
-      { id: "OBJ-1-01", title_th: "Objective one", dimension: "discovery", unit_ids: ["KB-TM-ELEMENT-001", "KB-1", "KB-HIDDEN"], story_ids: ["gs-a-postpartum-warning", "PP-001", "missing-story"] },
+      { id: "OBJ-1-01", title_th: "Objective one", dimension: "discovery", unit_ids: ["KB-TM-ELEMENT-001", "KB-1", "KB-HIDDEN"], story_ids: ["gs-a-postpartum-warning", "gs-b-thai-recovery", "PP-001", "missing-story"] },
       { id: "OBJ-1-02", title_th: "Objective two", dimension: "decision", unit_ids: ["KB-1"], story_ids: [] },
     ] },
     { stage: 2, title_th: "Stage two", summary_th: "Two", objectives: [] },
@@ -75,6 +77,7 @@ const base: Routes = {
 };
 
 beforeEach(() => { localStorage.clear(); });
+afterEach(() => vi.unstubAllEnvs());
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); localStorage.clear(); });
 
 describe("v2 api module", () => {
@@ -112,8 +115,8 @@ describe("Home", () => {
     for (let n = 1; n <= 4; n++) expect(screen.getByRole("heading", { name: t(`platform.home.pillar${n}Title`) })).toBeTruthy();
     const featured = await screen.findByRole("heading", { name: t("platform.home.goldenTitle") });
     const section = featured.closest("section") as HTMLElement;
-    expect(within(section).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["GS-A title", "GS-B title"]);
-    expect(within(section).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/simulate/gs-a-postpartum-warning", "/simulate/gs-b-thai-recovery"]);
+    expect(within(section).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["GS-A title"]); // GS-B is not in the ready set
+    expect(within(section).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/simulate/gs-a-postpartum-warning"]);
     expect(await screen.findByRole("button", { name: /Learner One/ })).toBeTruthy();
     expect(screen.queryByText("Educator One")).toBeNull();
     expect(screen.getAllByText(t("platform.common.demoBadge")).length).toBeGreaterThan(0);
@@ -180,9 +183,13 @@ describe("Learning Journey", () => {
     render(<StageDetail stage="1" />);
     expect(await screen.findByRole("link", { name: "Core unit" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "thai-elements-family" }).getAttribute("href")).toBe("/simulate/thai-elements-family");
-    expect(screen.getByRole("link", { name: "Unit one" }).closest("details")?.open).toBe(false);
-    fireEvent.click(screen.getByText(t("platform.learn.extraUnits")));
-    expect(screen.getAllByRole("link", { name: "Unit one" })).toHaveLength(1);
+    // not-ready items stay visible but greyed out and cannot be opened
+    expect(screen.queryByRole("link", { name: "Unit one" })).toBeNull();
+    expect(screen.getAllByText("Unit one")).toHaveLength(1);
+    expect(screen.getByText("Unit one").closest("[aria-disabled='true']")).not.toBeNull();
+    expect(screen.getByRole("link", { name: "GS-A title" }).getAttribute("href")).toBe("/simulate/gs-a-postpartum-warning"); // ready
+    expect(screen.queryByRole("link", { name: "GS-B title" })).toBeNull();
+    expect(screen.getByText("GS-B title").closest("[aria-disabled='true']")).not.toBeNull();
     expect(screen.queryByText("KB-HIDDEN")).toBeNull();
     expect(screen.queryByText(/missing-story/)).toBeNull();
     fireEvent.click(screen.getByText(t("platform.learn.objectives")));
@@ -220,23 +227,26 @@ describe("Learning Journey", () => {
 });
 
 describe("Simulation Lab", () => {
-  it("shows five core stories in stage order and keeps follow-up, archives and tools collapsed", async () => {
+  it("shows the four ready stories in stage order and greys out the rest inside a collapsed section", async () => {
     mockApi(base);
     render(<Lab />);
     const featured = (await screen.findByRole("heading", { name: t("platform.lab.featured") })).closest("section") as HTMLElement;
     expect(within(featured).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual([
-      "thai-elements-family", "thai-birth-conversation", "GS-A title", "GS-B title", "thai-milk-family"]);
-    for (const title of ["Legacy story", "golden-first-night", t("platform.lab.soloTitle")]) {
+      "thai-elements-family", "thai-birth-conversation", "GS-A title", "thai-milk-family"]);
+    for (const title of ["Legacy story", "golden-first-night", "GS-B title", t("platform.lab.soloTitle")]) {
       expect(screen.getByRole("heading", { name: title }).closest("details")?.open).toBe(false);
     }
-    fireEvent.click(screen.getByText(t("platform.lab.followUp")));
-    expect(screen.getByRole("heading", { name: "golden-first-night" })).toBeTruthy();
     fireEvent.click(screen.getByText(t("platform.lab.otherStories")));
-    expect(screen.getByRole("heading", { name: "Legacy story" })).toBeTruthy();
+    for (const title of ["Legacy story", "golden-first-night", "GS-B title"]) {
+      const card = screen.getByRole("heading", { name: title }).closest("li") as HTMLElement;
+      expect(within(card).queryByRole("link")).toBeNull();
+      expect(within(card).getByText(t("platform.notReady"))).toBeTruthy();
+    }
     fireEvent.click(screen.getByText(t("platform.lab.moreModules")));
     expect(screen.queryByText("Fixture")).toBeNull();
     const hrefs = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
-    for (const h of ["/family", "/golden", "/lab/solo", "/replay", "/instructor", "/validation"]) expect(hrefs).toContain(h);
+    for (const h of ["/lab/solo", "/replay", "/instructor", "/validation"]) expect(hrefs).toContain(h);
+    for (const h of ["/family", "/golden", "/simulate/gs-b-thai-recovery"]) expect(hrefs).not.toContain(h);
   });
 
   it("hides unavailable core stories without promoting archived stories", async () => {
@@ -296,11 +306,13 @@ describe("Knowledge & Sources", () => {
   it("groups units by care stage in order and lists the source registry with rights status", async () => {
     mockApi(base);
     render(<KnowledgeIndex />);
-    await screen.findByRole("link", { name: "Unit one" });
+    await screen.findByRole("link", { name: "Core unit" });
     const headings = screen.getAllByRole("heading", { level: 2 });
     const texts = headings.map((h) => h.textContent);
     expect(texts.indexOf(t("platform.knowledge.stage_pregnancy"))).toBeLessThan(texts.indexOf(t("platform.knowledge.stage_postpartum")));
-    expect(screen.getByRole("link", { name: "Unit one" }).getAttribute("href")).toBe("/knowledge/KB-1");
+    expect(screen.getByRole("link", { name: "Core unit" }).getAttribute("href")).toBe("/knowledge/KB-TM-ELEMENT-001");
+    expect(screen.queryByRole("link", { name: "Unit one" })).toBeNull(); // listed but not ready
+    expect(screen.getByText("Unit one").closest("[aria-disabled='true']")).not.toBeNull();
     expect(screen.getAllByText(t("platform.knowledge.hasLens"), { exact: false })).toHaveLength(2);
     expect(screen.getByText(t("platform.knowledge.registry")).closest("details")?.open).toBe(false);
     fireEvent.click(screen.getByText(t("platform.knowledge.registry")));
@@ -311,6 +323,7 @@ describe("Knowledge & Sources", () => {
   });
 
   it("renders claims with sources, the three-part Thai Wisdom Lens, and provenance that never claims expert review", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SHOW_ALL_CONTENT", "true");
     mockApi({ ...base, "/knowledge/units/KB-1": unitDetail });
     render(<KnowledgeUnit id="KB-1" />);
     expect(await screen.findByText("Claim text")).toBeTruthy();
@@ -324,6 +337,7 @@ describe("Knowledge & Sources", () => {
   });
 
   it("omits the lens, contraindications and escalation when absent, and handles 404", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SHOW_ALL_CONTENT", "true");
     mockApi({ ...base, "/knowledge/units/KB-1": { ...unitDetail, lens: null, contraindications_th: [], escalation_th: null } });
     const { unmount } = render(<KnowledgeUnit id="KB-1" />);
     await screen.findByText("Claim text");
@@ -357,4 +371,35 @@ it("shows loading and lets a learner retry failed house progress without losing 
   fireEvent.click(within(alert).getByRole("button", { name: t("platform.common.retry") }));
   expect(await screen.findByText(t("pixelHouse.itemState.have"), { exact: false })).toBeTruthy();
   expect(screen.queryByRole("alert")).toBeNull();
+});
+
+describe("ready gating", () => {
+  it("opens only the curated unit and scenario per stage unless SHOW_ALL is set", () => {
+    expect(CORE_PATH.map((s) => [s.units.length, s.stories.length])).toEqual([[1, 1], [1, 1], [1, 1], [1, 1]]);
+    expect(unitReady("KB-TM-ELEMENT-001")).toBe(true);
+    expect(unitReady("KB-ANC-PLAN-001")).toBe(false);
+    expect(storyReady("gs-a-postpartum-warning")).toBe(true);
+    expect(storyReady("gs-b-thai-recovery")).toBe(false);
+    vi.stubEnv("NEXT_PUBLIC_SHOW_ALL_CONTENT", "true");
+    expect(unitReady("KB-ANC-PLAN-001")).toBe(true);
+    expect(storyReady("gs-b-thai-recovery")).toBe(true);
+  });
+
+  it("shows a notice instead of a unit that is not ready and does not fetch it", () => {
+    mockApi(base);
+    render(<KnowledgeUnit id="KB-1" />);
+    expect(screen.getByRole("heading", { name: t("platform.notReadyTitle") })).toBeTruthy();
+    expect(calls.map((c) => c.url).join()).not.toContain("KB-1");
+  });
+
+  it("shows a notice instead of a story page that is not ready", () => {
+    render(<StoryGate id="gs-b-thai-recovery"><p>room</p></StoryGate>);
+    expect(screen.getByRole("heading", { name: t("platform.notReadyTitle") })).toBeTruthy();
+    expect(screen.queryByText("room")).toBeNull();
+  });
+
+  it("renders a ready story page", () => {
+    render(<StoryGate id="thai-elements-family"><p>room</p></StoryGate>);
+    expect(screen.getByText("room")).toBeTruthy();
+  });
 });
