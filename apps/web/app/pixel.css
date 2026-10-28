@@ -1,0 +1,8 @@
+/* Shared pixel-art primitives (Sprite). Scenes and games add their own rules next to their components. */
+.pixel-sprite { display: inline-block; overflow: hidden; line-height: 0; image-rendering: pixelated; }
+.pixel-strip { display: block; }
+.pixel-strip.is-animated { animation: pixel-frames var(--pixel-duration, 1s) steps(var(--pixel-frames, 1)) infinite; }
+@keyframes pixel-frames { to { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .pixel-strip.is-animated { animation: none; }
+}

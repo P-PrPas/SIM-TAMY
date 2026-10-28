@@ -5,8 +5,12 @@ import institution from "./v2/institution.json";
 import knowledge from "./v2/knowledge.json";
 import lab from "./v2/lab.json";
 import platform from "./v2/platform.json";
+// pixel visual mode: one namespace per parallel PR (scene, lesson, house)
+import pixelHouse from "./v2/pixel-house.json";
+import pixelLesson from "./v2/pixel-lesson.json";
+import pixelSim from "./v2/pixel-sim.json";
 
-const th = { ...base, knowledge, lab, institution, platform };
+const th = { ...base, knowledge, lab, institution, platform, pixelSim, pixelLesson, pixelHouse };
 
 /** Look up a Thai string by dotted key, e.g. t("app.title"). Throws on a missing key. */
 export function t(key: string): string {
