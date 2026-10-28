@@ -1,190 +1,203 @@
 openapi: 3.1.0
-
 info:
   title: SIM-TAMY API
   version: 1.0.0
-  summary: Backend API for the SIM-TAMY AI virtual patient simulator (Thai traditional medicine / midwifery red-flag training).
-  description: |
-    Contract for `apps/api`. Derived from `docs/PRD.md` §8; see `docs/API_DESIGN.md` for conventions,
-    the phase/permission matrix, SSE protocol, error catalog, and flows.
-
-    ## Hard rules reflected in this contract
-    * **No leakage during play.** While a session is `active`, no response may contain hidden facts,
-      `revealed_fact_ids`, `risk_state`, detected `actions`, rubric items, or scores. These appear only in
-      `ReportResponse` (after completion), or in `LiveGlassBox` when `GLASS_BOX_LIVE=true` or the caller is an instructor.
-    * **Decisions are committed through `POST /v1/sessions/{id}/decision`**, never inferred from chat text.
-    * **Scoring is deterministic** and never produced by an LLM. `debrief` text may be LLM-phrased but is
-      derived only from engine `findings`; `debrief.source` says which path was used.
-    * **Education only.** Responses that carry case content include `status` (Draft | In Review | Approved)
-      and clients must render the status badge and the education-only disclaimer.
-
-    ## Conventions (summary)
-    * JSON, UTF-8, `snake_case`, ISO 8601 UTC timestamps, UUID session ids.
-    * Learner auth: `Authorization: Bearer <token>` (returned once by `POST /v1/sessions`).
-      Instructor auth: `X-Instructor-Secret: <secret>`.
-    * Every response carries `X-Request-ID`. Errors use the envelope in `Error`.
-    * Extension fields: `x-priority` (Must | Should | Could), `x-fr` (PRD functional requirement ids).
+  summary: Backend API for the SIM-TAMY AI virtual patient simulator (Thai traditional
+    medicine / midwifery red-flag training).
+  description: "Contract for `apps/api`. Derived from `docs/PRD.md` §8; see `docs/API_DESIGN.md`\
+    \ for conventions,\nthe phase/permission matrix, SSE protocol, error catalog,\
+    \ and flows.\n\n## Hard rules reflected in this contract\n* **No leakage during\
+    \ play.** While a session is `active`, no response may contain hidden facts,\n\
+    \  `revealed_fact_ids`, `risk_state`, detected `actions`, rubric items, or scores.\
+    \ These appear only in\n  `ReportResponse` (after completion), or in `LiveGlassBox`\
+    \ when `GLASS_BOX_LIVE=true` or the caller is an instructor.\n* **Decisions are\
+    \ committed through `POST /v1/sessions/{id}/decision`**, never inferred from chat\
+    \ text.\n* **Scoring is deterministic** and never produced by an LLM. `debrief`\
+    \ text may be LLM-phrased but is\n  derived only from engine `findings`; `debrief.source`\
+    \ says which path was used.\n* **Education only.** Responses that carry case content\
+    \ include `status` (Draft | In Review | Approved)\n  and clients must render the\
+    \ status badge and the education-only disclaimer.\n\n## Conventions (summary)\n\
+    * JSON, UTF-8, `snake_case`, ISO 8601 UTC timestamps, UUID session ids.\n* Learner\
+    \ auth: `Authorization: Bearer <token>` (returned once by `POST /v1/sessions`).\n\
+    \  Instructor auth: `X-Instructor-Secret: <secret>`.\n* Every response carries\
+    \ `X-Request-ID`. Errors use the envelope in `Error`.\n* Extension fields: `x-priority`\
+    \ (Must | Should | Could), `x-fr` (PRD functional requirement ids).\n"
   contact:
     name: SIM-TAMY engineering
-
 servers:
-  - url: http://localhost:8000
-    description: Local (docker compose)
-  - url: https://{host}
-    description: Demo / staging
-    variables:
-      host:
-        default: api.example.com
-
+- url: http://localhost:8000
+  description: Local (docker compose)
+- url: https://{host}
+  description: Demo / staging
+  variables:
+    host:
+      default: api.example.com
 tags:
-  - name: System
-    description: Health and readiness.
-  - name: Cases
-    description: Browse available cases (never exposes hidden facts).
-  - name: Sessions
-    description: Learner session lifecycle - create, converse, decide, complete.
-  - name: Reports
-    description: Post-completion report, Glass Box, Consequence Replay.
-  - name: Instructor
-    description: Classes, session listing, analytics, overrides.
-  - name: Replay
-    description: Recorded sessions for Replay Mode (demo safety net).
-
+- name: System
+  description: Health and readiness.
+- name: Cases
+  description: Browse available cases (never exposes hidden facts).
+- name: Sessions
+  description: Learner session lifecycle - create, converse, decide, complete.
+- name: Reports
+  description: Post-completion report, Glass Box, Consequence Replay.
+- name: Instructor
+  description: Classes, session listing, analytics, overrides.
+- name: Replay
+  description: Recorded sessions for Replay Mode (demo safety net).
 paths:
   /health:
     get:
-      tags: [System]
+      tags:
+      - System
       operationId: getHealth
       summary: Liveness and dependency status
-      description: Unversioned. Use for container health checks and the demo pre-flight checklist.
+      description: Unversioned. Use for container health checks and the demo pre-flight
+        checklist.
       security: []
       x-priority: Must
-      x-fr: [FR-OBS-01]
+      x-fr:
+      - FR-OBS-01
       responses:
-        "200":
+        '200':
           description: Service is up (status may be `degraded`).
           headers:
             X-Request-ID:
-              $ref: "#/components/headers/XRequestID"
+              $ref: '#/components/headers/XRequestID'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Health"
+                $ref: '#/components/schemas/Health'
               example:
                 status: ok
                 version: 1.0.0
-                time: "2026-10-12T02:30:00Z"
+                time: '2026-10-12T02:30:00Z'
                 db: ok
                 content_loaded: true
                 cases_loaded: 2
                 llm_provider: mock
-        "503":
+        '503':
           description: Service cannot serve traffic (for example the database is unreachable).
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Health"
-
+                $ref: '#/components/schemas/Health'
   /v1/cases:
     get:
-      tags: [Cases]
+      tags:
+      - Cases
       operationId: listCases
       summary: List cases available to learners
-      description: |
-        Draft cases are included only when `ALLOW_DRAFT_CASES=true`. Each item carries its status so the UI can
+      description: 'Draft cases are included only when `ALLOW_DRAFT_CASES=true`. Each
+        item carries its status so the UI can
+
         render the badge.
+
+        '
       security: []
       x-priority: Must
-      x-fr: [FR-CASE-02, FR-CASE-03]
+      x-fr:
+      - FR-CASE-02
+      - FR-CASE-03
       responses:
-        "200":
+        '200':
           description: Case summaries.
           headers:
             X-Request-ID:
-              $ref: "#/components/headers/XRequestID"
+              $ref: '#/components/headers/XRequestID'
           content:
             application/json:
               schema:
                 type: object
-                required: [items]
+                required:
+                - items
                 properties:
                   items:
                     type: array
                     items:
-                      $ref: "#/components/schemas/CaseSummary"
+                      $ref: '#/components/schemas/CaseSummary'
               example:
                 items:
-                  - case_id: PP-001
-                    version: "0.1"
-                    title_th: "[ตัวอย่าง] การประเมินหญิงหลังคลอดก่อนรับบริการ"
-                    status: Draft
-                    status_label_th: "ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ"
-                    variants_available: [A, C]
-        "500":
-          $ref: "#/components/responses/InternalError"
-
+                - case_id: PP-001
+                  version: '0.1'
+                  title_th: '[ตัวอย่าง] การประเมินหญิงหลังคลอดก่อนรับบริการ'
+                  status: Draft
+                  status_label_th: ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ
+                  variants_available:
+                  - A
+                  - C
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/cases/{case_id}:
     get:
-      tags: [Cases]
+      tags:
+      - Cases
       operationId: getCase
       summary: Case briefing (what the learner may see before starting)
       description: Never includes hidden facts, rubric, branch rules, or outcome scripts.
       security: []
       x-priority: Must
-      x-fr: [FR-CASE-02]
+      x-fr:
+      - FR-CASE-02
       parameters:
-        - $ref: "#/components/parameters/CaseId"
+      - $ref: '#/components/parameters/CaseId'
       responses:
-        "200":
+        '200':
           description: Case brief.
           headers:
             X-Request-ID:
-              $ref: "#/components/headers/XRequestID"
+              $ref: '#/components/headers/XRequestID'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CaseBrief"
+                $ref: '#/components/schemas/CaseBrief'
               example:
                 case_id: PP-001
-                version: "0.1"
-                title_th: "[ตัวอย่าง] การประเมินหญิงหลังคลอดก่อนรับบริการ"
+                version: '0.1'
+                title_th: '[ตัวอย่าง] การประเมินหญิงหลังคลอดก่อนรับบริการ'
                 status: Draft
-                status_label_th: "ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ"
-                variants_available: [A, C]
-                patient_display_th: "[ข้อมูลตั้งต้นของผู้ป่วย]"
+                status_label_th: ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ
+                variants_available:
+                - A
+                - C
+                patient_display_th: '[ข้อมูลตั้งต้นของผู้ป่วย]'
                 learning_objectives:
-                  - id: risk_recognition
-                    label_th: "รับรู้สัญญาณอันตราย"
+                - id: risk_recognition
+                  label_th: รับรู้สัญญาณอันตราย
                 decision_options:
-                  - id: refer
-                    label_th: "หยุดบริการตามปกติและประสานส่งต่อ"
-                  - id: proceed_service
-                    label_th: "ให้บริการตามที่ขอ"
-                disclaimer_th: "เพื่อการศึกษาเท่านั้น"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
+                - id: refer
+                  label_th: หยุดบริการตามปกติและประสานส่งต่อ
+                - id: proceed_service
+                  label_th: ให้บริการตามที่ขอ
+                disclaimer_th: เพื่อการศึกษาเท่านั้น
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/classes/{code}:
     get:
-      tags: [Cases]
+      tags:
+      - Cases
       operationId: checkClassCode
       summary: Validate a class code before joining
-      description: Lets the Join screen show a friendly error for a wrong code. Returns only the class name.
+      description: Lets the Join screen show a friendly error for a wrong code. Returns
+        only the class name.
       security: []
       x-priority: Should
-      x-fr: [FR-INS-01]
+      x-fr:
+      - FR-INS-01
       parameters:
-        - $ref: "#/components/parameters/ClassCode"
+      - $ref: '#/components/parameters/ClassCode'
       responses:
-        "200":
+        '200':
           description: Code is valid.
           content:
             application/json:
               schema:
                 type: object
-                required: [code, name]
+                required:
+                - code
+                - name
                 properties:
                   code:
                     type: string
@@ -192,40 +205,47 @@ paths:
                     type: string
               example:
                 code: AB12CD
-                name: "ผดุงครรภ์ไทย ปี 3"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-
+                name: ผดุงครรภ์ไทย ปี 3
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
   /v1/sessions:
     post:
-      tags: [Sessions]
+      tags:
+      - Sessions
       operationId: createSession
       summary: Start a session
-      description: |
-        Creates an anonymous learner session pinned to the current case version/hash. The `token` is returned
+      description: 'Creates an anonymous learner session pinned to the current case
+        version/hash. The `token` is returned
+
         **once**; the server stores only its hash. Initial phase is `INTERVIEW`.
+
+        '
       security: []
       x-priority: Must
-      x-fr: [FR-SES-01, FR-AUTH-01, FR-CASE-03, FR-CASE-05]
+      x-fr:
+      - FR-SES-01
+      - FR-AUTH-01
+      - FR-CASE-03
+      - FR-CASE-05
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateSessionRequest"
+              $ref: '#/components/schemas/CreateSessionRequest'
             example:
               case_id: PP-001
               variant: A
-              learner_name: "น้องมะลิ"
+              learner_name: น้องมะลิ
               class_code: AB12CD
       responses:
-        "201":
+        '201':
           description: Session created.
           headers:
             X-Request-ID:
-              $ref: "#/components/headers/XRequestID"
+              $ref: '#/components/headers/XRequestID'
             Location:
               description: URL of the new session.
               schema:
@@ -233,68 +253,71 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CreateSessionResponse"
-        "404":
+                $ref: '#/components/schemas/CreateSessionResponse'
+        '404':
           description: Unknown case (`CASE_NOT_AVAILABLE`) or class code (`CLASS_NOT_FOUND`).
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
               examples:
                 caseNotAvailable:
                   value:
                     error:
                       code: CASE_NOT_AVAILABLE
-                      message: "ไม่พบเคสนี้ หรือเคสยังไม่เปิดให้ใช้งาน"
+                      message: ไม่พบเคสนี้ หรือเคสยังไม่เปิดให้ใช้งาน
                       details: {}
                       request_id: 7d1c0b52
                 classNotFound:
                   value:
                     error:
                       code: CLASS_NOT_FOUND
-                      message: "ไม่พบรหัสห้องเรียนนี้"
+                      message: ไม่พบรหัสห้องเรียนนี้
                       details: {}
                       request_id: 7d1c0b53
-        "422":
-          $ref: "#/components/responses/ValidationError"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/sessions/{session_id}:
     get:
-      tags: [Sessions]
+      tags:
+      - Sessions
       operationId: getSession
       summary: Session state and chat history (safe to render during play)
-      description: |
-        Used to resume after a page refresh. Contains no hidden information. Also callable by an instructor.
+      description: 'Used to resume after a page refresh. Contains no hidden information.
+        Also callable by an instructor.
+
+        '
       security:
-        - SessionToken: []
-        - InstructorSecret: []
+      - SessionToken: []
+      - InstructorSecret: []
       x-priority: Must
-      x-fr: [FR-SES-02]
+      x-fr:
+      - FR-SES-02
       parameters:
-        - $ref: "#/components/parameters/SessionId"
+      - $ref: '#/components/parameters/SessionId'
       responses:
-        "200":
+        '200':
           description: Session view.
           headers:
             X-Request-ID:
-              $ref: "#/components/headers/XRequestID"
+              $ref: '#/components/headers/XRequestID'
             Cache-Control:
-              $ref: "#/components/headers/NoStore"
+              $ref: '#/components/headers/NoStore'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionView"
+                $ref: '#/components/schemas/SessionView'
               example:
                 session_id: 6f2b6a52-3a0e-4e3a-9f55-1d1b9f6a0c11
                 case:
                   case_id: PP-001
-                  version: "0.1"
+                  version: '0.1'
                   status: Draft
-                  status_label_th: "ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ"
+                  status_label_th: ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ
                 variant: A
                 status: active
                 phase: INTERVIEW
@@ -309,111 +332,146 @@ paths:
                   idle_timeout_s: 1800
                   max_rationale_chars: 300
                   max_note_chars: 500
-                created_at: "2026-10-12T02:41:09Z"
-                last_activity_at: "2026-10-12T02:41:09Z"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "410":
-          $ref: "#/components/responses/SessionExpired"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
+                created_at: '2026-10-12T02:41:09Z'
+                last_activity_at: '2026-10-12T02:41:09Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          $ref: '#/components/responses/SessionExpired'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/sessions/{session_id}/turns:
     post:
-      tags: [Sessions]
+      tags:
+      - Sessions
       operationId: sendTurn
       summary: Send a learner message and receive the patient's reply
-      description: |
-        Server pipeline (one transaction per turn): Interpreter (LLM) -> Engine (pure) -> Generator (LLM) ->
+      description: 'Server pipeline (one transaction per turn): Interpreter (LLM)
+        -> Engine (pure) -> Generator (LLM) ->
+
         Validator -> persist turn + events + llm_calls.
+
 
         **Allowed phases:** `INTERVIEW`, `PRESSURE`. Otherwise `409 INVALID_PHASE`.
 
-        **Pressure scene (Variant C):** each learner turn in `PRESSURE` consumes one of `pressure_turns_allowed`. When the
-        last one is consumed the response carries `phase: CLOSING` (the scripted relative lines are in `replies`), and the
+
+        **Pressure scene (Variant C):** each learner turn in `PRESSURE` consumes one
+        of `pressure_turns_allowed`. When the
+
+        last one is consumed the response carries `phase: CLOSING` (the scripted relative
+        lines are in `replies`), and the
+
         client then calls `completeSession`.
+
 
         **Concurrency:** one turn in flight per session (`409 TURN_IN_PROGRESS`).
 
-        **Idempotency:** send a unique `client_turn_id`. Same id + same text returns the stored result with header
+
+        **Idempotency:** send a unique `client_turn_id`. Same id + same text returns
+        the stored result with header
+
         `Idempotent-Replay: true`. Same id + different text returns `409 IDEMPOTENCY_CONFLICT`.
 
-        **Degraded mode:** if the LLM path fails, the server falls back (lexical matcher, canned patient reply) and
-        still returns 200 with `degraded: true`. `503 LLM_UNAVAILABLE` only if even the fallback cannot respond.
 
-        **Streaming:** use `?stream=true` (or `Accept: text/event-stream`). The stream is *buffer-then-chunk*:
-        text is emitted only after the Validator accepts it. Because this is a POST, clients use `fetch` with a
+        **Degraded mode:** if the LLM path fails, the server falls back (lexical matcher,
+        canned patient reply) and
+
+        still returns 200 with `degraded: true`. `503 LLM_UNAVAILABLE` only if even
+        the fallback cannot respond.
+
+
+        **Streaming:** use `?stream=true` (or `Accept: text/event-stream`). The stream
+        is *buffer-then-chunk*:
+
+        text is emitted only after the Validator accepts it. Because this is a POST,
+        clients use `fetch` with a
+
         readable stream (not `EventSource`).
 
+
         Event types:
+
         * `delta` - `{"seq": 0, "speaker": "patient", "text": "..."}`
+
         * `done` - the full `TurnResponse` JSON
+
         * `error` - the `Error` envelope; the stream then closes
+
         * comment lines `: ping` every 15 s as keep-alive
+
+        '
       security:
-        - SessionToken: []
+      - SessionToken: []
       x-priority: Must
-      x-fr: [FR-CHAT-01, FR-CHAT-02, FR-CHAT-03, FR-CHAT-04, FR-SES-03]
+      x-fr:
+      - FR-CHAT-01
+      - FR-CHAT-02
+      - FR-CHAT-03
+      - FR-CHAT-04
+      - FR-SES-03
       parameters:
-        - $ref: "#/components/parameters/SessionId"
-        - name: stream
-          in: query
-          required: false
-          description: Return Server-Sent Events instead of a single JSON body.
-          schema:
-            type: boolean
-            default: false
+      - $ref: '#/components/parameters/SessionId'
+      - name: stream
+        in: query
+        required: false
+        description: Return Server-Sent Events instead of a single JSON body.
+        schema:
+          type: boolean
+          default: false
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TurnRequest"
+              $ref: '#/components/schemas/TurnRequest'
             example:
-              text: "เลือดที่ออกตอนนี้เป็นยังไงบ้างคะ"
-              client_turn_id: "c-0007-9f3a"
+              text: เลือดที่ออกตอนนี้เป็นยังไงบ้างคะ
+              client_turn_id: c-0007-9f3a
       responses:
-        "200":
-          description: Patient reply (and optionally scripted relative lines during `PRESSURE`).
+        '200':
+          description: Patient reply (and optionally scripted relative lines during
+            `PRESSURE`).
           headers:
             X-Request-ID:
-              $ref: "#/components/headers/XRequestID"
+              $ref: '#/components/headers/XRequestID'
             Idempotent-Replay:
-              description: "`true` when this is a stored result for a repeated `client_turn_id`."
+              description: '`true` when this is a stored result for a repeated `client_turn_id`.'
               schema:
                 type: string
-                enum: ["true"]
+                enum:
+                - 'true'
             X-RateLimit-Limit:
-              $ref: "#/components/headers/RateLimitLimit"
+              $ref: '#/components/headers/RateLimitLimit'
             X-RateLimit-Remaining:
-              $ref: "#/components/headers/RateLimitRemaining"
+              $ref: '#/components/headers/RateLimitRemaining'
             Cache-Control:
-              $ref: "#/components/headers/NoStore"
+              $ref: '#/components/headers/NoStore'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TurnResponse"
+                $ref: '#/components/schemas/TurnResponse'
               examples:
                 normal:
                   value:
                     turn_idx: 3
                     replies:
-                      - speaker: patient
-                        text: "[ตัวอย่าง] ก็... เหมือนจะเยอะกว่าที่คิดค่ะ แต่ที่บ้านบอกว่าปกติ"
+                    - speaker: patient
+                      text: '[ตัวอย่าง] ก็... เหมือนจะเยอะกว่าที่คิดค่ะ แต่ที่บ้านบอกว่าปกติ'
                     phase: INTERVIEW
                     clarification: false
                     turns_remaining: 37
                     degraded: false
                     glassbox: null
                 clarification:
-                  summary: Interpreter confidence was in the 0.5-0.75 band; patient asks the learner to rephrase.
+                  summary: Interpreter confidence was in the 0.5-0.75 band; patient
+                    asks the learner to rephrase.
                   value:
                     turn_idx: 4
                     replies:
-                      - speaker: patient
-                        text: "ขอโทษนะคะ ไม่แน่ใจว่าหมายถึงเรื่องอะไร ช่วยอธิบายอีกนิดได้ไหมคะ"
+                    - speaker: patient
+                      text: ขอโทษนะคะ ไม่แน่ใจว่าหมายถึงเรื่องอะไร ช่วยอธิบายอีกนิดได้ไหมคะ
                     phase: INTERVIEW
                     clarification: true
                     turns_remaining: 36
@@ -422,58 +480,69 @@ paths:
             text/event-stream:
               schema:
                 type: string
-                description: Server-Sent Events stream. See operation description for event types.
-              example: |
-                event: delta
+                description: Server-Sent Events stream. See operation description
+                  for event types.
+              example: 'event: delta
+
                 data: {"seq":0,"speaker":"patient","text":"ก็... เหมือนจะเยอะกว่าที่คิดค่ะ"}
 
+
                 event: delta
+
                 data: {"seq":1,"speaker":"patient","text":" แต่ที่บ้านบอกว่าปกติ"}
 
+
                 event: done
+
                 data: {"turn_idx":3,"replies":[{"speaker":"patient","text":"..."}],"phase":"INTERVIEW","clarification":false,"turns_remaining":37,"degraded":false,"glassbox":null}
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          description: |
-            `TURN_IN_PROGRESS`, `SESSION_COMPLETED`, `INVALID_PHASE`, or `IDEMPOTENCY_CONFLICT`.
+
+                '
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: '`TURN_IN_PROGRESS`, `SESSION_COMPLETED`, `INVALID_PHASE`,
+            or `IDEMPOTENCY_CONFLICT`.
+
+            '
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
               examples:
                 inProgress:
                   value:
                     error:
                       code: TURN_IN_PROGRESS
-                      message: "กำลังประมวลผลข้อความก่อนหน้า กรุณารอสักครู่"
+                      message: กำลังประมวลผลข้อความก่อนหน้า กรุณารอสักครู่
                       details: {}
                       request_id: 91ab34cd
                 invalidPhase:
                   value:
                     error:
                       code: INVALID_PHASE
-                      message: "ตอนนี้ไม่สามารถพิมพ์ข้อความได้ กรุณาสรุปเคสและส่งรายงาน"
+                      message: ตอนนี้ไม่สามารถพิมพ์ข้อความได้ กรุณาสรุปเคสและส่งรายงาน
                       details:
                         phase: CLOSING
                       request_id: 91ab34ce
-        "410":
-          $ref: "#/components/responses/SessionExpired"
-        "422":
-          description: |
-            `VALIDATION_ERROR`, `TEXT_TOO_LONG` (> 500 chars), or `TURN_LIMIT` (> 40 learner turns).
+        '410':
+          $ref: '#/components/responses/SessionExpired'
+        '422':
+          description: '`VALIDATION_ERROR`, `TEXT_TOO_LONG` (> 500 chars), or `TURN_LIMIT`
+            (> 40 learner turns).
+
+            '
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/Error'
               examples:
                 tooLong:
                   value:
                     error:
                       code: TEXT_TOO_LONG
-                      message: "ข้อความยาวเกิน 500 ตัวอักษร"
+                      message: ข้อความยาวเกิน 500 ตัวอักษร
                       details:
                         max: 500
                         actual: 612
@@ -482,57 +551,57 @@ paths:
                   value:
                     error:
                       code: TURN_LIMIT
-                      message: "ครบจำนวนข้อความสูงสุดแล้ว กรุณาตัดสินใจเพื่อจบเคส"
+                      message: ครบจำนวนข้อความสูงสุดแล้ว กรุณาตัดสินใจเพื่อจบเคส
                       details:
                         max_turns: 40
                       request_id: 5c0e11ab
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalError"
-        "503":
-          $ref: "#/components/responses/LlmUnavailable"
-
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/LlmUnavailable'
   /v1/sessions/{session_id}/decision:
     post:
-      tags: [Sessions]
+      tags:
+      - Sessions
       operationId: commitDecision
       summary: Commit the learner's decision (Decision Panel)
-      description: |
-        Final and irreversible. **Allowed phase:** `INTERVIEW`. Repeating the *same* `option_id` is idempotent
-        (returns the original result); a *different* option returns `409 DECISION_ALREADY_COMMITTED`.
-
-        Next phase is decided by the case's `branch_rules`:
-        * Variant C + referral -> `PRESSURE`; the response carries the scripted `relative` lines and
-          `pressure_turns_allowed`.
-        * Otherwise -> `CLOSING`.
-
-        Unsafe-action detection happens here; its effects are **not** disclosed in this response.
+      description: "Final and irreversible. **Allowed phase:** `INTERVIEW`. Repeating\
+        \ the *same* `option_id` is idempotent\n(returns the original result); a *different*\
+        \ option returns `409 DECISION_ALREADY_COMMITTED`.\n\nNext phase is decided\
+        \ by the case's `branch_rules`:\n* Variant C + referral -> `PRESSURE`; the\
+        \ response carries the scripted `relative` lines and\n  `pressure_turns_allowed`.\n\
+        * Otherwise -> `CLOSING`.\n\nUnsafe-action detection happens here; its effects\
+        \ are **not** disclosed in this response.\n"
       security:
-        - SessionToken: []
+      - SessionToken: []
       x-priority: Must
-      x-fr: [FR-ENG-03, FR-ENG-04, FR-ENG-05]
+      x-fr:
+      - FR-ENG-03
+      - FR-ENG-04
+      - FR-ENG-05
       parameters:
-        - $ref: "#/components/parameters/SessionId"
+      - $ref: '#/components/parameters/SessionId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DecisionRequest"
+              $ref: '#/components/schemas/DecisionRequest'
             example:
               option_id: refer
-              rationale_th: "พบอาการผิดปกติที่ควรได้รับการประเมินทางการแพทย์"
+              rationale_th: พบอาการผิดปกติที่ควรได้รับการประเมินทางการแพทย์
       responses:
-        "200":
+        '200':
           description: Decision recorded.
           headers:
             X-Request-ID:
-              $ref: "#/components/headers/XRequestID"
+              $ref: '#/components/headers/XRequestID'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DecisionResponse"
+                $ref: '#/components/schemas/DecisionResponse'
               examples:
                 variantA:
                   value:
@@ -549,466 +618,519 @@ paths:
                       option_id: refer
                       committed_at_idx: 6
                     replies:
-                      - speaker: relative
-                        text: "[ตัวอย่างบทที่ผู้เชี่ยวชาญเขียน] ไม่ต้องไปโรงพยาบาลหรอก ทำต่อเถอะ"
+                    - speaker: relative
+                      text: '[ตัวอย่างบทที่ผู้เชี่ยวชาญเขียน] ไม่ต้องไปโรงพยาบาลหรอก
+                        ทำต่อเถอะ'
                     pressure_turns_allowed: 2
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          description: "`INVALID_PHASE`, `DECISION_ALREADY_COMMITTED`, `SESSION_COMPLETED`."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: '`INVALID_PHASE`, `DECISION_ALREADY_COMMITTED`, `SESSION_COMPLETED`.'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "410":
-          $ref: "#/components/responses/SessionExpired"
-        "422":
-          description: "`VALIDATION_ERROR` or `DECISION_OPTION_INVALID` (option id not in this case)."
+                $ref: '#/components/schemas/Error'
+        '410':
+          $ref: '#/components/responses/SessionExpired'
+        '422':
+          description: '`VALIDATION_ERROR` or `DECISION_OPTION_INVALID` (option id
+            not in this case).'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
+                $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/sessions/{session_id}/complete:
     post:
-      tags: [Sessions]
+      tags:
+      - Sessions
       operationId: completeSession
       summary: Finish the case and generate the report
-      description: |
-        **Allowed phase:** `CLOSING` (after a decision, and after the pressure scene if any). Locks the session,
-        scores deterministically from the Event Log, builds the report (Glass Box, Consequence Replay, debrief), then
-        returns. Synchronous, with a server budget of about 20 s; if the debrief LLM is slow or fails the template
-        fallback is used (`debrief.source = template`). Calling again after completion returns the same result.
+      description: '**Allowed phase:** `CLOSING` (after a decision, and after the
+        pressure scene if any). Locks the session,
+
+        scores deterministically from the Event Log, builds the report (Glass Box,
+        Consequence Replay, debrief), then
+
+        returns. Synchronous, with a server budget of about 20 s; if the debrief LLM
+        is slow or fails the template
+
+        fallback is used (`debrief.source = template`). Calling again after completion
+        returns the same result.
+
+        '
       security:
-        - SessionToken: []
+      - SessionToken: []
       x-priority: Must
-      x-fr: [FR-SES-04, FR-SCR-01, FR-DEB-01, FR-DEB-02]
+      x-fr:
+      - FR-SES-04
+      - FR-SCR-01
+      - FR-DEB-01
+      - FR-DEB-02
       parameters:
-        - $ref: "#/components/parameters/SessionId"
+      - $ref: '#/components/parameters/SessionId'
       requestBody:
         required: false
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CompleteRequest"
+              $ref: '#/components/schemas/CompleteRequest'
             example:
-              note_th: "สรุปเหตุผลที่ตัดสินใจส่งต่อ ..."
+              note_th: สรุปเหตุผลที่ตัดสินใจส่งต่อ ...
       responses:
-        "200":
+        '200':
           description: Session completed and report ready.
           headers:
             X-Request-ID:
-              $ref: "#/components/headers/XRequestID"
+              $ref: '#/components/headers/XRequestID'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CompleteResponse"
+                $ref: '#/components/schemas/CompleteResponse'
               example:
                 status: completed
                 report_ready: true
                 report_url: /v1/sessions/6f2b6a52-3a0e-4e3a-9f55-1d1b9f6a0c11/report
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          description: "`INVALID_PHASE` (no decision yet, or pressure scene unresolved)."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: '`INVALID_PHASE` (no decision yet, or pressure scene unresolved).'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "410":
-          $ref: "#/components/responses/SessionExpired"
-        "422":
-          $ref: "#/components/responses/ValidationError"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
+                $ref: '#/components/schemas/Error'
+        '410':
+          $ref: '#/components/responses/SessionExpired'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/sessions/{session_id}/report:
     get:
-      tags: [Reports]
+      tags:
+      - Reports
       operationId: getReport
-      summary: Full report (score, safety status, findings, Glass Box, Consequence Replay)
-      description: |
-        Learners: available only after `complete`. Instructors: available once completed. Before that,
-        `409 REPORT_NOT_READY`. If safety status is `SAFETY_NOT_MET`, clients must show it more prominently than
+      summary: Full report (score, safety status, findings, Glass Box, Consequence
+        Replay)
+      description: 'Learners: available only after `complete`. Instructors: available
+        once completed. Before that,
+
+        `409 REPORT_NOT_READY`. If safety status is `SAFETY_NOT_MET`, clients must
+        show it more prominently than
+
         the total score and must never render pass wording.
+
+        '
       security:
-        - SessionToken: []
-        - InstructorSecret: []
+      - SessionToken: []
+      - InstructorSecret: []
       x-priority: Must
-      x-fr: [FR-SCR-01, FR-SCR-02, FR-SCR-03, FR-SCR-05, FR-DEB-01, FR-DEB-03, FR-GB-01, FR-REP-01]
+      x-fr:
+      - FR-SCR-01
+      - FR-SCR-02
+      - FR-SCR-03
+      - FR-SCR-05
+      - FR-DEB-01
+      - FR-DEB-03
+      - FR-GB-01
+      - FR-REP-01
       parameters:
-        - $ref: "#/components/parameters/SessionId"
+      - $ref: '#/components/parameters/SessionId'
       responses:
-        "200":
+        '200':
           description: Report.
           headers:
             X-Request-ID:
-              $ref: "#/components/headers/XRequestID"
+              $ref: '#/components/headers/XRequestID'
             Cache-Control:
-              $ref: "#/components/headers/NoStore"
+              $ref: '#/components/headers/NoStore'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ReportResponse"
+                $ref: '#/components/schemas/ReportResponse'
               example:
                 session_id: 6f2b6a52-3a0e-4e3a-9f55-1d1b9f6a0c11
-                generated_at: "2026-10-12T03:05:11Z"
+                generated_at: '2026-10-12T03:05:11Z'
                 engine_version: 1.0.0
-                rubric_version: "0.1"
+                rubric_version: '0.1'
                 case:
                   case_id: PP-001
-                  version: "0.1"
+                  version: '0.1'
                   hash: 3f9a1c0e
                   status: Draft
-                  status_label_th: "ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ"
-                  title_th: "[ตัวอย่าง] การประเมินหญิงหลังคลอดก่อนรับบริการ"
+                  status_label_th: ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ
+                  title_th: '[ตัวอย่าง] การประเมินหญิงหลังคลอดก่อนรับบริการ'
                 variant: A
                 safety_status: SAFETY_NOT_MET
                 total_score: 54.5
                 competencies:
-                  - id: RISK
-                    name_th: "การรับรู้ความเสี่ยงและสัญญาณอันตราย"
-                    weight: 25.0
-                    score_pct: 40.0
-                    earned: 4.0
-                    possible: 10.0
+                - id: RISK
+                  name_th: การรับรู้ความเสี่ยงและสัญญาณอันตราย
+                  weight: 25.0
+                  score_pct: 40.0
+                  earned: 4.0
+                  possible: 10.0
                 items:
-                  - id: R-DEC-01
-                    competency: DEC
-                    label_th: "เลือกหยุดบริการและส่งต่อเมื่อพบสัญญาณอันตราย"
-                    result: fail
-                    points: 10
-                    earned: 0
-                    critical: true
-                    evidence:
-                      - event_id: 41
-                        turn_idx: 6
-                        type: UNSAFE_ACTION
-                    finding_id: F-DEC-01-F
+                - id: R-DEC-01
+                  competency: DEC
+                  label_th: เลือกหยุดบริการและส่งต่อเมื่อพบสัญญาณอันตราย
+                  result: fail
+                  points: 10
+                  earned: 0
+                  critical: true
+                  evidence:
+                  - event_id: 41
+                    turn_idx: 6
+                    type: UNSAFE_ACTION
+                  finding_id: F-DEC-01-F
                 findings:
-                  - id: F-DEC-01-F
-                    polarity: improve
-                    rubric_item_id: R-DEC-01
-                    text_th: "[ตัวอย่าง] เมื่อพบข้อมูลที่เป็นสัญญาณอันตราย ควรหยุดบริการและส่งต่อ"
-                    evidence_refs: [41]
-                    reference_ids: [REF1]
+                - id: F-DEC-01-F
+                  polarity: improve
+                  rubric_item_id: R-DEC-01
+                  text_th: '[ตัวอย่าง] เมื่อพบข้อมูลที่เป็นสัญญาณอันตราย ควรหยุดบริการและส่งต่อ'
+                  evidence_refs:
+                  - 41
+                  reference_ids:
+                  - REF1
                 debrief:
                   source: template
                   paragraphs:
-                    - finding_ids: [F-DEC-01-F]
-                      text_th: "[ตัวอย่าง] ..."
+                  - finding_ids:
+                    - F-DEC-01-F
+                    text_th: '[ตัวอย่าง] ...'
                 timeline:
-                  - event_id: 12
-                    turn_idx: 3
-                    type: FACT_REVEALED
-                    summary_th: "ผู้ป่วยเปิดเผยข้อมูลสำคัญหลังคุณซักประวัติเรื่องเลือดที่ออก"
+                - event_id: 12
+                  turn_idx: 3
+                  type: FACT_REVEALED
+                  summary_th: ผู้ป่วยเปิดเผยข้อมูลสำคัญหลังคุณซักประวัติเรื่องเลือดที่ออก
                 glassbox:
                   facts:
-                    - id: H1
-                      kind: hidden
-                      text_th: "[ตัวอย่าง]"
-                      risk_relevance: critical
-                      revealed: true
-                      revealed_at_idx: 3
+                  - id: H1
+                    kind: hidden
+                    text_th: '[ตัวอย่าง]'
+                    risk_relevance: critical
+                    revealed: true
+                    revealed_at_idx: 3
                   risk_state_timeline:
-                    - turn_idx: 3
-                      risk_state: recognized
+                  - turn_idx: 3
+                    risk_state: recognized
                   learner_actions:
-                    - turn_idx: 3
-                      action_id: A03
-                      label_th: "ถามลักษณะ/ปริมาณเลือด"
-                      repeated: false
+                  - turn_idx: 3
+                    action_id: A03
+                    label_th: ถามลักษณะ/ปริมาณเลือด
+                    repeated: false
                 replay:
                   terminal_state: UnsafeProceed
-                  timeline_th: ["[ตัวอย่างฉากจำลองที่ผู้เชี่ยวชาญตรวจแล้ว]"]
+                  timeline_th:
+                  - '[ตัวอย่างฉากจำลองที่ผู้เชี่ยวชาญตรวจแล้ว]'
                   missed_opportunities:
-                    - turn_idx: 4
-                      fact_id: H1
-                      note_th: "ข้อมูลสำคัญปรากฏแล้วที่จุดนี้ แต่ยังไม่ได้หยุดบริการ"
-                  disclaimer_th: "นี่คือการจำลองเพื่อการเรียนรู้ ไม่ใช่การทำนายผลทางการแพทย์จริง"
+                  - turn_idx: 4
+                    fact_id: H1
+                    note_th: ข้อมูลสำคัญปรากฏแล้วที่จุดนี้ แต่ยังไม่ได้หยุดบริการ
+                  disclaimer_th: นี่คือการจำลองเพื่อการเรียนรู้ ไม่ใช่การทำนายผลทางการแพทย์จริง
                 references:
-                  - id: REF1
-                    title_th: "[เอกสารอ้างอิง]"
-                    locator: "[หน้า/หัวข้อ]"
+                - id: REF1
+                  title_th: '[เอกสารอ้างอิง]'
+                  locator: '[หน้า/หัวข้อ]'
                 overrides: []
                 effective:
                   safety_status: SAFETY_NOT_MET
                   total_score: 54.5
                 disclaimers:
-                  - "เพื่อการศึกษาเท่านั้น ไม่ใช่คำแนะนำทางการแพทย์ และไม่ใช่การรับรองสมรรถนะวิชาชีพ"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          description: "`REPORT_NOT_READY` - session is not completed."
+                - เพื่อการศึกษาเท่านั้น ไม่ใช่คำแนะนำทางการแพทย์ และไม่ใช่การรับรองสมรรถนะวิชาชีพ
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: '`REPORT_NOT_READY` - session is not completed.'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "410":
-          $ref: "#/components/responses/SessionExpired"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
+                $ref: '#/components/schemas/Error'
+        '410':
+          $ref: '#/components/responses/SessionExpired'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /v1/sessions/{session_id}/glassbox:
     get:
-      tags: [Reports]
+      tags:
+      - Reports
       operationId: getLiveGlassBox
       summary: Live Glass Box during play (demo / instructor only)
-      description: |
-        Allowed when `GLASS_BOX_LIVE=true` (learner) or for an instructor. Otherwise `403 GLASSBOX_DISABLED`.
+      description: 'Allowed when `GLASS_BOX_LIVE=true` (learner) or for an instructor.
+        Otherwise `403 GLASSBOX_DISABLED`.
+
         Same shape as `TurnResponse.glassbox`.
+
+        '
       security:
-        - SessionToken: []
-        - InstructorSecret: []
+      - SessionToken: []
+      - InstructorSecret: []
       x-priority: Could
-      x-fr: [FR-GB-02]
+      x-fr:
+      - FR-GB-02
       parameters:
-        - $ref: "#/components/parameters/SessionId"
+      - $ref: '#/components/parameters/SessionId'
       responses:
-        "200":
+        '200':
           description: Current hidden state of the session.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LiveGlassBox"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          description: "`GLASSBOX_DISABLED`."
+                $ref: '#/components/schemas/LiveGlassBox'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: '`GLASSBOX_DISABLED`.'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          $ref: "#/components/responses/NotFound"
-
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /v1/classes:
     post:
-      tags: [Instructor]
+      tags:
+      - Instructor
       operationId: createClass
       summary: Create a class and get its 6-character code
       security:
-        - InstructorSecret: []
+      - InstructorSecret: []
       x-priority: Should
-      x-fr: [FR-INS-01, FR-AUTH-02]
+      x-fr:
+      - FR-INS-01
+      - FR-AUTH-02
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateClassRequest"
+              $ref: '#/components/schemas/CreateClassRequest'
             example:
-              name: "ผดุงครรภ์ไทย ปี 3"
+              name: ผดุงครรภ์ไทย ปี 3
       responses:
-        "201":
+        '201':
           description: Class created.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ClassInfo"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "422":
-          $ref: "#/components/responses/ValidationError"
-
+                $ref: '#/components/schemas/ClassInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /v1/instructor/classes:
     get:
-      tags: [Instructor]
+      tags:
+      - Instructor
       operationId: listClasses
       summary: List classes
       security:
-        - InstructorSecret: []
+      - InstructorSecret: []
       x-priority: Should
-      x-fr: [FR-INS-01]
+      x-fr:
+      - FR-INS-01
       responses:
-        "200":
+        '200':
           description: Classes, newest first.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ClassList"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
+                $ref: '#/components/schemas/ClassList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /v1/instructor/sessions:
     get:
-      tags: [Instructor]
+      tags:
+      - Instructor
       operationId: listInstructorSessions
       summary: List sessions (cursor-paginated)
       security:
-        - InstructorSecret: []
+      - InstructorSecret: []
       x-priority: Should
-      x-fr: [FR-INS-02]
+      x-fr:
+      - FR-INS-02
       parameters:
-        - name: class_code
-          in: query
-          schema:
-            type: string
-            pattern: "^[A-Z0-9]{6}$"
-        - name: case_id
-          in: query
-          schema:
-            type: string
-        - name: variant
-          in: query
-          schema:
-            $ref: "#/components/schemas/Variant"
-        - name: status
-          in: query
-          schema:
-            $ref: "#/components/schemas/SessionStatus"
-        - name: safety_status
-          in: query
-          description: Only completed sessions have a safety status.
-          schema:
-            $ref: "#/components/schemas/SafetyStatus"
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 25
-        - name: cursor
-          in: query
-          description: Opaque value from `next_cursor`.
-          schema:
-            type: string
+      - name: class_code
+        in: query
+        schema:
+          type: string
+          pattern: ^[A-Z0-9]{6}$
+      - name: case_id
+        in: query
+        schema:
+          type: string
+      - name: variant
+        in: query
+        schema:
+          $ref: '#/components/schemas/Variant'
+      - name: status
+        in: query
+        schema:
+          $ref: '#/components/schemas/SessionStatus'
+      - name: safety_status
+        in: query
+        description: Only completed sessions have a safety status.
+        schema:
+          $ref: '#/components/schemas/SafetyStatus'
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: cursor
+        in: query
+        description: Opaque value from `next_cursor`.
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: A page of sessions, newest first.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/InstructorSessionList"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "422":
-          $ref: "#/components/responses/ValidationError"
-
+                $ref: '#/components/schemas/InstructorSessionList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /v1/instructor/analytics:
     get:
-      tags: [Instructor]
+      tags:
+      - Instructor
       operationId: getClassAnalytics
       summary: Cohort analytics for a class
       security:
-        - InstructorSecret: []
+      - InstructorSecret: []
       x-priority: Could
-      x-fr: [FR-INS-03]
+      x-fr:
+      - FR-INS-03
       parameters:
-        - name: class_code
-          in: query
-          required: true
-          schema:
-            type: string
-            pattern: "^[A-Z0-9]{6}$"
+      - name: class_code
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Z0-9]{6}$
       responses:
-        "200":
+        '200':
           description: Aggregates over completed sessions.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ClassAnalytics"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-
+                $ref: '#/components/schemas/ClassAnalytics'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /v1/instructor/sessions/{session_id}/overrides:
     post:
-      tags: [Instructor]
+      tags:
+      - Instructor
       operationId: createOverride
-      summary: Override one rubric item result (kept as a separate event; original is preserved)
-      description: |
-        The original scoring is never modified. The report returns `overrides[]` and an `effective` block
-        recomputed with the overrides applied. A reason is mandatory (10-500 characters). Critical items
-        cannot be overridden (API_DESIGN section 14, Q1): `422 VALIDATION_ERROR`, as for an unknown item, an
-        item that does not apply to the variant, or a `partial` without `0 < new_earned < points`.
+      summary: Override one rubric item result (kept as a separate event; original
+        is preserved)
+      description: 'The original scoring is never modified. The report returns `overrides[]`
+        and an `effective` block
+
+        recomputed with the overrides applied. A reason is mandatory (10-500 characters).
+        Critical items
+
+        cannot be overridden (API_DESIGN section 14, Q1): `422 VALIDATION_ERROR`,
+        as for an unknown item, an
+
+        item that does not apply to the variant, or a `partial` without `0 < new_earned
+        < points`.
+
+        '
       security:
-        - InstructorSecret: []
+      - InstructorSecret: []
       x-priority: Could
-      x-fr: [FR-INS-04]
+      x-fr:
+      - FR-INS-04
       parameters:
-        - $ref: "#/components/parameters/SessionId"
+      - $ref: '#/components/parameters/SessionId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/OverrideRequest"
+              $ref: '#/components/schemas/OverrideRequest'
       responses:
-        "201":
+        '201':
           description: Override recorded.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Override"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          description: "`REPORT_NOT_READY` - session not completed."
+                $ref: '#/components/schemas/Override'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: '`REPORT_NOT_READY` - session not completed.'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-        "422":
-          $ref: "#/components/responses/ValidationError"
-
+                $ref: '#/components/schemas/Error'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /v1/replay/recordings:
     get:
-      tags: [Replay]
+      tags:
+      - Replay
       operationId: listRecordings
       summary: List recorded sessions available for Replay Mode
-      description: Served from `recordings/` only when `ENABLE_REPLAY=true`; otherwise returns NOT_FOUND.
+      description: Served from `recordings/` only when `ENABLE_REPLAY=true`; otherwise
+        returns NOT_FOUND.
       security: []
       x-priority: Must
-      x-fr: [FR-OBS-02]
+      x-fr:
+      - FR-OBS-02
       responses:
-        "200":
+        '200':
           description: Recordings.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RecordingList"
-        "404":
-          $ref: "#/components/responses/NotFound"
-
+                $ref: '#/components/schemas/RecordingList'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /v1/replay/recordings/{recording_id}:
     get:
-      tags: [Replay]
+      tags:
+      - Replay
       operationId: getRecording
       summary: Get a recording (steps + report snapshot) to play back with no LLM
       security: []
       x-priority: Must
-      x-fr: [FR-OBS-02]
+      x-fr:
+      - FR-OBS-02
       parameters:
-        - name: recording_id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: recording_id
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: Recording.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Recording"
-        "404":
-          $ref: "#/components/responses/NotFound"
-
+                $ref: '#/components/schemas/Recording'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /v1/sessions/{session_id}/feedback:
     post:
       tags:
@@ -1051,7 +1173,8 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationError'
         '409':
-          description: Session not completed, or feedback already submitted with different values.
+          description: Session not completed, or feedback already submitted with different
+            values.
           content:
             application/json:
               schema:
@@ -1099,7 +1222,6 @@ paths:
       - InstructorSecret: []
       x-fr:
       - FR-INS-05
-
   /v1/family/stories:
     get:
       tags:
@@ -1280,7 +1402,92 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FamilyView'
-
+  /v1/knowledge/release:
+    get:
+      tags:
+      - Knowledge
+      summary: Get Release
+      operationId: getKnowledgeRelease
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeReleaseInfo'
+  /v1/knowledge/sources:
+    get:
+      tags:
+      - Knowledge
+      summary: List Sources
+      operationId: listKnowledgeSources
+      parameters:
+      - name: kind
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - enum:
+            - catalog
+            - kb_source
+            type: string
+          - type: 'null'
+          title: Kind
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceList'
+  /v1/knowledge/units:
+    get:
+      tags:
+      - Knowledge
+      summary: List Units
+      operationId: listKnowledgeUnits
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitList'
+  /v1/knowledge/units/{unit_id}:
+    get:
+      tags:
+      - Knowledge
+      summary: Get Unit
+      operationId: getKnowledgeUnit
+      parameters:
+      - name: unit_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Unit Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/learning-paths:
+    get:
+      tags:
+      - Knowledge
+      summary: Learning Paths
+      operationId: listLearningPaths
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathsView'
   /v1/family/rooms/{room_id}/debrief:
     post:
       tags:
@@ -1350,13 +1557,13 @@ components:
     SessionToken:
       type: http
       scheme: bearer
-      description: Opaque learner token returned once by `POST /v1/sessions`. Valid only for that session.
+      description: Opaque learner token returned once by `POST /v1/sessions`. Valid
+        only for that session.
     InstructorSecret:
       type: apiKey
       in: header
       name: X-Instructor-Secret
       description: Shared secret from the `INSTRUCTOR_SECRET` environment variable.
-
   parameters:
     SessionId:
       name: session_id
@@ -1371,15 +1578,15 @@ components:
       required: true
       schema:
         type: string
-        examples: [PP-001]
+        examples:
+        - PP-001
     ClassCode:
       name: code
       in: path
       required: true
       schema:
         type: string
-        pattern: "^[A-Z0-9]{6}$"
-
+        pattern: ^[A-Z0-9]{6}$
   headers:
     XRequestID:
       description: Request correlation id; also present in error bodies.
@@ -1389,7 +1596,8 @@ components:
       description: Always `no-store` for session-specific data.
       schema:
         type: string
-        enum: [no-store]
+        enum:
+        - no-store
     RateLimitLimit:
       description: Requests allowed per window (default 10 per minute per session).
       schema:
@@ -1402,18 +1610,17 @@ components:
       description: Seconds to wait before retrying.
       schema:
         type: integer
-
   responses:
     Unauthorized:
       description: Missing or invalid token/secret (`UNAUTHORIZED`).
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: '#/components/schemas/Error'
           example:
             error:
               code: UNAUTHORIZED
-              message: "ไม่ได้รับอนุญาต กรุณาเข้าสู่ระบบใหม่"
+              message: ไม่ได้รับอนุญาต กรุณาเข้าสู่ระบบใหม่
               details: {}
               request_id: 0a1b2c3d
     NotFound:
@@ -1421,11 +1628,11 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: '#/components/schemas/Error'
           example:
             error:
               code: NOT_FOUND
-              message: "ไม่พบข้อมูลที่ต้องการ"
+              message: ไม่พบข้อมูลที่ต้องการ
               details: {}
               request_id: 0a1b2c3e
     SessionExpired:
@@ -1433,11 +1640,11 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: '#/components/schemas/Error'
           example:
             error:
               code: SESSION_EXPIRED
-              message: "เซสชันหมดอายุเนื่องจากไม่มีการใช้งาน กรุณาเริ่มเคสใหม่"
+              message: เซสชันหมดอายุเนื่องจากไม่มีการใช้งาน กรุณาเริ่มเคสใหม่
               details:
                 idle_timeout_s: 1800
               request_id: 0a1b2c3f
@@ -1446,45 +1653,47 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: '#/components/schemas/Error'
           example:
             error:
               code: VALIDATION_ERROR
-              message: "ข้อมูลที่ส่งมาไม่ถูกต้อง"
+              message: ข้อมูลที่ส่งมาไม่ถูกต้อง
               details:
                 fields:
-                  - loc: [body, learner_name]
-                    msg: "ต้องมีความยาว 1-30 ตัวอักษร"
+                - loc:
+                  - body
+                  - learner_name
+                  msg: ต้องมีความยาว 1-30 ตัวอักษร
               request_id: 0a1b2c40
     RateLimited:
       description: Too many requests (`RATE_LIMITED`).
       headers:
         Retry-After:
-          $ref: "#/components/headers/RetryAfter"
+          $ref: '#/components/headers/RetryAfter'
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: '#/components/schemas/Error'
           example:
             error:
               code: RATE_LIMITED
-              message: "ส่งคำขอถี่เกินไป กรุณารอสักครู่"
+              message: ส่งคำขอถี่เกินไป กรุณารอสักครู่
               details:
                 retry_after_s: 12
               request_id: 0a1b2c41
     LlmUnavailable:
-      description: LLM path and fallback both failed (`LLM_UNAVAILABLE`). Retry is safe; the turn was not counted.
+      description: LLM path and fallback both failed (`LLM_UNAVAILABLE`). Retry is
+        safe; the turn was not counted.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: '#/components/schemas/Error'
     InternalError:
       description: Unexpected server error (`INTERNAL_ERROR`). No state was changed.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
-
+            $ref: '#/components/schemas/Error'
   schemas:
     ClassPilotFeedback:
       properties:
@@ -1642,7 +1851,8 @@ components:
       - waiting_for_partner
       - disagreement
       title: FamilyVote
-      description: Joint-step state. The partner's choice appears only once both have voted (disagreement).
+      description: Joint-step state. The partner's choice appears only once both have
+        voted (disagreement).
     FamilyVoteChoice:
       properties:
         role:
@@ -1746,41 +1956,43 @@ components:
       - realism
       - consent
       title: PilotFeedbackRequest
-    # ---------- Common ----------
     ErrorCode:
       type: string
       enum:
-        - VALIDATION_ERROR
-        - TEXT_TOO_LONG
-        - TURN_LIMIT
-        - TURN_IN_PROGRESS
-        - SESSION_COMPLETED
-        - SESSION_EXPIRED
-        - INVALID_PHASE
-        - DECISION_ALREADY_COMMITTED
-        - DECISION_OPTION_INVALID
-        - IDEMPOTENCY_CONFLICT
-        - REPORT_NOT_READY
-        - UNAUTHORIZED
-        - FORBIDDEN
-        - GLASSBOX_DISABLED
-        - NOT_FOUND
-        - CASE_NOT_AVAILABLE
-        - VARIANT_NOT_AVAILABLE
-        - CLASS_NOT_FOUND
-        - RATE_LIMITED
-        - LLM_UNAVAILABLE
-        - INTERNAL_ERROR
+      - VALIDATION_ERROR
+      - TEXT_TOO_LONG
+      - TURN_LIMIT
+      - TURN_IN_PROGRESS
+      - SESSION_COMPLETED
+      - SESSION_EXPIRED
+      - INVALID_PHASE
+      - DECISION_ALREADY_COMMITTED
+      - DECISION_OPTION_INVALID
+      - IDEMPOTENCY_CONFLICT
+      - REPORT_NOT_READY
+      - UNAUTHORIZED
+      - FORBIDDEN
+      - GLASSBOX_DISABLED
+      - NOT_FOUND
+      - CASE_NOT_AVAILABLE
+      - VARIANT_NOT_AVAILABLE
+      - CLASS_NOT_FOUND
+      - RATE_LIMITED
+      - LLM_UNAVAILABLE
+      - INTERNAL_ERROR
     Error:
       type: object
-      required: [error]
+      required:
+      - error
       properties:
         error:
           type: object
-          required: [code, message]
+          required:
+          - code
+          - message
           properties:
             code:
-              $ref: "#/components/schemas/ErrorCode"
+              $ref: '#/components/schemas/ErrorCode'
             message:
               type: string
               description: Thai, safe to show to the user.
@@ -1791,59 +2003,93 @@ components:
               type: string
     Variant:
       type: string
-      enum: [A, B, C]
-      description: A = genuine red flag; B = benign look-alike (Could); C = patient minimizes + family pressure (Should).
+      enum:
+      - A
+      - B
+      - C
+      description: A = genuine red flag; B = benign look-alike (Could); C = patient
+        minimizes + family pressure (Should).
     CaseStatus:
       type: string
-      enum: [Draft, In Review, Approved]
+      enum:
+      - Draft
+      - In Review
+      - Approved
     Phase:
       type: string
-      enum: [INTERVIEW, PRESSURE, CLOSING, COMPLETED]
-      description: |
-        Public phases. The internal `INTRO` state is collapsed into `INTERVIEW`.
+      enum:
+      - INTERVIEW
+      - PRESSURE
+      - CLOSING
+      - COMPLETED
+      description: 'Public phases. The internal `INTRO` state is collapsed into `INTERVIEW`.
+
         `PRESSURE` occurs only in Variant C after a referral decision.
+
+        '
     SessionStatus:
       type: string
-      enum: [active, completed, expired]
+      enum:
+      - active
+      - completed
+      - expired
     Speaker:
       type: string
-      enum: [learner, patient, relative, system]
+      enum:
+      - learner
+      - patient
+      - relative
+      - system
     SafetyStatus:
       type: string
-      enum: [SAFETY_MET, SAFETY_NOT_MET]
+      enum:
+      - SAFETY_MET
+      - SAFETY_NOT_MET
     RiskState:
       type: string
-      enum: [unrecognized, recognized, escalated]
+      enum:
+      - unrecognized
+      - recognized
+      - escalated
     ItemResultValue:
       type: string
-      enum: [pass, fail, partial, na]
+      enum:
+      - pass
+      - fail
+      - partial
+      - na
     EventType:
       type: string
       enum:
-        - SESSION_STARTED
-        - LEARNER_MESSAGE
-        - ACTIONS_DETECTED
-        - ACTION_REPEATED
-        - CLARIFICATION_ASKED
-        - FACT_REVEALED
-        - RISK_STATE_CHANGED
-        - PHASE_CHANGED
-        - DECISION_COMMITTED
-        - UNSAFE_ACTION
-        - PRESSURE_STARTED
-        - PRESSURE_RESOLVED
-        - NOTE_SUBMITTED
-        - VALIDATOR_REJECTED
-        - LLM_FALLBACK_USED
-        - SESSION_COMPLETED
-
+      - SESSION_STARTED
+      - LEARNER_MESSAGE
+      - ACTIONS_DETECTED
+      - ACTION_REPEATED
+      - CLARIFICATION_ASKED
+      - FACT_REVEALED
+      - RISK_STATE_CHANGED
+      - PHASE_CHANGED
+      - DECISION_COMMITTED
+      - UNSAFE_ACTION
+      - PRESSURE_STARTED
+      - PRESSURE_RESOLVED
+      - NOTE_SUBMITTED
+      - VALIDATOR_REJECTED
+      - LLM_FALLBACK_USED
+      - SESSION_COMPLETED
     Health:
       type: object
-      required: [status, version, time]
+      required:
+      - status
+      - version
+      - time
       properties:
         status:
           type: string
-          enum: [ok, degraded, down]
+          enum:
+          - ok
+          - degraded
+          - down
         version:
           type: string
         time:
@@ -1851,7 +2097,9 @@ components:
           format: date-time
         db:
           type: string
-          enum: [ok, error]
+          enum:
+          - ok
+          - error
         content_loaded:
           type: boolean
         cases_loaded:
@@ -1860,13 +2108,16 @@ components:
           type: string
           description: Provider name, for example `mock`. Never includes keys.
         commit:
-          type: [string, "null"]
-          description: Git SHA of the running build (`GIT_COMMIT`, or Render's `RENDER_GIT_COMMIT`); null when unknown.
-
-    # ---------- Cases ----------
+          type:
+          - string
+          - 'null'
+          description: Git SHA of the running build (`GIT_COMMIT`, or Render's `RENDER_GIT_COMMIT`);
+            null when unknown.
     LearningObjective:
       type: object
-      required: [id, label_th]
+      required:
+      - id
+      - label_th
       properties:
         id:
           type: string
@@ -1874,19 +2125,31 @@ components:
           type: string
     DecisionOption:
       type: object
-      required: [id, label_th]
+      required:
+      - id
+      - label_th
       properties:
         id:
           type: string
-          examples: [refer]
+          examples:
+          - refer
         label_th:
           type: string
     Audience:
       type: string
-      enum: [dad, mom, staff]
+      enum:
+      - dad
+      - mom
+      - staff
     CaseSummary:
       type: object
-      required: [case_id, version, title_th, status, status_label_th, variants_available]
+      required:
+      - case_id
+      - version
+      - title_th
+      - status
+      - status_label_th
+      - variants_available
       properties:
         case_id:
           type: string
@@ -1895,76 +2158,98 @@ components:
         title_th:
           type: string
         status:
-          $ref: "#/components/schemas/CaseStatus"
+          $ref: '#/components/schemas/CaseStatus'
         status_label_th:
           type: string
         audience:
-          description: Who the course is for; groups the case list. Null for a case that does not say.
+          description: Who the course is for; groups the case list. Null for a case
+            that does not say.
           anyOf:
-            - $ref: "#/components/schemas/Audience"
-            - type: "null"
+          - $ref: '#/components/schemas/Audience'
+          - type: 'null'
         variants_available:
           type: array
           items:
-            $ref: "#/components/schemas/Variant"
+            $ref: '#/components/schemas/Variant'
     CaseBrief:
       allOf:
-        - $ref: "#/components/schemas/CaseSummary"
-        - type: object
-          required: [patient_display_th, learning_objectives, decision_options, disclaimer_th]
-          properties:
-            patient_display_th:
-              type: string
-              description: Initial information shown to the learner. Contains no hidden facts.
-            learning_objectives:
-              type: array
-              items:
-                $ref: "#/components/schemas/LearningObjective"
-            decision_options:
-              type: array
-              items:
-                $ref: "#/components/schemas/DecisionOption"
-            disclaimer_th:
-              type: string
-
-    # ---------- Sessions ----------
+      - $ref: '#/components/schemas/CaseSummary'
+      - type: object
+        required:
+        - patient_display_th
+        - learning_objectives
+        - decision_options
+        - disclaimer_th
+        properties:
+          patient_display_th:
+            type: string
+            description: Initial information shown to the learner. Contains no hidden
+              facts.
+          learning_objectives:
+            type: array
+            items:
+              $ref: '#/components/schemas/LearningObjective'
+          decision_options:
+            type: array
+            items:
+              $ref: '#/components/schemas/DecisionOption'
+          disclaimer_th:
+            type: string
     Limits:
       type: object
-      required: [max_turns, max_text_chars, idle_timeout_s, max_rationale_chars, max_note_chars]
+      required:
+      - max_turns
+      - max_text_chars
+      - idle_timeout_s
+      - max_rationale_chars
+      - max_note_chars
       properties:
         max_turns:
           type: integer
-          examples: [40]
+          examples:
+          - 40
         max_text_chars:
           type: integer
-          examples: [500]
+          examples:
+          - 500
         idle_timeout_s:
           type: integer
-          examples: [1800]
+          examples:
+          - 1800
         max_rationale_chars:
           type: integer
-          examples: [300]
+          examples:
+          - 300
         max_note_chars:
           type: integer
-          examples: [500]
+          examples:
+          - 500
     Notice:
       type: object
-      required: [code, text_th]
+      required:
+      - code
+      - text_th
       description: Banners the client must display.
       properties:
         code:
           type: string
-          enum: [EDUCATION_ONLY, CASE_STATUS, PRIVACY_LLM, NO_REAL_PII]
+          enum:
+          - EDUCATION_ONLY
+          - CASE_STATUS
+          - PRIVACY_LLM
+          - NO_REAL_PII
         text_th:
           type: string
     CreateSessionRequest:
       type: object
-      required: [case_id, learner_name]
+      required:
+      - case_id
+      - learner_name
       properties:
         case_id:
           type: string
         variant:
-          $ref: "#/components/schemas/Variant"
+          $ref: '#/components/schemas/Variant'
           default: A
         learner_name:
           type: string
@@ -1972,11 +2257,22 @@ components:
           maxLength: 30
           description: Nickname. Do not require real names.
         class_code:
-          type: [string, "null"]
-          pattern: "^[A-Z0-9]{6}$"
+          type:
+          - string
+          - 'null'
+          pattern: ^[A-Z0-9]{6}$
     CreateSessionResponse:
       type: object
-      required: [session_id, token, token_type, created_at, case, variant, phase, limits, notices]
+      required:
+      - session_id
+      - token
+      - token_type
+      - created_at
+      - case
+      - variant
+      - phase
+      - limits
+      - notices
       properties:
         session_id:
           type: string
@@ -1986,44 +2282,47 @@ components:
           description: Shown once; store it client-side for this session only.
         token_type:
           type: string
-          enum: [Bearer]
+          enum:
+          - Bearer
         created_at:
           type: string
           format: date-time
         case:
-          $ref: "#/components/schemas/CaseBrief"
+          $ref: '#/components/schemas/CaseBrief'
         variant:
-          $ref: "#/components/schemas/Variant"
+          $ref: '#/components/schemas/Variant'
         phase:
-          $ref: "#/components/schemas/Phase"
+          $ref: '#/components/schemas/Phase'
         limits:
-          $ref: "#/components/schemas/Limits"
+          $ref: '#/components/schemas/Limits'
         notices:
           type: array
           items:
-            $ref: "#/components/schemas/Notice"
+            $ref: '#/components/schemas/Notice'
       example:
         session_id: 6f2b6a52-3a0e-4e3a-9f55-1d1b9f6a0c11
         token: st_9d1f0c...redacted
         token_type: Bearer
-        created_at: "2026-10-12T02:41:09Z"
+        created_at: '2026-10-12T02:41:09Z'
         case:
           case_id: PP-001
-          version: "0.1"
-          title_th: "[ตัวอย่าง] การประเมินหญิงหลังคลอดก่อนรับบริการ"
+          version: '0.1'
+          title_th: '[ตัวอย่าง] การประเมินหญิงหลังคลอดก่อนรับบริการ'
           status: Draft
-          status_label_th: "ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ"
-          variants_available: [A, C]
-          patient_display_th: "[ข้อมูลตั้งต้นของผู้ป่วย]"
+          status_label_th: ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ
+          variants_available:
+          - A
+          - C
+          patient_display_th: '[ข้อมูลตั้งต้นของผู้ป่วย]'
           learning_objectives:
-            - id: risk_recognition
-              label_th: "รับรู้สัญญาณอันตราย"
+          - id: risk_recognition
+            label_th: รับรู้สัญญาณอันตราย
           decision_options:
-            - id: refer
-              label_th: "หยุดบริการตามปกติและประสานส่งต่อ"
-            - id: proceed_service
-              label_th: "ให้บริการตามที่ขอ"
-          disclaimer_th: "เพื่อการศึกษาเท่านั้น"
+          - id: refer
+            label_th: หยุดบริการตามปกติและประสานส่งต่อ
+          - id: proceed_service
+            label_th: ให้บริการตามที่ขอ
+          disclaimer_th: เพื่อการศึกษาเท่านั้น
         variant: A
         phase: INTERVIEW
         limits:
@@ -2033,24 +2332,29 @@ components:
           max_rationale_chars: 300
           max_note_chars: 500
         notices:
-          - code: EDUCATION_ONLY
-            text_th: "นี่คือการจำลองเพื่อการเรียนรู้ ไม่ใช่คำแนะนำทางการแพทย์"
-          - code: CASE_STATUS
-            text_th: "ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ"
-          - code: PRIVACY_LLM
-            text_th: "ข้อความของคุณจะถูกส่งไปยังผู้ให้บริการโมเดลภาษาเพื่อสร้างคำตอบ"
-          - code: NO_REAL_PII
-            text_th: "อย่าพิมพ์ข้อมูลส่วนบุคคลจริง"
+        - code: EDUCATION_ONLY
+          text_th: นี่คือการจำลองเพื่อการเรียนรู้ ไม่ใช่คำแนะนำทางการแพทย์
+        - code: CASE_STATUS
+          text_th: ฉบับร่าง — ยังไม่ผ่านการตรวจโดยผู้เชี่ยวชาญ
+        - code: PRIVACY_LLM
+          text_th: ข้อความของคุณจะถูกส่งไปยังผู้ให้บริการโมเดลภาษาเพื่อสร้างคำตอบ
+        - code: NO_REAL_PII
+          text_th: อย่าพิมพ์ข้อมูลส่วนบุคคลจริง
     Message:
       type: object
-      required: [idx, speaker, text, created_at]
+      required:
+      - idx
+      - speaker
+      - text
+      - created_at
       properties:
         idx:
           type: integer
           minimum: 0
-          description: Learner turn index (starts at 1). Opening system lines use 0.
+          description: Learner turn index (starts at 1). Opening system lines use
+            0.
         speaker:
-          $ref: "#/components/schemas/Speaker"
+          $ref: '#/components/schemas/Speaker'
         text:
           type: string
         created_at:
@@ -2058,51 +2362,72 @@ components:
           format: date-time
     DecisionState:
       type: object
-      required: [committed]
+      required:
+      - committed
       properties:
         committed:
           type: boolean
         option_id:
-          type: [string, "null"]
+          type:
+          - string
+          - 'null'
         committed_at_idx:
-          type: [integer, "null"]
+          type:
+          - integer
+          - 'null'
     SessionView:
       type: object
-      required: [session_id, case, variant, status, phase, turn_idx, turns_remaining, decision, history, limits, created_at, last_activity_at]
+      required:
+      - session_id
+      - case
+      - variant
+      - status
+      - phase
+      - turn_idx
+      - turns_remaining
+      - decision
+      - history
+      - limits
+      - created_at
+      - last_activity_at
       properties:
         session_id:
           type: string
           format: uuid
         case:
           type: object
-          required: [case_id, version, status, status_label_th]
+          required:
+          - case_id
+          - version
+          - status
+          - status_label_th
           properties:
             case_id:
               type: string
             version:
               type: string
             status:
-              $ref: "#/components/schemas/CaseStatus"
+              $ref: '#/components/schemas/CaseStatus'
             status_label_th:
               type: string
         variant:
-          $ref: "#/components/schemas/Variant"
+          $ref: '#/components/schemas/Variant'
         status:
-          $ref: "#/components/schemas/SessionStatus"
+          $ref: '#/components/schemas/SessionStatus'
         phase:
-          $ref: "#/components/schemas/Phase"
+          $ref: '#/components/schemas/Phase'
         turn_idx:
           type: integer
         turns_remaining:
           type: integer
         decision:
-          $ref: "#/components/schemas/DecisionState"
+          $ref: '#/components/schemas/DecisionState'
         history:
           type: array
           items:
-            $ref: "#/components/schemas/Message"
+            $ref: '#/components/schemas/Message'
         limits:
-          $ref: "#/components/schemas/Limits"
+          $ref: '#/components/schemas/Limits'
         created_at:
           type: string
           format: date-time
@@ -2111,7 +2436,8 @@ components:
           format: date-time
     TurnRequest:
       type: object
-      required: [text]
+      required:
+      - text
       properties:
         text:
           type: string
@@ -2124,43 +2450,59 @@ components:
           description: Unique per message; makes retries safe.
     Reply:
       type: object
-      required: [speaker, text]
+      required:
+      - speaker
+      - text
       properties:
         speaker:
           type: string
-          enum: [patient, relative, system]
+          enum:
+          - patient
+          - relative
+          - system
         text:
           type: string
     LiveGlassBox:
       type: object
-      required: [risk_state, facts, fired_action_ids]
+      required:
+      - risk_state
+      - facts
+      - fired_action_ids
       properties:
         risk_state:
-          $ref: "#/components/schemas/RiskState"
+          $ref: '#/components/schemas/RiskState'
         facts:
           type: array
           items:
-            $ref: "#/components/schemas/Fact"
+            $ref: '#/components/schemas/Fact'
         fired_action_ids:
           type: array
           items:
             type: string
     TurnResponse:
       type: object
-      required: [turn_idx, replies, phase, clarification, turns_remaining, degraded]
+      required:
+      - turn_idx
+      - replies
+      - phase
+      - clarification
+      - turns_remaining
+      - degraded
       properties:
         turn_idx:
           type: integer
         replies:
           type: array
-          description: One or more speakers (patient, plus scripted relative lines during PRESSURE).
+          description: One or more speakers (patient, plus scripted relative lines
+            during PRESSURE).
           items:
-            $ref: "#/components/schemas/Reply"
+            $ref: '#/components/schemas/Reply'
         phase:
-          $ref: "#/components/schemas/Phase"
+          $ref: '#/components/schemas/Phase'
         clarification:
           type: boolean
-          description: True when the patient asked the learner to rephrase (no unlock, no scoring for this turn).
+          description: True when the patient asked the learner to rephrase (no unlock,
+            no scoring for this turn).
         turns_remaining:
           type: integer
         degraded:
@@ -2168,27 +2510,35 @@ components:
           description: True when a fallback path produced this turn.
         glassbox:
           oneOf:
-            - $ref: "#/components/schemas/LiveGlassBox"
-            - type: "null"
+          - $ref: '#/components/schemas/LiveGlassBox'
+          - type: 'null'
           description: Non-null only when live Glass Box is enabled for the caller.
     DecisionRequest:
       type: object
-      required: [option_id]
+      required:
+      - option_id
       properties:
         option_id:
           type: string
         rationale_th:
-          type: [string, "null"]
+          type:
+          - string
+          - 'null'
           maxLength: 300
     DecisionResponse:
       type: object
-      required: [phase, decision, replies]
+      required:
+      - phase
+      - decision
+      - replies
       properties:
         phase:
-          $ref: "#/components/schemas/Phase"
+          $ref: '#/components/schemas/Phase'
         decision:
           type: object
-          required: [option_id, committed_at_idx]
+          required:
+          - option_id
+          - committed_at_idx
           properties:
             option_id:
               type: string
@@ -2197,46 +2547,68 @@ components:
         replies:
           type: array
           items:
-            $ref: "#/components/schemas/Reply"
+            $ref: '#/components/schemas/Reply'
         pressure_turns_allowed:
-          type: [integer, "null"]
-          description: Number of learner turns allowed in the pressure scene; null when there is none.
+          type:
+          - integer
+          - 'null'
+          description: Number of learner turns allowed in the pressure scene; null
+            when there is none.
     CompleteRequest:
       type: object
       properties:
         note_th:
-          type: [string, "null"]
+          type:
+          - string
+          - 'null'
           maxLength: 500
     CompleteResponse:
       type: object
-      required: [status, report_ready, report_url]
+      required:
+      - status
+      - report_ready
+      - report_url
       properties:
         status:
           type: string
-          enum: [completed]
+          enum:
+          - completed
         report_ready:
           type: boolean
         report_url:
           type: string
-
-    # ---------- Report ----------
     Evidence:
       type: object
-      required: [event_id, turn_idx, type]
+      required:
+      - event_id
+      - turn_idx
+      - type
       properties:
         event_id:
           type: integer
         turn_idx:
           type: integer
         type:
-          $ref: "#/components/schemas/EventType"
+          $ref: '#/components/schemas/EventType'
     CompetencyScore:
       type: object
-      required: [id, name_th, weight, score_pct, earned, possible]
+      required:
+      - id
+      - name_th
+      - weight
+      - score_pct
+      - earned
+      - possible
       properties:
         id:
           type: string
-          enum: [HX, RISK, DEC, ESC, COMM, DOC]
+          enum:
+          - HX
+          - RISK
+          - DEC
+          - ESC
+          - COMM
+          - DOC
         name_th:
           type: string
         weight:
@@ -2252,7 +2624,14 @@ components:
           type: number
     ItemResult:
       type: object
-      required: [id, competency, result, points, earned, critical, evidence]
+      required:
+      - id
+      - competency
+      - result
+      - points
+      - earned
+      - critical
+      - evidence
       properties:
         id:
           type: string
@@ -2261,7 +2640,7 @@ components:
         label_th:
           type: string
         result:
-          $ref: "#/components/schemas/ItemResultValue"
+          $ref: '#/components/schemas/ItemResultValue'
         points:
           type: number
         earned:
@@ -2271,18 +2650,27 @@ components:
         evidence:
           type: array
           items:
-            $ref: "#/components/schemas/Evidence"
+            $ref: '#/components/schemas/Evidence'
         finding_id:
-          type: [string, "null"]
+          type:
+          - string
+          - 'null'
     Finding:
       type: object
-      required: [id, polarity, rubric_item_id, text_th, evidence_refs]
+      required:
+      - id
+      - polarity
+      - rubric_item_id
+      - text_th
+      - evidence_refs
       properties:
         id:
           type: string
         polarity:
           type: string
-          enum: [strength, improve]
+          enum:
+          - strength
+          - improve
         rubric_item_id:
           type: string
         text_th:
@@ -2299,7 +2687,9 @@ components:
             type: string
     DebriefParagraph:
       type: object
-      required: [finding_ids, text_th]
+      required:
+      - finding_ids
+      - text_th
       properties:
         finding_ids:
           type: array
@@ -2309,68 +2699,96 @@ components:
           type: string
     Debrief:
       type: object
-      required: [source, paragraphs]
+      required:
+      - source
+      - paragraphs
       properties:
         source:
           type: string
-          enum: [llm, template]
+          enum:
+          - llm
+          - template
         paragraphs:
           type: array
           items:
-            $ref: "#/components/schemas/DebriefParagraph"
+            $ref: '#/components/schemas/DebriefParagraph'
     TimelineEntry:
       type: object
-      required: [event_id, turn_idx, type, summary_th]
+      required:
+      - event_id
+      - turn_idx
+      - type
+      - summary_th
       properties:
         event_id:
           type: integer
         turn_idx:
           type: integer
         type:
-          $ref: "#/components/schemas/EventType"
+          $ref: '#/components/schemas/EventType'
         summary_th:
           type: string
     Fact:
       type: object
-      required: [id, kind, text_th, revealed]
+      required:
+      - id
+      - kind
+      - text_th
+      - revealed
       properties:
         id:
           type: string
         kind:
           type: string
-          enum: [known, hidden]
+          enum:
+          - known
+          - hidden
         text_th:
           type: string
         risk_relevance:
           type: string
-          enum: [critical, contextual, none]
+          enum:
+          - critical
+          - contextual
+          - none
         revealed:
           type: boolean
         revealed_at_idx:
-          type: [integer, "null"]
+          type:
+          - integer
+          - 'null'
     GlassBoxReport:
       type: object
-      required: [facts, risk_state_timeline, learner_actions]
+      required:
+      - facts
+      - risk_state_timeline
+      - learner_actions
       properties:
         facts:
           type: array
           items:
-            $ref: "#/components/schemas/Fact"
+            $ref: '#/components/schemas/Fact'
         risk_state_timeline:
           type: array
           items:
             type: object
-            required: [turn_idx, risk_state]
+            required:
+            - turn_idx
+            - risk_state
             properties:
               turn_idx:
                 type: integer
               risk_state:
-                $ref: "#/components/schemas/RiskState"
+                $ref: '#/components/schemas/RiskState'
         learner_actions:
           type: array
           items:
             type: object
-            required: [turn_idx, action_id, label_th, repeated]
+            required:
+            - turn_idx
+            - action_id
+            - label_th
+            - repeated
             properties:
               turn_idx:
                 type: integer
@@ -2382,7 +2800,10 @@ components:
                 type: boolean
     MissedOpportunity:
       type: object
-      required: [turn_idx, fact_id, note_th]
+      required:
+      - turn_idx
+      - fact_id
+      - note_th
       properties:
         turn_idx:
           type: integer
@@ -2392,7 +2813,11 @@ components:
           type: string
     ReplayReport:
       type: object
-      required: [terminal_state, timeline_th, missed_opportunities, disclaimer_th]
+      required:
+      - terminal_state
+      - timeline_th
+      - missed_opportunities
+      - disclaimer_th
       properties:
         terminal_state:
           type: string
@@ -2404,12 +2829,14 @@ components:
         missed_opportunities:
           type: array
           items:
-            $ref: "#/components/schemas/MissedOpportunity"
+            $ref: '#/components/schemas/MissedOpportunity'
         disclaimer_th:
           type: string
     Reference:
       type: object
-      required: [id, title_th]
+      required:
+      - id
+      - title_th
       properties:
         id:
           type: string
@@ -2419,15 +2846,36 @@ components:
           type: string
     EffectiveScore:
       type: object
-      required: [safety_status, total_score]
+      required:
+      - safety_status
+      - total_score
       properties:
         safety_status:
-          $ref: "#/components/schemas/SafetyStatus"
+          $ref: '#/components/schemas/SafetyStatus'
         total_score:
           type: number
     ReportResponse:
       type: object
-      required: [session_id, generated_at, engine_version, rubric_version, case, variant, safety_status, total_score, competencies, items, findings, debrief, timeline, glassbox, replay, references, overrides, effective, disclaimers]
+      required:
+      - session_id
+      - generated_at
+      - engine_version
+      - rubric_version
+      - case
+      - variant
+      - safety_status
+      - total_score
+      - competencies
+      - items
+      - findings
+      - debrief
+      - timeline
+      - glassbox
+      - replay
+      - references
+      - overrides
+      - effective
+      - disclaimers
       properties:
         session_id:
           type: string
@@ -2441,7 +2889,13 @@ components:
           type: string
         case:
           type: object
-          required: [case_id, version, hash, status, status_label_th, title_th]
+          required:
+          - case_id
+          - version
+          - hash
+          - status
+          - status_label_th
+          - title_th
           properties:
             case_id:
               type: string
@@ -2450,15 +2904,15 @@ components:
             hash:
               type: string
             status:
-              $ref: "#/components/schemas/CaseStatus"
+              $ref: '#/components/schemas/CaseStatus'
             status_label_th:
               type: string
             title_th:
               type: string
         variant:
-          $ref: "#/components/schemas/Variant"
+          $ref: '#/components/schemas/Variant'
         safety_status:
-          $ref: "#/components/schemas/SafetyStatus"
+          $ref: '#/components/schemas/SafetyStatus'
         total_score:
           type: number
           minimum: 0
@@ -2466,44 +2920,43 @@ components:
         competencies:
           type: array
           items:
-            $ref: "#/components/schemas/CompetencyScore"
+            $ref: '#/components/schemas/CompetencyScore'
         items:
           type: array
           items:
-            $ref: "#/components/schemas/ItemResult"
+            $ref: '#/components/schemas/ItemResult'
         findings:
           type: array
           items:
-            $ref: "#/components/schemas/Finding"
+            $ref: '#/components/schemas/Finding'
         debrief:
-          $ref: "#/components/schemas/Debrief"
+          $ref: '#/components/schemas/Debrief'
         timeline:
           type: array
           items:
-            $ref: "#/components/schemas/TimelineEntry"
+            $ref: '#/components/schemas/TimelineEntry'
         glassbox:
-          $ref: "#/components/schemas/GlassBoxReport"
+          $ref: '#/components/schemas/GlassBoxReport'
         replay:
-          $ref: "#/components/schemas/ReplayReport"
+          $ref: '#/components/schemas/ReplayReport'
         references:
           type: array
           items:
-            $ref: "#/components/schemas/Reference"
+            $ref: '#/components/schemas/Reference'
         overrides:
           type: array
           items:
-            $ref: "#/components/schemas/Override"
+            $ref: '#/components/schemas/Override'
         effective:
-          $ref: "#/components/schemas/EffectiveScore"
+          $ref: '#/components/schemas/EffectiveScore'
         disclaimers:
           type: array
           items:
             type: string
-
-    # ---------- Instructor ----------
     CreateClassRequest:
       type: object
-      required: [name]
+      required:
+      - name
       properties:
         name:
           type: string
@@ -2511,14 +2964,18 @@ components:
           maxLength: 80
     ClassInfo:
       type: object
-      required: [class_id, code, name, created_at]
+      required:
+      - class_id
+      - code
+      - name
+      - created_at
       properties:
         class_id:
           type: string
           format: uuid
         code:
           type: string
-          pattern: "^[A-Z0-9]{6}$"
+          pattern: ^[A-Z0-9]{6}$
         name:
           type: string
         created_at:
@@ -2526,25 +2983,38 @@ components:
           format: date-time
     ClassList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/ClassInfo"
+            $ref: '#/components/schemas/ClassInfo'
     InstructorSessionList:
       type: object
-      required: [items, next_cursor]
+      required:
+      - items
+      - next_cursor
       properties:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/SessionSummary"
+            $ref: '#/components/schemas/SessionSummary'
         next_cursor:
-          type: [string, "null"]
+          type:
+          - string
+          - 'null'
     SessionSummary:
       type: object
-      required: [session_id, learner_name, case_id, case_status, case_status_label_th, variant, status, started_at]
+      required:
+      - session_id
+      - learner_name
+      - case_id
+      - case_status
+      - case_status_label_th
+      - variant
+      - status
+      - started_at
       properties:
         session_id:
           type: string
@@ -2556,27 +3026,31 @@ components:
         case_version:
           type: string
         case_status:
-          $ref: "#/components/schemas/CaseStatus"
+          $ref: '#/components/schemas/CaseStatus'
         case_status_label_th:
           type: string
         variant:
-          $ref: "#/components/schemas/Variant"
+          $ref: '#/components/schemas/Variant'
         status:
-          $ref: "#/components/schemas/SessionStatus"
+          $ref: '#/components/schemas/SessionStatus'
         started_at:
           type: string
           format: date-time
         ended_at:
-          type: [string, "null"]
+          type:
+          - string
+          - 'null'
           format: date-time
         turns:
           type: integer
         safety_status:
           oneOf:
-            - $ref: "#/components/schemas/SafetyStatus"
-            - type: "null"
+          - $ref: '#/components/schemas/SafetyStatus'
+          - type: 'null'
         total_score:
-          type: [number, "null"]
+          type:
+          - number
+          - 'null'
         competency_pct:
           type: object
           additionalProperties:
@@ -2584,7 +3058,12 @@ components:
           description: Map of competency id to percent; empty until completed.
     ClassAnalytics:
       type: object
-      required: [class_code, sessions_completed, sessions_active, competency_avg, critical_item_fail_rates]
+      required:
+      - class_code
+      - sessions_completed
+      - sessions_active
+      - competency_avg
+      - critical_item_fail_rates
       properties:
         class_code:
           type: string
@@ -2593,18 +3072,27 @@ components:
         sessions_active:
           type: integer
         avg_total_score:
-          type: [number, "null"]
+          type:
+          - number
+          - 'null'
         safety_not_met_rate:
-          type: [number, "null"]
+          type:
+          - number
+          - 'null'
           minimum: 0
           maximum: 1
         avg_turns:
-          type: [number, "null"]
+          type:
+          - number
+          - 'null'
         competency_avg:
           type: array
           items:
             type: object
-            required: [id, name_th, avg_pct]
+            required:
+            - id
+            - name_th
+            - avg_pct
             properties:
               id:
                 type: string
@@ -2616,7 +3104,11 @@ components:
           type: array
           items:
             type: object
-            required: [item_id, label_th, fail_rate, n]
+            required:
+            - item_id
+            - label_th
+            - fail_rate
+            - n
             properties:
               item_id:
                 type: string
@@ -2630,15 +3122,23 @@ components:
                 type: integer
     OverrideRequest:
       type: object
-      required: [rubric_item_id, new_result, reason]
+      required:
+      - rubric_item_id
+      - new_result
+      - reason
       properties:
         rubric_item_id:
           type: string
         new_result:
           type: string
-          enum: [pass, fail, partial]
+          enum:
+          - pass
+          - fail
+          - partial
         new_earned:
-          type: [number, "null"]
+          type:
+          - number
+          - 'null'
           description: Required when `new_result` is `partial`.
         reason:
           type: string
@@ -2646,48 +3146,65 @@ components:
           maxLength: 500
     Override:
       type: object
-      required: [id, rubric_item_id, original_result, new_result, reason, created_at]
+      required:
+      - id
+      - rubric_item_id
+      - original_result
+      - new_result
+      - reason
+      - created_at
       properties:
         id:
           type: integer
         rubric_item_id:
           type: string
         original_result:
-          $ref: "#/components/schemas/ItemResultValue"
+          $ref: '#/components/schemas/ItemResultValue'
         new_result:
           type: string
-          enum: [pass, fail, partial]
+          enum:
+          - pass
+          - fail
+          - partial
         new_earned:
-          type: [number, "null"]
+          type:
+          - number
+          - 'null'
         reason:
           type: string
         created_at:
           type: string
           format: date-time
-
-    # ---------- Replay ----------
     RecordingList:
       type: object
-      required: [items]
+      required:
+      - items
       properties:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/RecordingListItem"
+            $ref: '#/components/schemas/RecordingListItem'
     RecordingListItem:
-      description: A recording summary plus the case status of its snapshot (shown as a badge).
+      description: A recording summary plus the case status of its snapshot (shown
+        as a badge).
       allOf:
-        - $ref: "#/components/schemas/RecordingSummary"
-        - type: object
-          required: [status, status_label_th]
-          properties:
-            status:
-              $ref: "#/components/schemas/CaseStatus"
-            status_label_th:
-              type: string
+      - $ref: '#/components/schemas/RecordingSummary'
+      - type: object
+        required:
+        - status
+        - status_label_th
+        properties:
+          status:
+            $ref: '#/components/schemas/CaseStatus'
+          status_label_th:
+            type: string
     RecordingSummary:
       type: object
-      required: [recording_id, title_th, case_id, variant]
+      required:
+      - recording_id
+      - title_th
+      - case_id
+      - variant
       properties:
         recording_id:
           type: string
@@ -2696,295 +3213,53 @@ components:
         case_id:
           type: string
         variant:
-          $ref: "#/components/schemas/Variant"
+          $ref: '#/components/schemas/Variant'
         description_th:
           type: string
         steps_count:
           type: integer
     RecordingStep:
       type: object
-      required: [t_ms, type]
+      required:
+      - t_ms
+      - type
       properties:
         t_ms:
           type: integer
           description: Delay before this step plays, relative to the previous step.
         type:
           type: string
-          enum: [learner, reply, decision, phase_change, complete]
+          enum:
+          - learner
+          - reply
+          - decision
+          - phase_change
+          - complete
         speaker:
-          $ref: "#/components/schemas/Speaker"
+          $ref: '#/components/schemas/Speaker'
         text:
           type: string
         option_id:
           type: string
         phase:
-          $ref: "#/components/schemas/Phase"
+          $ref: '#/components/schemas/Phase'
     Recording:
       allOf:
-        - $ref: "#/components/schemas/RecordingSummary"
-        - type: object
-          required: [case, steps, report]
-          properties:
-            case:
-              $ref: "#/components/schemas/CaseBrief"
-            steps:
-              type: array
-              items:
-                $ref: "#/components/schemas/RecordingStep"
-            report:
-              $ref: "#/components/schemas/ReportResponse"
-
-    DebriefOutput:
-      properties:
-        schema_version:
-          type: string
-          const: ai.debrief.v1
-          title: Schema Version
-          default: ai.debrief.v1
-        attempt_id:
-          type: string
-          title: Attempt Id
-        score_total_readonly:
-          anyOf:
-          - type: integer
-          - type: 'null'
-          title: Score Total Readonly
-        critical_safety_result_readonly:
-          anyOf:
-          - type: string
-            enum:
-            - pass
-            - fail
-          - type: 'null'
-          title: Critical Safety Result Readonly
-        strengths:
-          items:
-            $ref: '#/components/schemas/DebriefPoint'
-          type: array
-          title: Strengths
-          default: []
-        improvements:
-          items:
-            $ref: '#/components/schemas/DebriefPoint'
-          type: array
-          title: Improvements
-          default: []
-        recommended_asset_ids:
-          items:
-            type: string
-          type: array
-          title: Recommended Asset Ids
-          default: []
-        cited_claim_ids:
-          items:
-            type: string
-          type: array
-          title: Cited Claim Ids
-          default: []
-        fallback_used:
-          type: boolean
-          title: Fallback Used
-          default: false
-      type: object
-      required:
-      - attempt_id
-      title: DebriefOutput
-      description: ai.debrief.v1. Readonly fields are overwritten from the scorer before anything is shown.
-    DebriefPoint:
-      properties:
-        text:
-          type: string
-          title: Text
-        event_ids:
-          items:
-            type: string
-          type: array
-          minItems: 1
-          title: Event Ids
-        rubric_dimension_id:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Rubric Dimension Id
-        objective_ids:
-          items:
-            type: string
-          type: array
-          title: Objective Ids
-          default: []
-      type: object
-      required:
-      - text
-      - event_ids
-      title: DebriefPoint
-    FamilyCitation:
-      properties:
-        knowledge_id:
-          type: string
-          title: Knowledge Id
-        claim_id:
-          type: string
-          title: Claim Id
-        source_id:
-          type: string
-          title: Source Id
-        title:
-          type: string
-          title: Title
-        locator:
-          type: string
-          title: Locator
-      additionalProperties: false
-      type: object
-      required:
-      - knowledge_id
-      - claim_id
-      - source_id
-      - title
-      - locator
-      title: FamilyCitation
-    FamilyClarification:
-      properties:
-        options:
-          items:
-            $ref: '#/components/schemas/FamilyOption'
-          type: array
-          title: Options
-      additionalProperties: false
-      type: object
-      required:
-      - options
-      title: FamilyClarification
-      description: Allowed options as buttons. Discover options are re-sent as text; choice options vote.
-    FamilyDialogueTurn:
-      properties:
-        step_id:
-          type: string
-          title: Step Id
-        speaker_th:
-          type: string
-          title: Speaker Th
-        text_th:
-          type: string
-          title: Text Th
-        reply_th:
-          type: string
-          title: Reply Th
-      additionalProperties: false
-      type: object
-      required:
-      - step_id
-      - speaker_th
-      - text_th
-      - reply_th
-      title: FamilyDialogueTurn
-      description: One typed question and the character's validated answer, visible to the asker only.
-    FamilyDimension:
-      properties:
-        id:
-          type: string
-          title: Id
-        weight:
-          type: integer
-          title: Weight
-        earned:
-          type: integer
-          title: Earned
-        possible:
-          type: integer
-          title: Possible
-        score:
-          type: integer
-          title: Score
-      additionalProperties: false
-      type: object
-      required:
-      - id
-      - weight
-      - earned
-      - possible
-      - score
-      title: FamilyDimension
-    FamilyLensView:
-      properties:
-        wisdom_th:
-          type: string
-          title: Wisdom Th
-        safety_th:
-          type: string
-          title: Safety Th
-        rights_th:
-          type: string
-          title: Rights Th
-      additionalProperties: false
-      type: object
-      required:
-      - wisdom_th
-      - safety_th
-      - rights_th
-      title: FamilyLensView
-    FamilyMessage:
-      properties:
-        text:
-          type: string
-          maxLength: 500
-          minLength: 1
-          title: Text
-        state_version:
-          type: integer
-          minimum: 0.0
-          title: State Version
-        client_turn_id:
-          type: string
-          format: uuid
-          title: Client Turn Id
-      additionalProperties: false
-      type: object
-      required:
-      - text
-      - state_version
-      - client_turn_id
-      title: FamilyMessage
-      description: Typed learner text (AI-01). Never commits a critical or joint decision by itself.
-    FamilyMessageResult:
-      properties:
-        view:
-          $ref: '#/components/schemas/FamilyView'
-        reply:
-          anyOf:
-          - $ref: '#/components/schemas/FamilyReply'
-          - type: 'null'
-        clarification:
-          anyOf:
-          - $ref: '#/components/schemas/FamilyClarification'
-          - type: 'null'
-      additionalProperties: false
-      type: object
-      required:
-      - view
-      - reply
-      - clarification
-      title: FamilyMessageResult
-    FamilyReply:
-      properties:
-        speaker_th:
-          type: string
-          title: Speaker Th
-        text_th:
-          type: string
-          title: Text Th
-        citations:
-          items:
-            $ref: '#/components/schemas/FamilyCitation'
-          type: array
-          title: Citations
-      additionalProperties: false
-      type: object
-      required:
-      - speaker_th
-      - text_th
-      - citations
-      title: FamilyReply
+      - $ref: '#/components/schemas/RecordingSummary'
+      - type: object
+        required:
+        - case
+        - steps
+        - report
+        properties:
+          case:
+            $ref: '#/components/schemas/CaseBrief'
+          steps:
+            type: array
+            items:
+              $ref: '#/components/schemas/RecordingStep'
+          report:
+            $ref: '#/components/schemas/ReportResponse'
     FamilyCompetency:
       properties:
         skill:
@@ -3429,3 +3704,557 @@ components:
       - transcript
       - report
       title: FamilyView
+    KnowledgeReleaseInfo:
+      properties:
+        id:
+          type: string
+          title: Id
+        unit_count:
+          type: integer
+          title: Unit Count
+      type: object
+      required:
+      - id
+      - unit_count
+      title: KnowledgeReleaseInfo
+    SourceItem:
+      properties:
+        id:
+          type: string
+          title: Id
+        kind:
+          type: string
+          enum:
+          - catalog
+          - kb_source
+          title: Kind
+        title:
+          type: string
+          title: Title
+        publisher:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Publisher
+        year:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Year
+        url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url
+        rights_status:
+          type: string
+          enum:
+          - unknown
+          - metadata_only
+          - public_web
+          - own_summary
+          title: Rights Status
+      type: object
+      required:
+      - id
+      - kind
+      - title
+      - rights_status
+      title: SourceItem
+    SourceList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/SourceItem'
+          type: array
+          title: Items
+      type: object
+      required:
+      - items
+      title: SourceList
+    UnitListItem:
+      properties:
+        id:
+          type: string
+          title: Id
+        version:
+          type: string
+          title: Version
+        title_th:
+          type: string
+          title: Title Th
+        care_stage:
+          type: string
+          title: Care Stage
+        domain:
+          type: integer
+          title: Domain
+        has_lens:
+          type: boolean
+          title: Has Lens
+      type: object
+      required:
+      - id
+      - version
+      - title_th
+      - care_stage
+      - domain
+      - has_lens
+      title: UnitListItem
+    UnitList:
+      properties:
+        release_id:
+          type: string
+          title: Release Id
+        items:
+          items:
+            $ref: '#/components/schemas/UnitListItem'
+          type: array
+          title: Items
+      type: object
+      required:
+      - release_id
+      - items
+      title: UnitList
+    ClaimSource:
+      properties:
+        source_id:
+          type: string
+          title: Source Id
+        title:
+          type: string
+          title: Title
+        url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url
+        locator:
+          type: string
+          title: Locator
+      type: object
+      required:
+      - source_id
+      - title
+      - locator
+      title: ClaimSource
+    ClaimView:
+      properties:
+        id:
+          type: string
+          title: Id
+        type:
+          type: string
+          title: Type
+        text_th:
+          type: string
+          title: Text Th
+        sources:
+          items:
+            $ref: '#/components/schemas/ClaimSource'
+          type: array
+          title: Sources
+      type: object
+      required:
+      - id
+      - type
+      - text_th
+      - sources
+      title: ClaimView
+    LensView:
+      properties:
+        wisdom_th:
+          type: string
+          title: Wisdom Th
+        safety_th:
+          type: string
+          title: Safety Th
+        rights_th:
+          type: string
+          title: Rights Th
+      type: object
+      required:
+      - wisdom_th
+      - safety_th
+      - rights_th
+      title: LensView
+    UnitDetail:
+      properties:
+        id:
+          type: string
+          title: Id
+        version:
+          type: string
+          title: Version
+        title_th:
+          type: string
+          title: Title Th
+        care_stage:
+          type: string
+          title: Care Stage
+        domain:
+          type: integer
+          title: Domain
+        evidence_status:
+          type: string
+          title: Evidence Status
+        review_basis:
+          type: string
+          title: Review Basis
+        reviewed_on:
+          type: string
+          title: Reviewed On
+        claims:
+          items:
+            $ref: '#/components/schemas/ClaimView'
+          type: array
+          title: Claims
+        lens:
+          anyOf:
+          - $ref: '#/components/schemas/LensView'
+          - type: 'null'
+        contraindications_th:
+          items:
+            type: string
+          type: array
+          title: Contraindications Th
+        escalation_th:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Escalation Th
+      type: object
+      required:
+      - id
+      - version
+      - title_th
+      - care_stage
+      - domain
+      - evidence_status
+      - review_basis
+      - reviewed_on
+      - claims
+      - contraindications_th
+      title: UnitDetail
+    ObjectiveView:
+      properties:
+        id:
+          type: string
+          title: Id
+        title_th:
+          type: string
+          title: Title Th
+        dimension:
+          type: string
+          title: Dimension
+        unit_ids:
+          items:
+            type: string
+          type: array
+          title: Unit Ids
+        story_ids:
+          items:
+            type: string
+          type: array
+          title: Story Ids
+      type: object
+      required:
+      - id
+      - title_th
+      - dimension
+      - unit_ids
+      - story_ids
+      title: ObjectiveView
+    StageView:
+      properties:
+        stage:
+          type: integer
+          title: Stage
+        title_th:
+          type: string
+          title: Title Th
+        summary_th:
+          type: string
+          title: Summary Th
+        objectives:
+          items:
+            $ref: '#/components/schemas/ObjectiveView'
+          type: array
+          title: Objectives
+      type: object
+      required:
+      - stage
+      - title_th
+      - summary_th
+      - objectives
+      title: StageView
+    LearningPathsView:
+      properties:
+        release_id:
+          type: string
+          title: Release Id
+        stages:
+          items:
+            $ref: '#/components/schemas/StageView'
+          type: array
+          title: Stages
+      type: object
+      required:
+      - release_id
+      - stages
+      title: LearningPathsView
+    DebriefOutput:
+      properties:
+        schema_version:
+          type: string
+          const: ai.debrief.v1
+          title: Schema Version
+          default: ai.debrief.v1
+        attempt_id:
+          type: string
+          title: Attempt Id
+        score_total_readonly:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Score Total Readonly
+        critical_safety_result_readonly:
+          anyOf:
+          - type: string
+            enum:
+            - pass
+            - fail
+          - type: 'null'
+          title: Critical Safety Result Readonly
+        strengths:
+          items:
+            $ref: '#/components/schemas/DebriefPoint'
+          type: array
+          title: Strengths
+          default: []
+        improvements:
+          items:
+            $ref: '#/components/schemas/DebriefPoint'
+          type: array
+          title: Improvements
+          default: []
+        recommended_asset_ids:
+          items:
+            type: string
+          type: array
+          title: Recommended Asset Ids
+          default: []
+        cited_claim_ids:
+          items:
+            type: string
+          type: array
+          title: Cited Claim Ids
+          default: []
+        fallback_used:
+          type: boolean
+          title: Fallback Used
+          default: false
+      type: object
+      required:
+      - attempt_id
+      title: DebriefOutput
+      description: ai.debrief.v1. Readonly fields are overwritten from the scorer
+        before anything is shown.
+    DebriefPoint:
+      properties:
+        text:
+          type: string
+          title: Text
+        event_ids:
+          items:
+            type: string
+          type: array
+          minItems: 1
+          title: Event Ids
+        rubric_dimension_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Rubric Dimension Id
+        objective_ids:
+          items:
+            type: string
+          type: array
+          title: Objective Ids
+          default: []
+      type: object
+      required:
+      - text
+      - event_ids
+      title: DebriefPoint
+    FamilyCitation:
+      properties:
+        knowledge_id:
+          type: string
+          title: Knowledge Id
+        claim_id:
+          type: string
+          title: Claim Id
+        source_id:
+          type: string
+          title: Source Id
+        title:
+          type: string
+          title: Title
+        locator:
+          type: string
+          title: Locator
+      additionalProperties: false
+      type: object
+      required:
+      - knowledge_id
+      - claim_id
+      - source_id
+      - title
+      - locator
+      title: FamilyCitation
+    FamilyClarification:
+      properties:
+        options:
+          items:
+            $ref: '#/components/schemas/FamilyOption'
+          type: array
+          title: Options
+      additionalProperties: false
+      type: object
+      required:
+      - options
+      title: FamilyClarification
+      description: Allowed options as buttons. Discover options are re-sent as text;
+        choice options vote.
+    FamilyDialogueTurn:
+      properties:
+        step_id:
+          type: string
+          title: Step Id
+        speaker_th:
+          type: string
+          title: Speaker Th
+        text_th:
+          type: string
+          title: Text Th
+        reply_th:
+          type: string
+          title: Reply Th
+      additionalProperties: false
+      type: object
+      required:
+      - step_id
+      - speaker_th
+      - text_th
+      - reply_th
+      title: FamilyDialogueTurn
+      description: One typed question and the character's validated answer, visible
+        to the asker only.
+    FamilyDimension:
+      properties:
+        id:
+          type: string
+          title: Id
+        weight:
+          type: integer
+          title: Weight
+        earned:
+          type: integer
+          title: Earned
+        possible:
+          type: integer
+          title: Possible
+        score:
+          type: integer
+          title: Score
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - weight
+      - earned
+      - possible
+      - score
+      title: FamilyDimension
+    FamilyLensView:
+      properties:
+        wisdom_th:
+          type: string
+          title: Wisdom Th
+        safety_th:
+          type: string
+          title: Safety Th
+        rights_th:
+          type: string
+          title: Rights Th
+      additionalProperties: false
+      type: object
+      required:
+      - wisdom_th
+      - safety_th
+      - rights_th
+      title: FamilyLensView
+    FamilyMessage:
+      properties:
+        text:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Text
+        state_version:
+          type: integer
+          minimum: 0.0
+          title: State Version
+        client_turn_id:
+          type: string
+          format: uuid
+          title: Client Turn Id
+      additionalProperties: false
+      type: object
+      required:
+      - text
+      - state_version
+      - client_turn_id
+      title: FamilyMessage
+      description: Typed learner text (AI-01). Never commits a critical or joint decision
+        by itself.
+    FamilyMessageResult:
+      properties:
+        view:
+          $ref: '#/components/schemas/FamilyView'
+        reply:
+          anyOf:
+          - $ref: '#/components/schemas/FamilyReply'
+          - type: 'null'
+        clarification:
+          anyOf:
+          - $ref: '#/components/schemas/FamilyClarification'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      required:
+      - view
+      - reply
+      - clarification
+      title: FamilyMessageResult
+    FamilyReply:
+      properties:
+        speaker_th:
+          type: string
+          title: Speaker Th
+        text_th:
+          type: string
+          title: Text Th
+        citations:
+          items:
+            $ref: '#/components/schemas/FamilyCitation'
+          type: array
+          title: Citations
+      additionalProperties: false
+      type: object
+      required:
+      - speaker_th
+      - text_th
+      - citations
+      title: FamilyReply

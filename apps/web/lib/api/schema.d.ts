@@ -529,6 +529,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/knowledge/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Release */
+        get: operations["getKnowledgeRelease"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/knowledge/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sources */
+        get: operations["listKnowledgeSources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/knowledge/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Units */
+        get: operations["listKnowledgeUnits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/knowledge/units/{unit_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Unit */
+        get: operations["getKnowledgeUnit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-paths": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Learning Paths */
+        get: operations["listLearningPaths"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/family/rooms/{room_id}/debrief": {
         parameters: {
             query?: never;
@@ -1216,150 +1301,6 @@ export interface components {
             steps: components["schemas"]["RecordingStep"][];
             report: components["schemas"]["ReportResponse"];
         };
-        /**
-         * DebriefOutput
-         * @description ai.debrief.v1. Readonly fields are overwritten from the scorer before anything is shown.
-         */
-        DebriefOutput: {
-            /**
-             * Schema Version
-             * @default ai.debrief.v1
-             * @constant
-             */
-            schema_version: "ai.debrief.v1";
-            /** Attempt Id */
-            attempt_id: string;
-            /** Score Total Readonly */
-            score_total_readonly?: number | null;
-            /** Critical Safety Result Readonly */
-            critical_safety_result_readonly?: ("pass" | "fail") | null;
-            /**
-             * Strengths
-             * @default []
-             */
-            strengths: components["schemas"]["DebriefPoint"][];
-            /**
-             * Improvements
-             * @default []
-             */
-            improvements: components["schemas"]["DebriefPoint"][];
-            /**
-             * Recommended Asset Ids
-             * @default []
-             */
-            recommended_asset_ids: string[];
-            /**
-             * Cited Claim Ids
-             * @default []
-             */
-            cited_claim_ids: string[];
-            /**
-             * Fallback Used
-             * @default false
-             */
-            fallback_used: boolean;
-        };
-        /** DebriefPoint */
-        DebriefPoint: {
-            /** Text */
-            text: string;
-            /** Event Ids */
-            event_ids: string[];
-            /** Rubric Dimension Id */
-            rubric_dimension_id?: string | null;
-            /**
-             * Objective Ids
-             * @default []
-             */
-            objective_ids: string[];
-        };
-        /** FamilyCitation */
-        FamilyCitation: {
-            /** Knowledge Id */
-            knowledge_id: string;
-            /** Claim Id */
-            claim_id: string;
-            /** Source Id */
-            source_id: string;
-            /** Title */
-            title: string;
-            /** Locator */
-            locator: string;
-        };
-        /**
-         * FamilyClarification
-         * @description Allowed options as buttons. Discover options are re-sent as text; choice options vote.
-         */
-        FamilyClarification: {
-            /** Options */
-            options: components["schemas"]["FamilyOption"][];
-        };
-        /**
-         * FamilyDialogueTurn
-         * @description One typed question and the character's validated answer, visible to the asker only.
-         */
-        FamilyDialogueTurn: {
-            /** Step Id */
-            step_id: string;
-            /** Speaker Th */
-            speaker_th: string;
-            /** Text Th */
-            text_th: string;
-            /** Reply Th */
-            reply_th: string;
-        };
-        /** FamilyDimension */
-        FamilyDimension: {
-            /** Id */
-            id: string;
-            /** Weight */
-            weight: number;
-            /** Earned */
-            earned: number;
-            /** Possible */
-            possible: number;
-            /** Score */
-            score: number;
-        };
-        /** FamilyLensView */
-        FamilyLensView: {
-            /** Wisdom Th */
-            wisdom_th: string;
-            /** Safety Th */
-            safety_th: string;
-            /** Rights Th */
-            rights_th: string;
-        };
-        /**
-         * FamilyMessage
-         * @description Typed learner text (AI-01). Never commits a critical or joint decision by itself.
-         */
-        FamilyMessage: {
-            /** Text */
-            text: string;
-            /** State Version */
-            state_version: number;
-            /**
-             * Client Turn Id
-             * Format: uuid
-             */
-            client_turn_id: string;
-        };
-        /** FamilyMessageResult */
-        FamilyMessageResult: {
-            view: components["schemas"]["FamilyView"];
-            reply: components["schemas"]["FamilyReply"] | null;
-            clarification: components["schemas"]["FamilyClarification"] | null;
-        };
-        /** FamilyReply */
-        FamilyReply: {
-            /** Speaker Th */
-            speaker_th: string;
-            /** Text Th */
-            text_th: string;
-            /** Citations */
-            citations: components["schemas"]["FamilyCitation"][];
-        };
         /** FamilyCompetency */
         FamilyCompetency: {
             /**
@@ -1602,6 +1543,295 @@ export interface components {
             dialogue: components["schemas"]["FamilyDialogueTurn"][];
             /** Assignment Id */
             assignment_id?: string | null;
+        };
+        /** KnowledgeReleaseInfo */
+        KnowledgeReleaseInfo: {
+            /** Id */
+            id: string;
+            /** Unit Count */
+            unit_count: number;
+        };
+        /** SourceItem */
+        SourceItem: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "catalog" | "kb_source";
+            /** Title */
+            title: string;
+            /** Publisher */
+            publisher?: string | null;
+            /** Year */
+            year?: string | null;
+            /** Url */
+            url?: string | null;
+            /**
+             * Rights Status
+             * @enum {string}
+             */
+            rights_status: "unknown" | "metadata_only" | "public_web" | "own_summary";
+        };
+        /** SourceList */
+        SourceList: {
+            /** Items */
+            items: components["schemas"]["SourceItem"][];
+        };
+        /** UnitListItem */
+        UnitListItem: {
+            /** Id */
+            id: string;
+            /** Version */
+            version: string;
+            /** Title Th */
+            title_th: string;
+            /** Care Stage */
+            care_stage: string;
+            /** Domain */
+            domain: number;
+            /** Has Lens */
+            has_lens: boolean;
+        };
+        /** UnitList */
+        UnitList: {
+            /** Release Id */
+            release_id: string;
+            /** Items */
+            items: components["schemas"]["UnitListItem"][];
+        };
+        /** ClaimSource */
+        ClaimSource: {
+            /** Source Id */
+            source_id: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+            /** Locator */
+            locator: string;
+        };
+        /** ClaimView */
+        ClaimView: {
+            /** Id */
+            id: string;
+            /** Type */
+            type: string;
+            /** Text Th */
+            text_th: string;
+            /** Sources */
+            sources: components["schemas"]["ClaimSource"][];
+        };
+        /** LensView */
+        LensView: {
+            /** Wisdom Th */
+            wisdom_th: string;
+            /** Safety Th */
+            safety_th: string;
+            /** Rights Th */
+            rights_th: string;
+        };
+        /** UnitDetail */
+        UnitDetail: {
+            /** Id */
+            id: string;
+            /** Version */
+            version: string;
+            /** Title Th */
+            title_th: string;
+            /** Care Stage */
+            care_stage: string;
+            /** Domain */
+            domain: number;
+            /** Evidence Status */
+            evidence_status: string;
+            /** Review Basis */
+            review_basis: string;
+            /** Reviewed On */
+            reviewed_on: string;
+            /** Claims */
+            claims: components["schemas"]["ClaimView"][];
+            lens?: components["schemas"]["LensView"] | null;
+            /** Contraindications Th */
+            contraindications_th: string[];
+            /** Escalation Th */
+            escalation_th?: string | null;
+        };
+        /** ObjectiveView */
+        ObjectiveView: {
+            /** Id */
+            id: string;
+            /** Title Th */
+            title_th: string;
+            /** Dimension */
+            dimension: string;
+            /** Unit Ids */
+            unit_ids: string[];
+            /** Story Ids */
+            story_ids: string[];
+        };
+        /** StageView */
+        StageView: {
+            /** Stage */
+            stage: number;
+            /** Title Th */
+            title_th: string;
+            /** Summary Th */
+            summary_th: string;
+            /** Objectives */
+            objectives: components["schemas"]["ObjectiveView"][];
+        };
+        /** LearningPathsView */
+        LearningPathsView: {
+            /** Release Id */
+            release_id: string;
+            /** Stages */
+            stages: components["schemas"]["StageView"][];
+        };
+        /**
+         * DebriefOutput
+         * @description ai.debrief.v1. Readonly fields are overwritten from the scorer before anything is shown.
+         */
+        DebriefOutput: {
+            /**
+             * Schema Version
+             * @default ai.debrief.v1
+             * @constant
+             */
+            schema_version: "ai.debrief.v1";
+            /** Attempt Id */
+            attempt_id: string;
+            /** Score Total Readonly */
+            score_total_readonly?: number | null;
+            /** Critical Safety Result Readonly */
+            critical_safety_result_readonly?: ("pass" | "fail") | null;
+            /**
+             * Strengths
+             * @default []
+             */
+            strengths: components["schemas"]["DebriefPoint"][];
+            /**
+             * Improvements
+             * @default []
+             */
+            improvements: components["schemas"]["DebriefPoint"][];
+            /**
+             * Recommended Asset Ids
+             * @default []
+             */
+            recommended_asset_ids: string[];
+            /**
+             * Cited Claim Ids
+             * @default []
+             */
+            cited_claim_ids: string[];
+            /**
+             * Fallback Used
+             * @default false
+             */
+            fallback_used: boolean;
+        };
+        /** DebriefPoint */
+        DebriefPoint: {
+            /** Text */
+            text: string;
+            /** Event Ids */
+            event_ids: string[];
+            /** Rubric Dimension Id */
+            rubric_dimension_id?: string | null;
+            /**
+             * Objective Ids
+             * @default []
+             */
+            objective_ids: string[];
+        };
+        /** FamilyCitation */
+        FamilyCitation: {
+            /** Knowledge Id */
+            knowledge_id: string;
+            /** Claim Id */
+            claim_id: string;
+            /** Source Id */
+            source_id: string;
+            /** Title */
+            title: string;
+            /** Locator */
+            locator: string;
+        };
+        /**
+         * FamilyClarification
+         * @description Allowed options as buttons. Discover options are re-sent as text; choice options vote.
+         */
+        FamilyClarification: {
+            /** Options */
+            options: components["schemas"]["FamilyOption"][];
+        };
+        /**
+         * FamilyDialogueTurn
+         * @description One typed question and the character's validated answer, visible to the asker only.
+         */
+        FamilyDialogueTurn: {
+            /** Step Id */
+            step_id: string;
+            /** Speaker Th */
+            speaker_th: string;
+            /** Text Th */
+            text_th: string;
+            /** Reply Th */
+            reply_th: string;
+        };
+        /** FamilyDimension */
+        FamilyDimension: {
+            /** Id */
+            id: string;
+            /** Weight */
+            weight: number;
+            /** Earned */
+            earned: number;
+            /** Possible */
+            possible: number;
+            /** Score */
+            score: number;
+        };
+        /** FamilyLensView */
+        FamilyLensView: {
+            /** Wisdom Th */
+            wisdom_th: string;
+            /** Safety Th */
+            safety_th: string;
+            /** Rights Th */
+            rights_th: string;
+        };
+        /**
+         * FamilyMessage
+         * @description Typed learner text (AI-01). Never commits a critical or joint decision by itself.
+         */
+        FamilyMessage: {
+            /** Text */
+            text: string;
+            /** State Version */
+            state_version: number;
+            /**
+             * Client Turn Id
+             * Format: uuid
+             */
+            client_turn_id: string;
+        };
+        /** FamilyMessageResult */
+        FamilyMessageResult: {
+            view: components["schemas"]["FamilyView"];
+            reply: components["schemas"]["FamilyReply"] | null;
+            clarification: components["schemas"]["FamilyClarification"] | null;
+        };
+        /** FamilyReply */
+        FamilyReply: {
+            /** Speaker Th */
+            speaker_th: string;
+            /** Text Th */
+            text_th: string;
+            /** Citations */
+            citations: components["schemas"]["FamilyCitation"][];
         };
     };
     responses: {
@@ -2829,6 +3059,111 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FamilyView"];
+                };
+            };
+        };
+    };
+    getKnowledgeRelease: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeReleaseInfo"];
+                };
+            };
+        };
+    };
+    listKnowledgeSources: {
+        parameters: {
+            query?: {
+                kind?: ("catalog" | "kb_source") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceList"];
+                };
+            };
+        };
+    };
+    listKnowledgeUnits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitList"];
+                };
+            };
+        };
+    };
+    getKnowledgeUnit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                unit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnitDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listLearningPaths: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningPathsView"];
                 };
             };
         };

@@ -10,7 +10,9 @@ from pydantic import TypeAdapter
 
 from app.domain.action import Action
 from app.domain.case import Case
+from app.domain.curriculum import LearningPaths
 from app.domain.family import FamilyStory
+from app.domain.knowledge import KnowledgeUnit, SourceRecord
 from app.domain.rubric import Rubric
 
 _DIALECT = "https://json-schema.org/draft/2020-12/schema"
@@ -19,6 +21,9 @@ _ADAPTERS: dict[str, TypeAdapter[Any]] = {
     "actions.schema.json": TypeAdapter(list[Action]),
     "rubric.schema.json": TypeAdapter(Rubric),
     "family.schema.json": TypeAdapter(FamilyStory),
+    "source.schema.json": TypeAdapter(list[SourceRecord]),
+    "knowledge-unit.schema.json": TypeAdapter(KnowledgeUnit),
+    "learning-paths.schema.json": TypeAdapter(LearningPaths),
 }
 
 
