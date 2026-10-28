@@ -41,7 +41,7 @@ def test_sources_can_be_filtered_by_kind(client: TestClient) -> None:
     catalog = client.get("/v1/knowledge/sources", params={"kind": "catalog"}).json()["items"]
     kb = client.get("/v1/knowledge/sources", params={"kind": "kb_source"}).json()["items"]
 
-    assert (len(everything), len(catalog), len(kb)) == (124, 84, 40)
+    assert (len(everything), len(catalog), len(kb)) == (135, 84, 51)
     assert set(kb[0]) == {"id", "kind", "title", "publisher", "year", "url", "rights_status"}
     assert client.get("/v1/knowledge/sources", params={"kind": "nope"}).status_code == 422
 
