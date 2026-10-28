@@ -58,6 +58,21 @@ def test_unit_rejects_a_claim_without_a_source_locator() -> None:
         KnowledgeUnit.model_validate(raw)
 
 
+def test_claim_hotspots_load_and_reject_duplicate_or_blank() -> None:
+    def with_hotspots(spots: list[dict[str, str]]) -> KnowledgeUnit:
+        raw = unit("KB-PP-SAFE-001").model_dump()
+        raw["claims"][0]["hotspots"] = spots
+        return KnowledgeUnit.model_validate(raw)
+
+    ok = with_hotspots([{"id": "h1", "label_th": "a", "text_th": "b"}])
+    assert ok.claims[0].hotspots[0].label_th == "a"
+    assert unit("KB-PP-SAFE-001").claims[0].hotspots == []
+    with pytest.raises(ValidationError):
+        with_hotspots([{"id": "h1", "label_th": "a", "text_th": "b"}] * 2)
+    with pytest.raises(ValidationError):
+        with_hotspots([{"id": "h1", "label_th": " ", "text_th": "b"}])
+
+
 def test_intent_ignores_extra_model_keys_and_defaults_to_uncertain() -> None:
     parsed = IntentInterpretation.model_validate({"intent_code": "ASK_TIMELINE", "score": 99})
 

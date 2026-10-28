@@ -1785,6 +1785,20 @@ export interface components {
             text_th: string;
             /** Sources */
             sources: components["schemas"]["ClaimSource"][];
+            /**
+             * Hotspots
+             * @default []
+             */
+            hotspots: components["schemas"]["HotspotView"][];
+        };
+        /** HotspotView */
+        HotspotView: {
+            /** Id */
+            id: string;
+            /** Label Th */
+            label_th: string;
+            /** Text Th */
+            text_th: string;
         };
         /** LensView */
         LensView: {

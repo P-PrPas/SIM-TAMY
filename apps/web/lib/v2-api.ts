@@ -7,7 +7,8 @@ export type LearningPaths = { release_id: string; stages: PathStage[] };
 
 export type UnitSummary = { id: string; version: string; title_th: string; care_stage: string; domain: number | string; has_lens: boolean };
 export type SourceRef = { source_id: string; title: string; url: string | null; locator: string | null };
-export type Claim = { id: string; type: string; text_th: string; sources: SourceRef[] };
+export type Hotspot = { id: string; label_th: string; text_th: string };
+export type Claim = { id: string; type: string; text_th: string; sources: SourceRef[]; hotspots?: Hotspot[] };
 export type Lens = { wisdom_th: string; safety_th: string; rights_th: string };
 export type UnitDetail = {
   id: string; version: string; title_th: string; care_stage: string; domain: number | string;
