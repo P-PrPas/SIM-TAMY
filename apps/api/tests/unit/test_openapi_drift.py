@@ -146,7 +146,7 @@ def test_spec_is_a_valid_openapi_document() -> None:
         for m, op in item.items()
         if m in METHODS
     ]
-    assert len(ops) == len(set(ops)) == 26
+    assert len(ops) == len(set(ops)) == 36
 
 
 def test_fastapi_matches_the_spec_for_what_is_implemented() -> None:

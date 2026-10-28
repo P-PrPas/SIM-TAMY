@@ -47,6 +47,8 @@ tags:
     description: Post-completion report, Glass Box, Consequence Replay.
   - name: Instructor
     description: Classes, session listing, analytics, overrides.
+  - name: Institution
+    description: 2.0 mock orgs, cohorts, assignments, aggregate analytics, class-code join, passport (demo data).
   - name: Replay
     description: Recorded sessions for Replay Mode (demo safety net).
 
@@ -1261,6 +1263,277 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FamilyView'
+
+  # --- 2.0 institution workspace (S2-*) ---
+  /v1/demo/accounts:
+    get:
+      tags:
+      - Institution
+      summary: Demo Accounts
+      operationId: listDemoAccounts
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DemoAccountList'
+  /v1/orgs/{org_id}/overview:
+    get:
+      tags:
+      - Institution
+      summary: Org Overview
+      operationId: getOrgOverview
+      parameters:
+      - name: org_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Org Id
+      - name: X-Demo-Account
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Demo-Account
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgOverview'
+  /v1/orgs/{org_id}/cohorts:
+    get:
+      tags:
+      - Institution
+      summary: List Cohorts
+      operationId: listCohorts
+      parameters:
+      - name: org_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Org Id
+      - name: X-Demo-Account
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Demo-Account
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CohortList'
+    post:
+      tags:
+      - Institution
+      summary: Create Cohort
+      operationId: createCohort
+      parameters:
+      - name: org_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Org Id
+      - name: X-Demo-Account
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Demo-Account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CohortNameRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cohort'
+  /v1/cohorts/{cohort_id}/clone:
+    post:
+      tags:
+      - Institution
+      summary: Clone Cohort
+      operationId: cloneCohort
+      parameters:
+      - name: cohort_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Cohort Id
+      - name: X-Demo-Account
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Demo-Account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CohortNameRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cohort'
+  /v1/cohorts/{cohort_id}/assignments:
+    get:
+      tags:
+      - Institution
+      summary: List Assignments
+      operationId: listCohortAssignments
+      parameters:
+      - name: cohort_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Cohort Id
+      - name: X-Demo-Account
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Demo-Account
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CohortAssignmentList'
+    post:
+      tags:
+      - Institution
+      summary: Create Assignment
+      operationId: createCohortAssignment
+      parameters:
+      - name: cohort_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Cohort Id
+      - name: X-Demo-Account
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Demo-Account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssignmentRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CohortAssignment'
+  /v1/cohorts/{cohort_id}/analytics:
+    get:
+      tags:
+      - Institution
+      summary: Cohort Analytics
+      operationId: getCohortAnalytics
+      parameters:
+      - name: cohort_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Cohort Id
+      - name: X-Demo-Account
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Demo-Account
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CohortAnalytics'
+  /v1/join/{code}:
+    get:
+      tags:
+      - Institution
+      summary: Join Info
+      operationId: getJoinInfo
+      parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinInfo'
+  /v1/passport/{account_id}:
+    get:
+      tags:
+      - Institution
+      summary: Passport
+      operationId: getPassport
+      parameters:
+      - name: account_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Account Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Passport'
 
 components:
   securitySchemes:
@@ -3042,3 +3315,408 @@ components:
       - transcript
       - report
       title: FamilyView
+    CreateAssignmentRequest:
+      properties:
+        story_id:
+          type: string
+          maxLength: 64
+          pattern: ^[a-z0-9-]+$
+          title: Story Id
+        expires_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Expires At
+      additionalProperties: false
+      type: object
+      required:
+      - story_id
+      title: CreateAssignmentRequest
+    CohortNameRequest:
+      properties:
+        name:
+          type: string
+          maxLength: 80
+          minLength: 1
+          title: Name
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      title: CohortNameRequest
+    DemoAccountList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/DemoAccount'
+          type: array
+          title: Items
+      additionalProperties: false
+      type: object
+      required:
+      - items
+      title: DemoAccountList
+    DemoAccount:
+      properties:
+        id:
+          type: string
+          title: Id
+        org_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Org Id
+        display_name_th:
+          type: string
+          title: Display Name Th
+        role:
+          type: string
+          enum:
+          - org_admin
+          - educator
+          - reviewer
+          - learner
+          title: Role
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - org_id
+      - display_name_th
+      - role
+      title: DemoAccount
+    Passport:
+      properties:
+        account:
+          $ref: '#/components/schemas/PassportAccount'
+        attempts:
+          items:
+            $ref: '#/components/schemas/PassportAttempt'
+          type: array
+          title: Attempts
+      additionalProperties: false
+      type: object
+      required:
+      - account
+      - attempts
+      title: Passport
+    PassportAccount:
+      properties:
+        id:
+          type: string
+          title: Id
+        display_name_th:
+          type: string
+          title: Display Name Th
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - display_name_th
+      title: PassportAccount
+    PassportAttempt:
+      properties:
+        room_id:
+          type: string
+          format: uuid
+          title: Room Id
+        story_id:
+          type: string
+          title: Story Id
+        title_th:
+          type: string
+          title: Title Th
+        finished_at:
+          type: string
+          format: date-time
+          title: Finished At
+        safety_status:
+          type: string
+          enum:
+          - SAFETY_MET
+          - SAFETY_NOT_MET
+          title: Safety Status
+        score_total:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Score Total
+        objective_ids:
+          items:
+            type: string
+          type: array
+          title: Objective Ids
+      additionalProperties: false
+      type: object
+      required:
+      - room_id
+      - story_id
+      - title_th
+      - finished_at
+      - safety_status
+      - score_total
+      - objective_ids
+      title: PassportAttempt
+    OrgOverview:
+      properties:
+        org:
+          $ref: '#/components/schemas/OrgRef'
+        demo:
+          type: boolean
+          title: Demo
+        cohort_count:
+          type: integer
+          title: Cohort Count
+        assignment_count:
+          type: integer
+          title: Assignment Count
+        finished_attempts:
+          type: integer
+          title: Finished Attempts
+      additionalProperties: false
+      type: object
+      required:
+      - org
+      - demo
+      - cohort_count
+      - assignment_count
+      - finished_attempts
+      title: OrgOverview
+    OrgRef:
+      properties:
+        id:
+          type: string
+          title: Id
+        name_th:
+          type: string
+          title: Name Th
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - name_th
+      title: OrgRef
+    CohortList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/Cohort'
+          type: array
+          title: Items
+      additionalProperties: false
+      type: object
+      required:
+      - items
+      title: CohortList
+    CohortAnalytics:
+      properties:
+        cohort_id:
+          type: string
+          format: uuid
+          title: Cohort Id
+        demo:
+          type: boolean
+          title: Demo
+        n_started:
+          type: integer
+          title: N Started
+        n_finished:
+          type: integer
+          title: N Finished
+        safety_not_met:
+          $ref: '#/components/schemas/Ratio'
+        objectives:
+          items:
+            $ref: '#/components/schemas/ObjectiveRate'
+          type: array
+          title: Objectives
+        by_story:
+          items:
+            $ref: '#/components/schemas/StoryCount'
+          type: array
+          title: By Story
+      additionalProperties: false
+      type: object
+      required:
+      - cohort_id
+      - demo
+      - n_started
+      - n_finished
+      - safety_not_met
+      - objectives
+      - by_story
+      title: CohortAnalytics
+    ObjectiveRate:
+      properties:
+        objective_id:
+          type: string
+          title: Objective Id
+        numerator:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Numerator
+        n:
+          type: integer
+          title: N
+        suppressed:
+          type: boolean
+          title: Suppressed
+      additionalProperties: false
+      type: object
+      required:
+      - objective_id
+      - numerator
+      - n
+      - suppressed
+      title: ObjectiveRate
+      description: Per-objective rate; `numerator` is null while `suppressed` (small n, CT-12).
+    StoryCount:
+      properties:
+        story_id:
+          type: string
+          title: Story Id
+        story_version:
+          type: string
+          title: Story Version
+        n_finished:
+          type: integer
+          title: N Finished
+      additionalProperties: false
+      type: object
+      required:
+      - story_id
+      - story_version
+      - n_finished
+      title: StoryCount
+    Ratio:
+      properties:
+        numerator:
+          type: integer
+          title: Numerator
+        n:
+          type: integer
+          title: N
+      additionalProperties: false
+      type: object
+      required:
+      - numerator
+      - n
+      title: Ratio
+    Cohort:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        code:
+          type: string
+          title: Code
+        name:
+          type: string
+          title: Name
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        assignment_count:
+          type: integer
+          title: Assignment Count
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - code
+      - name
+      - created_at
+      - assignment_count
+      title: Cohort
+    CohortAssignmentList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/CohortAssignment'
+          type: array
+          title: Items
+      additionalProperties: false
+      type: object
+      required:
+      - items
+      title: CohortAssignmentList
+    JoinInfo:
+      properties:
+        cohort:
+          $ref: '#/components/schemas/JoinCohort'
+        assignments:
+          items:
+            $ref: '#/components/schemas/JoinAssignment'
+          type: array
+          title: Assignments
+      additionalProperties: false
+      type: object
+      required:
+      - cohort
+      - assignments
+      title: JoinInfo
+    JoinCohort:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - name
+      title: JoinCohort
+    JoinAssignment:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        story_id:
+          type: string
+          title: Story Id
+        title_th:
+          type: string
+          title: Title Th
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - story_id
+      - title_th
+      title: JoinAssignment
+    CohortAssignment:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        story_id:
+          type: string
+          title: Story Id
+        story_version:
+          type: string
+          title: Story Version
+        title_th:
+          type: string
+          title: Title Th
+        join_url_path:
+          type: string
+          title: Join Url Path
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - story_id
+      - story_version
+      - title_th
+      - join_url_path
+      title: CohortAssignment

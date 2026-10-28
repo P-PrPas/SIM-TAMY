@@ -36,10 +36,6 @@ def accounts() -> list[DemoAccount]:
     return list(institutions(get_settings().content_dir).accounts)
 
 
-def find_account(account_id: str | None) -> DemoAccount | None:
-    return next((a for a in accounts() if a.id == account_id), None)
-
-
 def org_of(org_id: str) -> DemoOrg:
     org = next((o for o in institutions(get_settings().content_dir).orgs if o.id == org_id), None)
     if org is None:
@@ -297,7 +293,7 @@ def analytics(db: Session, cohort: ClassRoom) -> out.CohortAnalytics:
         objectives=[
             out.ObjectiveRate(
                 objective_id=oid,
-                # numerator = finished attempts that met the safety gate, for stories on this objective
+                # numerator: finished attempts that met the safety gate
                 numerator=None if len(met) < MIN_OBJECTIVE_N else sum(met),
                 n=len(met),
                 suppressed=len(met) < MIN_OBJECTIVE_N,
@@ -335,7 +331,7 @@ def join_info(db: Session, code: str) -> out.JoinInfo:
 
 
 def passport(db: Session, account: DemoAccount) -> out.Passport:
-    """Finished attempts where the account is host or partner; safety per attempt, never averaged."""
+    """Finished attempts of the account as host or partner; safety per attempt, never averaged."""
     rooms = list(
         db.scalars(
             select(FamilyRoom).where(

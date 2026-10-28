@@ -1,6 +1,7 @@
 """Mock organizations and accounts for the institution workspace (S2-01, ADR-15).
 
-Demo data only: no passwords, tokens or sessions. The web sends a picked account as `X-Demo-Account`.
+Demo data only: no passwords, tokens or sessions. The web sends the picked account as
+`X-Demo-Account`.
 """
 
 from functools import lru_cache
@@ -10,6 +11,7 @@ from typing import Literal
 import yaml
 from pydantic import Field, model_validator
 
+from app.core.config import get_settings
 from app.domain.case import Model, NonBlank
 
 DemoRole = Literal["org_admin", "educator", "reviewer", "learner"]
@@ -66,3 +68,9 @@ def load_institutions(content_dir: Path) -> Institutions:
 def institutions(content_dir: Path) -> Institutions:
     """Cached per content dir: the file is static for the life of the process."""
     return load_institutions(content_dir)
+
+
+def find_account(account_id: str | None) -> DemoAccount | None:
+    return next(
+        (a for a in institutions(get_settings().content_dir).accounts if a.id == account_id), None
+    )

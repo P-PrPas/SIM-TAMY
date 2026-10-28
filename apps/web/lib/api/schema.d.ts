@@ -529,6 +529,144 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/demo/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Demo Accounts */
+        get: operations["listDemoAccounts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orgs/{org_id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Org Overview */
+        get: operations["getOrgOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orgs/{org_id}/cohorts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Cohorts */
+        get: operations["listCohorts"];
+        put?: never;
+        /** Create Cohort */
+        post: operations["createCohort"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cohorts/{cohort_id}/clone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clone Cohort */
+        post: operations["cloneCohort"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cohorts/{cohort_id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Assignments */
+        get: operations["listCohortAssignments"];
+        put?: never;
+        /** Create Assignment */
+        post: operations["createCohortAssignment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cohorts/{cohort_id}/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cohort Analytics */
+        get: operations["getCohortAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/join/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Join Info */
+        get: operations["getJoinInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/passport/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Passport */
+        get: operations["getPassport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1389,6 +1527,217 @@ export interface components {
             /** Transcript */
             transcript: components["schemas"]["FamilyExchange"][];
             report: components["schemas"]["FamilyReport"] | null;
+        };
+        /** CreateAssignmentRequest */
+        CreateAssignmentRequest: {
+            /** Story Id */
+            story_id: string;
+            /** Expires At */
+            expires_at?: string | null;
+        };
+        /** CohortNameRequest */
+        CohortNameRequest: {
+            /** Name */
+            name: string;
+        };
+        /** DemoAccountList */
+        DemoAccountList: {
+            /** Items */
+            items: components["schemas"]["DemoAccount"][];
+        };
+        /** DemoAccount */
+        DemoAccount: {
+            /** Id */
+            id: string;
+            /** Org Id */
+            org_id: string | null;
+            /** Display Name Th */
+            display_name_th: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "org_admin" | "educator" | "reviewer" | "learner";
+        };
+        /** Passport */
+        Passport: {
+            account: components["schemas"]["PassportAccount"];
+            /** Attempts */
+            attempts: components["schemas"]["PassportAttempt"][];
+        };
+        /** PassportAccount */
+        PassportAccount: {
+            /** Id */
+            id: string;
+            /** Display Name Th */
+            display_name_th: string;
+        };
+        /** PassportAttempt */
+        PassportAttempt: {
+            /**
+             * Room Id
+             * Format: uuid
+             */
+            room_id: string;
+            /** Story Id */
+            story_id: string;
+            /** Title Th */
+            title_th: string;
+            /**
+             * Finished At
+             * Format: date-time
+             */
+            finished_at: string;
+            /**
+             * Safety Status
+             * @enum {string}
+             */
+            safety_status: "SAFETY_MET" | "SAFETY_NOT_MET";
+            /** Score Total */
+            score_total: number | null;
+            /** Objective Ids */
+            objective_ids: string[];
+        };
+        /** OrgOverview */
+        OrgOverview: {
+            org: components["schemas"]["OrgRef"];
+            /** Demo */
+            demo: boolean;
+            /** Cohort Count */
+            cohort_count: number;
+            /** Assignment Count */
+            assignment_count: number;
+            /** Finished Attempts */
+            finished_attempts: number;
+        };
+        /** OrgRef */
+        OrgRef: {
+            /** Id */
+            id: string;
+            /** Name Th */
+            name_th: string;
+        };
+        /** CohortList */
+        CohortList: {
+            /** Items */
+            items: components["schemas"]["Cohort"][];
+        };
+        /** CohortAnalytics */
+        CohortAnalytics: {
+            /**
+             * Cohort Id
+             * Format: uuid
+             */
+            cohort_id: string;
+            /** Demo */
+            demo: boolean;
+            /** N Started */
+            n_started: number;
+            /** N Finished */
+            n_finished: number;
+            safety_not_met: components["schemas"]["Ratio"];
+            /** Objectives */
+            objectives: components["schemas"]["ObjectiveRate"][];
+            /** By Story */
+            by_story: components["schemas"]["StoryCount"][];
+        };
+        /**
+         * ObjectiveRate
+         * @description Per-objective rate; `numerator` is null while `suppressed` (small n, CT-12).
+         */
+        ObjectiveRate: {
+            /** Objective Id */
+            objective_id: string;
+            /** Numerator */
+            numerator: number | null;
+            /** N */
+            n: number;
+            /** Suppressed */
+            suppressed: boolean;
+        };
+        /** StoryCount */
+        StoryCount: {
+            /** Story Id */
+            story_id: string;
+            /** Story Version */
+            story_version: string;
+            /** N Finished */
+            n_finished: number;
+        };
+        /** Ratio */
+        Ratio: {
+            /** Numerator */
+            numerator: number;
+            /** N */
+            n: number;
+        };
+        /** Cohort */
+        Cohort: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Assignment Count */
+            assignment_count: number;
+        };
+        /** CohortAssignmentList */
+        CohortAssignmentList: {
+            /** Items */
+            items: components["schemas"]["CohortAssignment"][];
+        };
+        /** JoinInfo */
+        JoinInfo: {
+            cohort: components["schemas"]["JoinCohort"];
+            /** Assignments */
+            assignments: components["schemas"]["JoinAssignment"][];
+        };
+        /** JoinCohort */
+        JoinCohort: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** JoinAssignment */
+        JoinAssignment: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Story Id */
+            story_id: string;
+            /** Title Th */
+            title_th: string;
+        };
+        /** CohortAssignment */
+        CohortAssignment: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Story Id */
+            story_id: string;
+            /** Story Version */
+            story_version: string;
+            /** Title Th */
+            title_th: string;
+            /** Join Url Path */
+            join_url_path: string;
         };
     };
     responses: {
@@ -2612,6 +2961,250 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FamilyView"];
+                };
+            };
+        };
+    };
+    listDemoAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoAccountList"];
+                };
+            };
+        };
+    };
+    getOrgOverview: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgOverview"];
+                };
+            };
+        };
+    };
+    listCohorts: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CohortList"];
+                };
+            };
+        };
+    };
+    createCohort: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CohortNameRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cohort"];
+                };
+            };
+        };
+    };
+    cloneCohort: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                cohort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CohortNameRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cohort"];
+                };
+            };
+        };
+    };
+    listCohortAssignments: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                cohort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CohortAssignmentList"];
+                };
+            };
+        };
+    };
+    createCohortAssignment: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                cohort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAssignmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CohortAssignment"];
+                };
+            };
+        };
+    };
+    getCohortAnalytics: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                cohort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CohortAnalytics"];
+                };
+            };
+        };
+    };
+    getJoinInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinInfo"];
+                };
+            };
+        };
+    };
+    getPassport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Passport"];
                 };
             };
         };

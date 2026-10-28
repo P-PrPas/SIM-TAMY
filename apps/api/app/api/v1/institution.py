@@ -1,4 +1,4 @@
-"""Institution workspace routes (S2-*): staff act inside their own mock org; join/passport are public."""
+"""Institution workspace routes (S2-*): staff act in their own mock org; join is public."""
 
 import uuid
 
@@ -19,6 +19,7 @@ from app.api.v1.institution_schemas import (
     OrgOverview,
     Passport,
 )
+from app.content.institution import find_account
 from app.core.errors import ApiError
 from app.services import institution as service
 
@@ -29,9 +30,7 @@ router = APIRouter(prefix="/v1", tags=["Institution"])
 def demo_accounts() -> DemoAccountList:
     return DemoAccountList(
         items=[
-            DemoAccount(
-                id=a.id, org_id=a.org_id, display_name_th=a.display_name_th, role=a.role
-            )
+            DemoAccount(id=a.id, org_id=a.org_id, display_name_th=a.display_name_th, role=a.role)
             for a in service.accounts()
         ]
     )
@@ -102,7 +101,7 @@ def join_info(code: str, db: Db) -> JoinInfo:
 
 @router.get("/passport/{account_id}", response_model=Passport, operation_id="getPassport")
 def passport(account_id: str, db: Db) -> Passport:
-    account = service.find_account(account_id)
+    account = find_account(account_id)
     if account is None:
         raise ApiError("NOT_FOUND", "account not found")
     return service.passport(db, account)
