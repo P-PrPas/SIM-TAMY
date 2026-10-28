@@ -38,8 +38,8 @@
 .pixel-overlay > * { pointer-events: auto; }
 .pixel-hud { position: absolute; top: 6px; left: 6px; right: 6px; display: flex; align-items: flex-start; gap: 8px; pointer-events: none; }
 .pixel-hud > * { pointer-events: auto; }
-.pixel-pips { display: flex; gap: 6px; margin: 0 auto 0 0; padding: 6px 8px; list-style: none; background: #231e18; }
-.pixel-pips li { width: 14px; height: 14px; border: 2px solid #efd698; background: transparent; }
+.pixel-pips { display: flex; flex-wrap: wrap; min-width: 0; gap: 6px; margin: 0 auto 0 0; padding: 6px 8px; list-style: none; background: #231e18; }
+.pixel-pips li { flex-shrink: 0; width: 14px; height: 14px; border: 2px solid #efd698; background: transparent; }
 .pixel-pips li.is-done { background: #efbd51; }
 .pixel-pips li.is-now { background: #fff9eb; }
 .pixel-hud-notebook { position: relative; }

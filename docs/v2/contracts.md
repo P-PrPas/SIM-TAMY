@@ -192,10 +192,10 @@ Speaker names map to sprites through `pixelSim.name.<key>` (`characterOf` in `sc
 
 ### Pixel nursery house and end-of-chapter reveal (LP-03)
 
-`/learn` renders a code-drawn "บ้านต้อนรับลูก" with four stage zones (only stage 1 open). Items come only
-from `GET /passport/{account_id}`: the table item needs a finished `thai-elements-family` attempt and
-upgrades when a finished attempt is `strong`; the palm-leaf-book item (lesson `KB-TM-ELEMENT-001`) fills when
-`lessons` contains that unit. The pixel lesson posts the completion when the learner finishes the cards and the
+`/learn` renders a code-drawn "บ้านต้อนรับลูก" with four open stage zones, each backed by its lesson/scenario
+pair in `CORE_PATH` and the pixel registry. Items come only from `GET /passport/{account_id}`: each zone's
+scenario item needs a finished attempt for that zone's story and upgrades when a finished attempt is `strong`;
+the lesson item fills when `lessons` contains that zone's unit. The pixel lesson posts the completion when the learner finishes the cards and the
 sort game (best effort: a failed call neither blocks the lesson nor stores anything locally; no call without a
 picked mock profile). No local storage is used.
 

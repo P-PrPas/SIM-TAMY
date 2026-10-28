@@ -34,7 +34,12 @@ async function requireMockApi(page: Page) {
 // Same checks as competition-demo.spec.ts: no serious/critical axe violation, no horizontal scroll,
 // and no visible control under 44x44 CSS px.
 async function audit(page: Page) {
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  const layout = await page.evaluate(() => ({
+    width: window.innerWidth, scrollWidth: document.documentElement.scrollWidth,
+    overflow: [...document.querySelectorAll<HTMLElement>("main *")].filter((el) =>
+      el.getBoundingClientRect().right > window.innerWidth).map((el) => el.className).slice(0, 12),
+  }));
+  expect(layout.scrollWidth, JSON.stringify(layout)).toBeLessThanOrEqual(layout.width);
   await page.evaluate(() => Promise.all(document.getAnimations()
     .filter((animation) => animation instanceof CSSTransition).map((animation) => animation.finished.catch(() => undefined))));
   await page.addScriptTag({ path: require.resolve("axe-core/axe.min.js") });
@@ -78,6 +83,13 @@ async function pick(page: Page, text: string) {
   await page.getByRole("button", { name: t("experience.commit"), exact: true }).click();
 }
 
+async function openKnowledge(page: Page) {
+  const panel = page.locator("details.pixel-know");
+  if (await panel.count() && await panel.getAttribute("open") === null) {
+    await panel.locator("summary").click();
+  }
+}
+
 async function setup(browser: Browser, id: string, assigned = false) {
   const hostContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const partnerContext = await browser.newContext({ viewport: { width: 360, height: 780 } });
@@ -105,22 +117,29 @@ async function setup(browser: Browser, id: string, assigned = false) {
   await host.getByRole("button", { name: t("family.create"), exact: true }).click();
   await partner.goto(await host.locator("#family-share").inputValue());
   await partner.getByRole("button", { name: t("family.join"), exact: true }).click();
+  await expect(partner.getByText(t("family.private"), { exact: true })).toBeAttached();
+  await openKnowledge(partner);
   await expect(partner.getByText(t("family.private"), { exact: true })).toBeVisible();
+  await openKnowledge(host);
   const [mother, father] = (await Promise.all([host, partner].map((tab) => tab.evaluate((key) =>
     JSON.parse(sessionStorage.getItem(key)!) as Saved, `sim-tamy-family:${id}`)))) as [Saved, Saved];
   const read = async (tab: Page, saved: Saved) => (await (await tab.request.get(`${apiUrl}/v1/family/rooms/${saved.room_id}`,
     { headers: { Authorization: `Bearer ${saved.token}` } })).json()) as View;
   const text = async (choice: string, tab: Page, saved: Saved) =>
     (await read(tab, saved)).scene!.choices.find((c) => c.id === choice)!.text_th;
+  const choose = async (tab: Page, saved: Saved, id: string) => {
+    const choice = (await read(tab, saved)).scene!.choices.find((c) => c.id === id)!;
+    await pick(tab, choice.short_th || choice.text_th);
+  };
   const cont = async (tab: Page, saved: Saved) =>
     tab.getByRole("button", { name: (await read(tab, saved)).scene!.choices[0]!.text_th }).click();
   const step = async () => (await read(host, mother)).scene?.id;
-  return { hostContext, partnerContext, host, partner, mother, father, read, text, cont, step, cohortId };
+  return { hostContext, partnerContext, host, partner, mother, father, read, text, choose, cont, step, cohortId };
 }
 
 test("GS-A: typed discovery, role-private facts, share, joint vote mismatch then agreement, report and debrief", async ({ browser }) => {
   const s = await setup(browser, "gs-a-postpartum-warning", true);
-  const { host, partner, mother, father, read, text, cont, step } = s;
+  const { host, partner, mother, father, read, text, choose, cont, step } = s;
   try {
     const file = story("gs-a-postpartum-warning");
 
@@ -145,7 +164,7 @@ test("GS-A: typed discovery, role-private facts, share, joint vote mismatch then
     await host.getByText(bleed, { exact: false }).locator("xpath=..").getByRole("button", { name: t("family.cosim.facts.share") }).click();
     await expect(partner.locator(".family-timeline").getByText(bleed, { exact: false })).toBeVisible();
     await audit(partner);
-    await pick(host, await text("say-what-you-see", host, mother));
+    await choose(host, mother, "say-what-you-see");
     await expect.poll(step).toBe("ask-grandmother");
 
     // The integrated knowledge stream supplies released claims and matching source locators.
@@ -164,22 +183,21 @@ test("GS-A: typed discovery, role-private facts, share, joint vote mismatch then
 
     await enter(host);
     await expect(host.getByText(t("lab.lens.wisdom"), { exact: true })).toHaveCount(1); // Thai Wisdom Lens
-    await pick(host, await text("listen-then-ask", host, mother));
+    await choose(host, mother, "listen-then-ask");
     await expect.poll(step).toBe("joint-help-decision");
 
     // a critical joint step never commits from typed text: the chat only offers the buttons
     const typed = await say(host, await text("contact-health-service", host, mother));
     expect(typed.clarification?.options.length).toBeGreaterThan(1);
     expect((await read(host, mother)).scene?.id).toBe("joint-help-decision");
-    const contact = await text("contact-health-service", host, mother);
-    await pick(host, contact);
-    await pick(partner, await text("wait-until-morning", partner, father));
+    await choose(host, mother, "contact-health-service");
+    await choose(partner, father, "wait-until-morning");
     await expect(partner.getByRole("alert").filter({ hasText: t("family.cosim.joint.needAgree") })).toBeVisible();
-    await pick(host, contact);
-    await pick(partner, contact);
+    await choose(host, mother, "contact-health-service");
+    await choose(partner, father, "contact-health-service");
     await expect.poll(step).toBe("consequence");
-    await pick(partner, await text("report-observations", partner, father));
-    await pick(host, await text("agree-check-first", host, mother));
+    await choose(partner, father, "report-observations");
+    await choose(host, mother, "agree-check-first");
 
     for (const tab of [host, partner]) {
       await expect(tab.getByRole("heading", { name: t("family.report") })).toBeVisible();
