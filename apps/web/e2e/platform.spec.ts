@@ -45,7 +45,7 @@ async function expectNoSeriousViolations(page: Page) {
 }
 
 const pages: Array<[string, string, string]> = [
-  ["Home", "/", t("platform.home.pillarsTitle")],
+  ["Home", "/", t("platform.home.stagesTitle")],
   ["Learn", "/learn", "Stage 1"],
   ["Learn stage", "/learn/1", t("platform.learn.units")],
   ["Lab", "/lab", t("platform.lab.featured")],
@@ -73,6 +73,7 @@ for (const [name, path, ready] of pages) {
 test("top navigation shows the five family destinations and the institution link, not legacy routes", async ({ page }) => {
   await mock(page);
   await page.goto("/");
+  await page.getByRole("button", { name: t("platform.nav.openMenu") }).click();
   const nav = page.getByRole("navigation", { name: t("nav.label") });
   for (const key of ["home", "learn", "lab", "passport", "knowledge", "institution"]) {
     await expect(nav.getByRole("link", { name: t(`platform.nav.${key}`) })).toBeVisible();
@@ -99,7 +100,7 @@ test("disclosures open by keyboard and preserve archived routes and objective pr
   await page.goto("/lab");
   const core = page.getByRole("region", { name: t("platform.lab.featured") });
   await expect(core.getByRole("heading", { level: 3 })).toHaveText([
-    "thai-elements-family", "thai-birth-conversation", "gs-a-postpartum-warning", "gs-b-thai-recovery", "thai-milk-family"]);
+    "thai-elements-family", "thai-birth-conversation", "gs-a-postpartum-warning", "thai-milk-family"]);
   await expect(page.getByRole("heading", { name: "first-night", exact: true })).not.toBeVisible();
   await page.locator("summary", { hasText: t("platform.lab.otherStories") }).focus();
   await page.keyboard.press("Enter");
@@ -117,3 +118,40 @@ test("disclosures open by keyboard and preserve archived routes and objective pr
   await page.keyboard.press("Enter");
   await expect(source).toBeVisible();
 });
+
+for (const width of [360, 844, 1440]) {
+  test(`four-stage entry and navigation at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await mock(page);
+    await page.goto("/");
+    const stages = page.getByRole("region", { name: t("platform.home.stagesTitle") });
+    await expect(stages.getByRole("heading", { level: 3 })).toHaveText(["Stage 1", "Stage 2", "Stage 3", "Stage 4"]);
+    await page.getByRole("link", { name: t("platform.home.ctaStart"), exact: true }).click();
+    await expect(page).toHaveURL(/#stages$/);
+    await expect(stages.getByRole("heading", { level: 2 })).toBeInViewport();
+    if (width < 1200) {
+      const toggle = page.getByRole("button", { name: t("platform.nav.openMenu") });
+      const menu = page.getByRole("navigation", { name: t("nav.label") });
+      await expect(menu).toBeHidden();
+      await toggle.focus();
+      await page.keyboard.press("Enter");
+      await expect(toggle).toHaveAttribute("aria-expanded", "true");
+      await menu.getByRole("link", { name: t("platform.nav.learn"), exact: true }).focus();
+      await page.keyboard.press("Escape");
+      await expect(toggle).toBeFocused();
+      await expect(menu).toBeHidden();
+      await toggle.click();
+      await menu.getByRole("link", { name: t("platform.nav.learn"), exact: true }).click();
+      await expect(page).toHaveURL(/\/learn$/);
+      await expect(menu).toBeHidden();
+      await page.goto("/");
+    }
+    await page.evaluate(() => document.fonts.ready);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expectNoSeriousViolations(page);
+    await page.screenshot({ path: testInfo.outputPath("four-stages.png"), fullPage: true });
+    await page.evaluate(() => { document.documentElement.style.fontSize = "32px"; });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}

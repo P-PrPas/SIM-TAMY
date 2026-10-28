@@ -11,25 +11,22 @@ import { storyHref, v2, type Attempt, type LearningPaths, type PathObjective } f
 import { NurseryHouse } from "../pixel/house";
 import { Disabled } from "./not-ready";
 import { Async, DemoBadge, labelOr } from "./shared";
+import { LearningStages } from "./stages";
 
 export function StageCards() {
   const account = useDemoAccount();
-  const paths = useV2((s) => v2.learningPaths(s), "paths");
   const passport = useV2(account ? (s) => v2.passport(account, s) : null, `passport:${account ?? ""}`);
   return <main className="pf-page">
     <header><h1>{t("platform.learn.title")}</h1><p className="pf-lead">{t("platform.learn.intro")}</p></header>
-    {account ? <Async r={passport}>{(data) => <NurseryHouse attempts={data.attempts} lessons={data.lessons} />}</Async>
-      : <NurseryHouse attempts={null} />}
-    <Async r={paths}>{(data) => data.stages.length === 0
-      ? <p className="pf-note">{t("platform.learn.empty")}</p>
-      : <ol className="pf-grid pf-list">
-        {data.stages.map((s) => <li key={s.stage} className="pf-card">
-          <span className="pf-kicker">{t("platform.learn.stageLabel")} {s.stage}</span>
-          <h2>{s.title_th}</h2>
-          <p className="pf-muted">{s.summary_th}</p>
-          <Link href={`/learn/${encodeURIComponent(String(s.stage))}`} className="pf-link">{t("platform.learn.openStage")}<span aria-hidden="true"> →</span></Link>
-        </li>)}
-      </ol>}</Async>
+    <section aria-labelledby="learn-stages-title">
+      <h2 id="learn-stages-title" className="sr-only">{t("platform.home.stagesTitle")}</h2>
+      <LearningStages />
+    </section>
+    <details className="pf-section pf-disclosure">
+      <summary>{t("pixelHouse.title")}</summary>
+      {account ? <Async r={passport}>{(data) => <NurseryHouse attempts={data.attempts} lessons={data.lessons} />}</Async>
+        : <NurseryHouse attempts={null} />}
+    </details>
   </main>;
 }
 
@@ -81,11 +78,11 @@ export function StageDetail({ stage }: { stage: string }) {
         <p className="pf-kicker">{t("platform.learn.stageLabel")} {current.stage}</p>
         <h1>{current.title_th}</h1><p className="pf-lead">{current.summary_th}</p>
       </header>
-      <section className="pf-section" aria-labelledby="read-title">
+      <section className="pf-section pf-card" aria-labelledby="read-title">
         <h2 id="read-title">{t("platform.learn.units")}</h2>
         <Async r={units}>{() => unitIds.length ? readings(unitIds) : <p className="pf-note">{t("platform.learn.noUnits")}</p>}</Async>
       </section>
-      <section className="pf-section" aria-labelledby="practice-title">
+      <section className="pf-section pf-card" aria-labelledby="practice-title">
         <h2 id="practice-title">{t("platform.learn.scenarios")}</h2>
         <Async r={stories}>{() => storyIds.length ? <ul className="pf-list pf-stack">{storyIds.map((id) => <li key={id}>{storyReady(id)
           ? <Link href={scenarios.get(id)!.href} className="pf-link">{scenarios.get(id)!.title}</Link>
@@ -104,7 +101,7 @@ export function StageDetail({ stage }: { stage: string }) {
       </details>
     </>;
   };
-  return <main className="pf-page">
+  return <main className="pf-page pf-stage-detail">
     <Link href="/learn" className="pf-link"><span aria-hidden="true">← </span>{t("platform.learn.allStages")}</Link>
     <Async r={paths}>{render}</Async>
   </main>;

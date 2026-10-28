@@ -36,6 +36,10 @@
 }
 
 :root {
+  --radius-control: 10px;
+  --radius-card: 16px;
+  --radius-panel: 24px;
+  --shadow-card: 0 8px 28px #47351f08;
   --motion-feedback: 180ms;
   --motion-page: 280ms;
   --motion-hero: 640ms;
@@ -111,7 +115,10 @@ main > header h1 { font-size: clamp(1.75rem, 3vw, 2.5rem); }
 .hero h1 { margin-top: 22px; max-width: 600px; font-size: clamp(2.5rem, 4.4vw, 3.8rem); font-weight: 650; line-height: 1.3; letter-spacing: -0.045em; }
 .hero-description { max-width: 520px; margin-top: 24px; color: var(--color-muted); font-size: 18px; line-height: 1.9; }
 .hero-actions { margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
-.button-primary, .button-gold { display: inline-flex; justify-content: center; align-items: center; gap: 24px; border-radius: 10px; padding: 15px 24px; min-height: 52px; font-weight: 650; }
+.button-primary, .button-gold, .button-secondary { display: inline-flex; justify-content: center; align-items: center; gap: 16px; border-radius: var(--radius-control); padding: 12px 24px; min-height: 48px; font-weight: 650; }
+.button-secondary { border: 1px solid var(--color-stone-400); color: var(--color-brand-950); background: var(--color-surface); }
+.button-secondary:hover { background: var(--color-brand-50); }
+.button-primary:disabled, .button-secondary:disabled { opacity: .5; }
 .button-primary { color: white; background: var(--color-brand-950); }
 .button-primary:hover { background: var(--color-brand-800); box-shadow: 0 6px 18px #30261b18; }
 .button-gold { color: var(--color-brand-950); background: var(--color-gold); }
@@ -255,3 +262,15 @@ main > header h1 { font-size: clamp(1.75rem, 3vw, 2.5rem); }
 
 /* touch-target guidance: disclosure toggles are at least 44px tall */
 summary { min-height: 44px; padding-block: 10px; box-sizing: border-box; }
+
+.nav-toggle { display: none; min-height: 44px; padding: 8px 14px; border: 1px solid var(--color-line); border-radius: var(--radius-control); font-weight: 600; }
+.site-nav { gap: 20px; }
+.site-nav nav { gap: 20px; font-size: .9375rem; }
+.site-header.is-focused .site-nav { padding-block: 14px; }
+@media (max-width: 1199px) {
+  .site-nav { flex-wrap: wrap; }
+  .site-nav .nav-toggle { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+  .site-nav nav { display: none; width: 100%; }
+  .site-nav nav.is-open { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-top: 12px; border-top: 1px solid var(--color-line); }
+  .site-nav nav a { justify-content: start; text-align: left; padding: 10px 12px; }
+}

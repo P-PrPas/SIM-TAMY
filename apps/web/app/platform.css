@@ -14,7 +14,7 @@
 .pf-stack { display: grid; gap: 16px; margin-top: 16px; }
 .pf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; margin-top: 16px; }
 .pf-list { list-style: none; padding: 0; margin: 0; }
-.pf-card { border: 1px solid var(--color-line); border-radius: 16px; padding: 20px; background: var(--color-surface); min-width: 0; }
+.pf-card { border: 1px solid var(--color-line); border-radius: var(--radius-card); padding: 24px; background: var(--color-surface); min-width: 0; }
 .pf-card > * + * { margin-top: 10px; }
 .pf-card h2, .pf-card h3 { margin-top: 4px; }
 .pf-kicker { display: block; font-size: .875rem; font-weight: 650; color: var(--color-brand-700); }
@@ -28,7 +28,7 @@
 .pf-link { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; font-weight: 650; color: var(--color-brand-800); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--color-brand-300); }
 .pf-link:hover { color: var(--color-brand-950); }
 .pf-link-btn { background: none; border: 0; padding: 0 4px; margin-top: 8px; }
-.pf-btn { min-height: 44px; padding: 8px 20px; border-radius: 10px; font-weight: 650; background: var(--color-brand-950); color: #fff; }
+.pf-btn { min-height: 48px; padding: 12px 24px; border-radius: var(--radius-control); font-weight: 650; background: var(--color-brand-950); color: #fff; }
 .pf-btn:hover { background: var(--color-brand-800); }
 .pf-page .button-gold, .pf-page .button-primary { display: inline-flex; width: auto; max-width: 100%; }
 .pf-profile-btn { display: flex; width: 100%; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 52px; padding: 10px 16px; margin-top: 8px; text-align: left; border: 1px solid var(--color-stone-400); border-radius: 12px; background: var(--color-surface); font-weight: 650; }
@@ -54,3 +54,37 @@
 .pf-disabled { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 44px; color: var(--color-stone-600); cursor: not-allowed; }
 .pf-notready { padding: 2px 10px; border: 1px dashed var(--color-stone-400); border-radius: 999px; background: var(--color-stone-100); color: var(--color-stone-700); font-size: 1rem; }
 .pf-card.is-disabled { background: var(--color-stone-100); border-style: dashed; color: var(--color-stone-600); }
+
+.pf-home-hero { display: grid; align-items: center; gap: 36px; padding-block: 20px 36px; }
+.pf-home-hero h1 { font-size: clamp(2rem, 3.8vw, 3.25rem); }
+.pf-home-preview { min-width: 0; border: 1px solid var(--color-line); border-radius: var(--radius-panel); overflow: hidden; background: var(--color-surface); box-shadow: var(--shadow-card); }
+.pf-home-preview figcaption { padding: 20px 24px; }
+.pf-home-preview figcaption p { margin-top: 8px; font-size: .9375rem; color: var(--color-muted); }
+#stages, #profile { scroll-margin-top: 32px; }
+.pf-stages { display: grid; gap: 24px; }
+.pf-stage-card { min-width: 0; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); }
+.pf-stage-art { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+.pf-stage-body { padding: 20px; display: flex; flex-direction: column; align-items: start; flex: 1; gap: 10px; }
+.pf-stage-body h3 { font-size: 1.25rem; }
+.pf-stage-body h3 a:hover { text-decoration: underline; text-underline-offset: 5px; }
+.pf-stage-body > .pf-link { margin-top: auto; }
+.pf-stage-start { display: flex; flex-wrap: wrap; width: 100%; gap: 8px 20px; padding-top: 10px; border-top: 1px solid var(--color-line); }
+.pf-stage-start .pf-link { font-size: .9375rem; }
+.pf-home-account { gap: 24px; }
+.pf-institution { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; padding-block: 32px; border-top: 1px solid var(--color-line); }
+.pf-institution p { max-width: 620px; margin-top: 8px; }
+@media (min-width: 640px) { .pf-stages { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) {
+  .pf-home-hero { grid-template-columns: 1.15fr 1fr; gap: 56px; padding-block: 24px 48px; }
+  .pf-stages { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 900px) {
+  .pf-stage-detail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-content: start; }
+  .pf-stage-detail > a, .pf-stage-detail > header, .pf-stage-detail > details, .pf-stage-detail > .pf-alert { grid-column: 1 / -1; }
+  .pf-stage-detail > .pf-section { margin-top: 0; }
+}
+@media (max-width: 767px) {
+  .pf-home-hero { gap: 28px; }
+  .pf-home-preview figcaption, .pf-card { padding: 20px; }
+  .pf-home .section-heading { margin-bottom: 24px; }
+}

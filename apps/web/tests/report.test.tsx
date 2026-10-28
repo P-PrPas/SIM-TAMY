@@ -55,6 +55,8 @@ describe("T-053 Report", () => {
     fireEvent.click(screen.getByRole("button", { name: t("report.downloadJson") }));
     expect(mocks.download).toHaveBeenCalledWith(report);
     expect(screen.queryByText(t("report.safetyMet"))).toBeNull();
+    expect(screen.getByRole("link", { name: t("platform.home.practiceAgain") }).getAttribute("href")).toBe("/lab/solo#practice");
+    expect(screen.getByRole("link", { name: t("platform.nav.home") }).getAttribute("href")).toBe("/");
   });
 
   it("prints every section, then returns to the selected tab after printing", async () => {

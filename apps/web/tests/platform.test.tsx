@@ -114,25 +114,29 @@ describe("navigation", () => {
 });
 
 describe("Home", () => {
-  it("shows the four pillars, featured golden scenarios in order, and the labeled learner-only profile picker", async () => {
-    mockApi(base);
+  it("prioritizes the four stages and their curated entries, with a labeled learner-only profile picker", async () => {
+    mockApi({ ...base, "/learning-paths": { ...paths, stages: [paths.stages[0], paths.stages[1],
+      { stage: 3, title_th: "Stage three", objectives: [] }, { stage: 4, title_th: "Stage four", objectives: [] }] },
+      "/knowledge/units": { ...units, items: CORE_PATH.map((core) => ({ ...units.items[0], id: core.units[0] })) } });
     render(<HomePage />);
-    for (let n = 1; n <= 4; n++) expect(screen.getByRole("heading", { name: t(`platform.home.pillar${n}Title`) })).toBeTruthy();
-    const featured = await screen.findByRole("heading", { name: t("platform.home.goldenTitle") });
-    const section = featured.closest("section") as HTMLElement;
-    expect(within(section).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["GS-A title"]); // GS-B is not in the ready set
-    expect(within(section).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/simulate/gs-a-postpartum-warning"]);
+    const section = screen.getByRole("region", { name: t("platform.home.stagesTitle") });
+    await waitFor(() => expect(within(section).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["Stage one", "Stage two", "Stage three", "Stage four"]));
+    await waitFor(() => expect(within(section).getAllByRole("link", { name: t("platform.home.readLesson") }).map((a) => a.getAttribute("href")))
+      .toEqual(CORE_PATH.map((core) => `/knowledge/${core.units[0]}`)));
+    expect(within(section).getAllByRole("link", { name: t("platform.home.trySimulation") }).map((a) => a.getAttribute("href")))
+      .toEqual(CORE_PATH.map((core) => storyHref(core.stories[0]!)));
+    expect(within(section).queryByRole("link", { name: "GS-B title" })).toBeNull();
     expect(await screen.findByRole("button", { name: /Learner One/ })).toBeTruthy();
     expect(screen.queryByText("Educator One")).toBeNull();
     expect(screen.getAllByText(t("platform.common.demoBadge")).length).toBeGreaterThan(0);
     expect(screen.getByText(t("platform.home.continuePick"))).toBeTruthy();
   });
 
-  it("hides the golden section when the API does not list them and survives a failing accounts call", async () => {
+  it("does not link missing scenarios and survives a failing accounts call", async () => {
     mockApi({ ...base, "/family/stories": [stories.find((s) => s.id === "first-night")], "/demo/accounts": () => Response.json({ error: { code: "X" } }, { status: 500 }) });
     render(<HomePage />);
     expect(await screen.findByRole("alert")).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: t("platform.home.goldenTitle") })).toBeNull();
+    expect(screen.queryByRole("link", { name: t("platform.home.trySimulation") })).toBeNull();
     expect(screen.getByRole("link", { name: new RegExp(t("platform.home.ctaStart")) })).toBeTruthy();
   });
 
@@ -155,6 +159,18 @@ describe("Home", () => {
     mockApi({ ...base, "/passport/acc-l1": { account: { id: "acc-l1", display_name_th: "L" }, attempts: [] } });
     render(<HomePage />);
     expect(await screen.findByText(t("platform.home.continueNone"))).toBeTruthy();
+  });
+
+  it("offers retry instead of claiming there is no progress when the passport fails", async () => {
+    setDemoAccount("acc-l1");
+    mockApi(base);
+    render(<HomePage />);
+    const section = screen.getByRole("region", { name: t("platform.home.continueTitle") });
+    const alert = await within(section).findByRole("alert");
+    expect(within(section).queryByText(t("platform.home.continueNone"))).toBeNull();
+    mockApi({ ...base, "/passport/acc-l1": { account: { id: "acc-l1" }, attempts: [attempt({ title_th: "Recovered progress" })], lessons: [] } });
+    fireEvent.click(within(alert).getByRole("button", { name: t("platform.common.retry") }));
+    expect(await within(section).findByText("Recovered progress")).toBeTruthy();
   });
 });
 
@@ -361,7 +377,7 @@ it("shows loading and lets a learner retry failed house progress without losing 
   vi.stubGlobal("fetch", vi.fn(async (input: string | Request) => {
     const url = typeof input === "string" ? input : input.url;
     if (url.endsWith("/passport/acc-l1")) return new Promise<Response>((resolve) => { resolvePassport = resolve; });
-    return Response.json(paths);
+    return Response.json(base[new URL(url).pathname.replace(/^\/v1/, "")]);
   }));
   render(<StageCards />);
   await screen.findByText("Stage one");
