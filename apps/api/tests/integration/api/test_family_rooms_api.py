@@ -35,7 +35,8 @@ def test_role_isolation_no_scores_or_future_outcomes_during_play(api: Api):
     assert b["private_brief_th"] not in str(a)
     assert a["report"] is b["report"] is None
     assert not b["scene"]["choices"]
-    assert set(a["scene"]["choices"][0]) == {"id", "text_th"}
+    # short_th/icon are display-only (contracts §3); skills, feedback, safe stay hidden
+    assert set(a["scene"]["choices"][0]) == {"id", "text_th", "short_th", "icon"}
     assert api.client.get(path).status_code == 401
     assert api.client.get(path, headers={"Authorization": "Bearer bad"}).status_code == 401
     with api.db() as db:

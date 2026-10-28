@@ -30,3 +30,50 @@
 .family-chat.is-rpg .family-citations { color: #231e18; }
 .family-chat.is-rpg textarea { border-radius: 0; }
 .family-chat.is-rpg .family-dontknow { justify-self: start; }
+
+/* Visual-first stage (LP-01): scene is the page; bubbles, HUD and cards sit on/under it. Contrast: paper/cream on stone-950 >= 11:1. */
+.pixel-stage-frame { position: relative; margin-inline: auto; max-width: 100%; }
+.pixel-scene-wrap:has(.pixel-stage-frame) { margin-bottom: 8px; }
+.pixel-overlay { position: absolute; inset: 4px; pointer-events: none; }
+.pixel-overlay > * { pointer-events: auto; }
+.pixel-hud { position: absolute; top: 6px; left: 6px; right: 6px; display: flex; align-items: flex-start; gap: 8px; pointer-events: none; }
+.pixel-hud > * { pointer-events: auto; }
+.pixel-pips { display: flex; gap: 6px; margin: 0 auto 0 0; padding: 6px 8px; list-style: none; background: #231e18; }
+.pixel-pips li { width: 14px; height: 14px; border: 2px solid #efd698; background: transparent; }
+.pixel-pips li.is-done { background: #efbd51; }
+.pixel-pips li.is-now { background: #fff9eb; }
+.pixel-hud-notebook { position: relative; }
+.pixel-hud-notebook summary { display: flex; align-items: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 4px 8px; cursor: pointer; list-style: none; background: #231e18; color: #fff9eb; font-weight: 700; }
+.pixel-hud-notebook summary::-webkit-details-marker { display: none; }
+.pixel-hud-notebook section { position: absolute; right: 0; top: 48px; width: min(300px, 80vw); max-height: 200px; overflow: auto; padding: 10px 12px; background: #fff9eb; color: #231e18; border: 3px solid #231e18; }
+.pixel-hud-notebook h3 { margin: 0 0 6px; font-size: 1rem; }
+.pixel-hud-notebook ul { margin: 0; padding-left: 18px; }
+.pixel-hud-notebook p { margin: 0; }
+.pixel-leave { min-width: 44px; min-height: 44px; background: #231e18; color: #fff9eb; border: 0; font-size: 1.5rem; cursor: pointer; }
+.pixel-bubble { position: absolute; max-width: 62%; max-height: 38%; overflow-y: auto; padding: 8px 12px; background: #fff9eb; color: #231e18; border: 3px solid #231e18; font-size: 1rem; line-height: 1.4; }
+.pixel-bubble p { margin: 0; }
+.pixel-bubble.is-speaker { right: 8px; bottom: 44%; }
+.pixel-bubble.is-you { left: 8px; bottom: 56%; background: #efd698; max-width: 50%; max-height: 28%; }
+.pixel-bubble:focus-visible, .pixel-skip:focus-visible, .pixel-card input:focus-visible + .pixel-card-icon { outline: 3px solid #efbd51; outline-offset: 2px; }
+.pixel-skip { position: absolute; right: 8px; bottom: 8px; min-height: 44px; padding: 0 14px; background: #231e18; color: #fff9eb; border: 2px solid #efbd51; cursor: pointer; font-size: 1rem; }
+.pixel-item.is-new { animation: pixel-pop 0.6s steps(4); }
+@keyframes pixel-pop { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.pixel-scene.is-beat .pixel-char.is-speaker.is-warm { transform: translateX(-30px); }
+.pixel-scene.is-beat .pixel-char.is-warm:not(.is-speaker) { transform: translateX(24px); }
+.pixel-cards fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.pixel-cards legend { padding: 0; font-weight: 700; }
+.pixel-card-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 8px 0; }
+.pixel-card { position: relative; display: grid; justify-items: center; align-content: center; gap: 6px; min-height: 96px; padding: 10px; text-align: center; background: #fff9eb; color: #231e18; border: 3px solid #231e18; cursor: pointer; }
+.pixel-card input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.pixel-card.is-selected { background: #efd698; border-color: #7c5314; box-shadow: 0 0 0 3px #efbd51; }
+.pixel-card:focus-within { outline: 3px solid #7c5314; outline-offset: 2px; }
+.pixel-card-icon { display: block; min-height: 36px; }
+.pixel-card-label { font-size: 1rem; font-weight: 700; }
+.pixel-card-detail { margin: 8px 0; padding: 10px 12px; background: #fff9eb; border-left: 6px solid #efbd51; color: #231e18; }
+.pixel-commit { min-height: 44px; }
+.family-chat.is-bar { margin: 8px 0; padding: 8px; gap: 8px; }
+.family-chat.is-bar .family-chat-form { grid-template-columns: 1fr auto; align-items: stretch; }
+.family-chat.is-bar textarea { min-height: 44px; resize: none; }
+.family-chat.is-bar .button-primary, .family-chat.is-bar .family-dontknow { min-height: 44px; }
+@media (prefers-reduced-motion: reduce) { .pixel-item.is-new { animation: none; } }
+.pixel-card-item { display: grid; }

@@ -13,10 +13,14 @@ type Clarification = components["schemas"]["FamilyClarification"];
 type Pending = { text: string; client_turn_id: string; state_version: number };
 type Entry = { key: string; text: string; reply: Reply | null; fresh?: boolean };
 /** Pixel mode (LP-01): reveal each new validated reply like an RPG dialogue box and report to the scene. */
-export type PixelHooks = { onTalking: (talking: boolean) => void; onCitations: (citations: Reply["citations"]) => void };
+export type PixelHooks = { onTalking: (talking: boolean) => void; onCitations: (citations: Reply["citations"]) => void;
+  /** Stage mode: the chat collapses to one bar and its lines are spoken in bubbles over the scene. */
+  compact?: boolean; onSay?: (say: Say | null) => void };
+/** What the stage shows in the bubbles: the learner's latest (optimistic) line and the validated reply. */
+export type Say = { you: string | null; reply: { text: string; fresh: boolean } | null; typing: boolean };
 
 /** Client-side typewriter over an already validated reply. The full text is always in the DOM for screen readers. */
-function Typed({ text, onTalking }: { text: string; onTalking: (talking: boolean) => void }) {
+export function Typed({ text, onTalking }: { text: string; onTalking: (talking: boolean) => void }) {
   const chars = Array.from(text);
   const [shown, setShown] = useState(() => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? chars.length : 0);
   useEffect(() => {
@@ -90,11 +94,20 @@ export function FamilyChat({ view, credentials, onView, onChoice, pixel }: {
   }
 
   const discover = scene.kind === "discover";
-  return <section className={pixel ? "family-chat is-rpg" : "family-chat"} aria-labelledby="family-chat-title">
-    <h3 id="family-chat-title"><FamilyIcon name="chat" />{t("lab.chat.title")}</h3>
-    <p className="family-muted">{t("lab.chat.hint")}</p>
-    {(scene.joint || scene.choices.length > 0 && !discover) && <p className="family-muted">{t("lab.chat.buttonsOnly")}</p>}
-    <div role="log" aria-live="polite" aria-relevant="additions" aria-label={t("lab.chat.log")} className="family-chat-log">
+  const compact = Boolean(pixel?.compact);
+  const onSay = pixel?.onSay;
+  useEffect(() => {
+    if (!compact) return;
+    const last = log.at(-1);
+    onSay?.({ you: pending?.text ?? last?.text ?? null, typing: Boolean(pending && !failed),
+      reply: !pending && last?.reply ? { text: last.reply.text_th, fresh: Boolean(last.fresh) } : null });
+  }, [compact, log, pending, failed]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => { if (compact) onSay?.(null); }, [compact]); // eslint-disable-line react-hooks/exhaustive-deps
+  return <section className={compact ? "family-chat is-rpg is-bar" : pixel ? "family-chat is-rpg" : "family-chat"} aria-labelledby="family-chat-title">
+    <h3 id="family-chat-title" className={compact ? "sr-only" : undefined}><FamilyIcon name="chat" />{t("lab.chat.title")}</h3>
+    <p className={compact ? "sr-only" : "family-muted"}>{t("lab.chat.hint")}</p>
+    {(scene.joint || scene.choices.length > 0 && !discover) && <p className={compact ? "sr-only" : "family-muted"}>{t("lab.chat.buttonsOnly")}</p>}
+    <div role="log" aria-live="polite" aria-relevant="additions" aria-label={t("lab.chat.log")} className={compact ? "family-chat-log sr-only" : "family-chat-log"}>
       {log.map((entry) => <article key={entry.key} className="family-exchange">
         <div className="family-bubble family-bubble-learner"><strong>{t("lab.chat.you")}</strong><p>{entry.text}</p></div>
         {entry.reply && <div className="family-bubble family-bubble-relative"><strong>{entry.reply.speaker_th}</strong>{pixel && entry.fresh ? <Typed text={entry.reply.text_th} onTalking={pixel.onTalking} /> : <p>{entry.reply.text_th}</p>}
@@ -122,8 +135,8 @@ export function FamilyChat({ view, credentials, onView, onChoice, pixel }: {
     {pixel && discover && scene.examples_th && scene.examples_th.length > 0 && <button type="button" className="family-button-light family-dontknow"
       onClick={() => { setDraft(scene.examples_th![example % scene.examples_th!.length]!); setExample(example + 1); }}>{t("pixelSim.dontKnow")}</button>}
     <form className="family-chat-form" onSubmit={(event) => { event.preventDefault(); submit(); }}>
-      <label htmlFor="family-chat-input">{t("lab.chat.label")}</label>
-      <textarea id="family-chat-input" rows={2} maxLength={500} value={draft} placeholder={t("lab.chat.placeholder")}
+      <label htmlFor="family-chat-input" className={compact ? "sr-only" : undefined}>{t("lab.chat.label")}</label>
+      <textarea id="family-chat-input" rows={compact ? 1 : 2} maxLength={500} value={draft} placeholder={t("lab.chat.placeholder")}
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); submit(); } }} />
       <button className="button-primary" type="submit" disabled={!draft.trim() || Boolean(pending)}>{t("lab.chat.send")}<FamilyIcon name="arrow" /></button>

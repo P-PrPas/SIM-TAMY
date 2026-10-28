@@ -1551,6 +1551,10 @@ export interface components {
             id: string;
             /** Text Th */
             text_th: string;
+            /** Short Th */
+            short_th?: string | null;
+            /** Icon */
+            icon?: ("book" | "notebook" | "pot" | "talk" | "pause" | "menu" | "arrow") | null;
         };
         /** FamilyReport */
         FamilyReport: {

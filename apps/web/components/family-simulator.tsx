@@ -17,6 +17,10 @@ import { FamilyFacts, FamilyKnowledgeCard, FamilyVoteStatus } from "./family-cos
 import { FamilyChat } from "./family-chat";
 import { FamilyLabReport } from "./family-lab-report";
 import { PixelScene, type SceneCard } from "./pixel/scene-view";
+import { PixelStage, type BeatLines } from "./pixel/stage";
+import { ChoiceCards } from "./pixel/choice-cards";
+import { ITEM_OF, type ItemKey } from "./pixel/scene-art";
+import type { Say } from "./family-chat";
 
 type View = components["schemas"]["FamilyView"];
 type Role = View["role"];
@@ -24,6 +28,7 @@ type Credentials = { room_id: string; token: string; invite?: string };
 type Decision = components["schemas"]["FamilyDecision"];
 const GOLDEN_STORY = "golden-first-night";
 const PIXEL_STORY = "thai-elements-family"; // the only story with the living pixel scene (LP-01)
+const BEAT_MS = 1800; // consequence beat length; reduced motion skips it
 
 function newClientId() {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -51,6 +56,9 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
   const [unavailable, setUnavailable] = useState(false);
   const [cards, setCards] = useState<SceneCard[]>([]);
   const [talking, setTalking] = useState(false);
+  const [say, setSay] = useState<Say | null>(null);
+  const [beat, setBeat] = useState<BeatLines | null>(null);
+  const [items, setItems] = useState<ItemKey[]>([]);
   const requestInFlight = useRef(false);
   const completed = Boolean(view?.report);
   const inviteLink = ready && credentials?.invite
@@ -89,6 +97,12 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
       .catch((cause: unknown) => { if (!controller.signal.aborted) message(cause); });
     return () => controller.abort();
   }, [storageKey, storyId]);
+
+  useEffect(() => {
+    if (!beat) return;
+    const timer = window.setTimeout(() => setBeat(null), BEAT_MS);
+    return () => window.clearTimeout(timer);
+  }, [beat]);
 
   useEffect(() => {
     if (!credentials || completed) return;
@@ -146,6 +160,13 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         params: { path: { room_id: credentials.room_id } }, body,
       });
       if (!data) throw new Error("Missing updated room");
+      const chosen = view.scene?.choices.find((c) => c.id === choiceId);
+      const turn = data.transcript.at(-1);
+      if (pixel && view.scene?.kind !== "discover" && chosen && turn) {
+        const item = chosen.icon ? ITEM_OF[chosen.icon] : undefined;
+        if (item) setItems((prior) => prior.includes(item) ? prior : [...prior, item]);
+        if (!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) setBeat({ you: chosen.text_th, reply: turn.reply_th });
+      }
       setView(data); setPending(null);
     } catch (cause) {
       if (cause instanceof ApiError && cause.status < 500 && cause.code !== "NETWORK_ERROR") setPending(null);
@@ -169,7 +190,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
     sessionStorage.removeItem(storageKey); sessionStorage.removeItem(`${storageKey}:join-token`);
     setCredentials(null); setView(null); setPending(null); setError("");
     setCopied(false); setCopyFailed(false);
-    setCards([]); setTalking(false);
+    setCards([]); setTalking(false); setSay(null); setBeat(null); setItems([]);
   }
 
   async function copyInvitation() {
@@ -179,10 +200,11 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
 
   const experience = storyId === "first-night" || storyId === GOLDEN_STORY || storyId.startsWith("gs-") ? "coop" : storyId === "parenthood" ? "journey" : "bridge";
   const pixel = storyId === PIXEL_STORY;
+  const stage = pixel && Boolean(view) && !completed; // visual-first play layout
   const lastTurn = view?.transcript.at(-1);
   // Mood only reacts to choice steps; step 1 is the free-chat discover step whose "continue" has no meaning.
-  const mood = pixel && (view?.completed_steps ?? 0) >= 2
-    && (!view?.scene || view.scene.speaker_th === lastTurn?.speaker_th) ? lastTurn?.mood : null;
+  const mood = pixel && (beat || (view?.completed_steps ?? 0) >= 2
+    && (!view?.scene || view.scene.speaker_th === lastTurn?.speaker_th)) ? lastTurn?.mood : null;
   const addCards = (found: components["schemas"]["FamilyCitation"][]) => setCards((prior) => [...prior,
     ...found.map((c) => ({ id: `${c.knowledge_id}:${c.claim_id}`, source_id: c.source_id, title: c.title }))
       .filter((c, i, all) => !prior.some((p) => p.id === c.id) && all.findIndex((a) => a.id === c.id) === i)]);
@@ -201,7 +223,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         <FamilyIcon name={icon} /><span>{t(`family.design.nav.${label}`)}</span>
       </Link>)}
     </nav>
-    <header className="family-hero">
+    {!stage && <header className="family-hero">
       <div className="family-hero-copy">
         <p className="family-kicker">{t(`family.design.${experience}.kicker`)}</p>
         <h1>{card?.title_th ?? t(`family.design.${experience}.title`)}</h1>
@@ -211,7 +233,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         </>}
       </div>
       {!view && <div className="family-hero-art"><FamilyArtwork grandmother={experience === 'bridge'} /><p>{t(`family.design.${experience}.caption`)}</p></div>}
-    </header>
+    </header>}
     {children}
     {experience === "journey" && card && card.chapters_th.length > 1 && <ol aria-label={t("family.chapters")} className="family-chapters">
       {card.chapters_th.map((chapter, index) => <li key={chapter} aria-current={view?.scene?.chapter_th === chapter ? "step" : undefined}>
@@ -247,13 +269,13 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         <p>{t("family.design.yourPace")}</p>
       </aside>}
     </div> : !view ? <div className="family-loading"><p role="status">{t("family.loading")}</p><button onClick={leave} className="button-text">{t("family.leave")}</button></div> : <>
-      <div className="family-session-bar">
+      {!stage && <div className="family-session-bar">
         <span className="family-role-badge"><FamilyIcon name="family" />{t(`family.${view.role}`)}</span>
         <div className="family-session-progress"><span>{done} / {view.total_steps} {t("family.decisions")}</span><progress value={done} max={view.total_steps} aria-label={t("family.decisions")} /></div>
         <button onClick={leave} disabled={busy} className="family-leave">{t("family.leave")}</button>
-      </div>
+      </div>}
       <div className="family-room-grid">
-        <aside className="family-room-sidebar">
+        {(!stage || !view.partner_joined) && <aside className="family-room-sidebar">
           <details open className="family-private"><summary><FamilyIcon name="lock" /><span>{t("family.private")}</span><span className="family-disclosure" aria-hidden="true"><FamilyIcon name="chevron" /></span></summary><p>{view.private_brief_th}</p></details>
           {experience === 'coop' && <section className="family-participants" aria-label={t("family.design.participants")}>
             {([view.role, view.role === 'mother' ? 'father' : 'mother'] as const).map((item, index) => <div key={item}><span className="family-role-avatar" aria-hidden="true">{t(`family.design.${item}Initial`)}</span><p><strong>{t(`family.${item}`)}</strong><small>{t(index === 0 ? 'family.design.you' : view.partner_joined ? 'family.design.joined' : 'family.design.notJoined')}</small></p><span className={`family-presence ${index === 0 || view.partner_joined ? 'has-joined' : ''} ${index === 1 && view.partner_online ? 'is-online' : ''}`} aria-hidden="true" /></div>)}
@@ -266,25 +288,29 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
             <button onClick={() => void copyInvitation()} className="button-primary"><FamilyIcon name={copied ? 'check' : 'copy'} />{t(copied ? 'family.design.copied' : 'family.design.copy')}</button>
             <p role="status">{copyFailed ? t('family.design.copyManual') : copied ? t('family.design.copySuccess') : ''}</p>
           </section>}
-        </aside>
+        </aside>}
         <div className="family-room-main">
-          {pixel ? <PixelScene speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? ""} backdrop={view.scene?.kind === "discover" ? "sala" : "kitchen"} talking={talking} mood={mood} cards={cards} />
+          {stage ? <PixelStage scene={{ speaker: (beat ? lastTurn?.speaker_th : view.scene?.speaker_th) ?? lastTurn?.speaker_th ?? "", backdrop: view.scene?.kind === "discover" && !beat ? "sala" : "kitchen", talking, mood, cards, items }}
+              step={view.scene?.id ?? "end"} prompt={view.scene?.prompt_th ?? ""} say={say} beat={beat} onTalking={setTalking} onSkip={() => setBeat(null)}
+              done={done} total={view.total_steps} onLeave={leave} leaveDisabled={busy} />
+            : pixel ? <PixelScene speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? ""} backdrop={view.scene?.kind === "discover" ? "sala" : "kitchen"} talking={talking} mood={mood} cards={cards} />
             : <PracticeStage family grandmother={experience === "bridge"} sceneIndex={Math.max(0, card?.chapters_th.indexOf(view.scene?.chapter_th ?? "") ?? 0)} chapter={view.scene?.chapter_th ?? t("family.finished")} speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? t("family.conversation")} />}
-          {earlierTurns.length > 0 && <details className="family-history"><summary><FamilyIcon name="chat" />{t("family.design.history")}<span>{earlierTurns.length}</span><span className="family-disclosure" aria-hidden="true"><FamilyIcon name="chevron" /></span></summary><div>{earlierTurns.map((turn) => <Exchange key={turn.idx} turn={turn} includePrompt />)}</div></details>}
-          <section role="log" aria-live="polite" aria-relevant="additions" aria-label={t("family.conversation")}>
+          {earlierTurns.length > 0 && !stage && <details className="family-history"><summary><FamilyIcon name="chat" />{t("family.design.history")}<span>{earlierTurns.length}</span><span className="family-disclosure" aria-hidden="true"><FamilyIcon name="chevron" /></span></summary><div>{earlierTurns.map((turn) => <Exchange key={turn.idx} turn={turn} includePrompt />)}</div></details>}
+          <section role="log" aria-live="polite" aria-relevant="additions" aria-label={t("family.conversation")} className={stage ? "sr-only" : undefined}>
             {lastTurn && <Exchange key={lastTurn.idx} turn={lastTurn} />}
             {pending && <div role="status" className="family-pending"><FamilyIcon name="chat" /><div><p>{view.scene?.choices.find((choice) => choice.id === pending.choice_id)?.text_th}</p><small>{t("family.sending")}</small></div></div>}
           </section>
           <p aria-live="polite" aria-atomic="true" className="family-turn-status"><span className={`family-status-dot ${waiting ? 'is-waiting' : ''}`} aria-hidden="true" />{t(status)}</p>
           {view.scene && <FamilyChapterGate key={view.room_id} chapter={view.scene.chapter_th} active={view.partner_joined && view.scene.role === view.role}><section className="family-scene" aria-labelledby="family-scene-title">
-            <div className="family-scene-header"><span className="family-symbol"><FamilyIcon name={experience === 'bridge' ? 'leaf' : 'chat'} /></span><div><p className="family-kicker">{view.scene.chapter_th}</p><h2 id="family-scene-title">{view.scene.speaker_th}</h2></div></div>
-            <p className="family-scene-prompt">{view.scene.prompt_th}</p>
+            <div className={stage ? "family-scene-header sr-only" : "family-scene-header"}><span className="family-symbol"><FamilyIcon name={experience === 'bridge' ? 'leaf' : 'chat'} /></span><div><p className="family-kicker">{view.scene.chapter_th}</p><h2 id="family-scene-title">{view.scene.speaker_th}</h2></div></div>
+            {stage ? <p className="sr-only" aria-live="polite">{view.scene.prompt_th}</p> : <p className="family-scene-prompt">{view.scene.prompt_th}</p>}
             {view.scene.card && <FamilyKnowledgeCard card={view.scene.card} />}
             <FamilyVoteStatus scene={view.scene} />
-            {view.scene.accepts_text && credentials && view.partner_joined && <FamilyChat key={`${view.room_id}:${view.scene.id}`} view={view} credentials={credentials} onView={setView} onChoice={(id) => void decide(id)} pixel={pixel ? { onTalking: setTalking, onCitations: addCards } : undefined} />}
+            {view.scene.accepts_text && credentials && view.partner_joined && <FamilyChat key={`${view.room_id}:${view.scene.id}`} view={view} credentials={credentials} onView={setView} onChoice={(id) => void decide(id)} pixel={pixel ? { onTalking: setTalking, onCitations: addCards, compact: stage, onSay: setSay } : undefined} />}
             {view.scene.kind === "discover" && !view.scene.can_continue && <p className="family-muted" role="status">{t("lab.chat.askMore")}</p>}
             {view.scene.kind === "discover" && view.scene.choices.map((choice) => <button key={choice.id} type="button" className="button-primary family-continue" disabled={busy || !!pending} onClick={() => void decide(choice.id)}>{choice.text_th}<FamilyIcon name="arrow" /></button>)}
-            {view.scene.kind !== "discover" && view.scene.choices.length > 0 && <PracticeChoice key={`${view.room_id}:${view.state_version}:${view.scene.vote?.my_choice_id ?? ""}`} choices={view.scene.choices} disabled={busy || !view.partner_joined || !!pending} onCommit={(id) => void decide(id)} />}
+            {stage && view.scene.kind !== "discover" && view.scene.choices.length > 0 && !beat && <ChoiceCards key={`${view.room_id}:${view.state_version}`} choices={view.scene.choices} disabled={busy || !view.partner_joined || !!pending} onCommit={(id) => void decide(id)} />}
+            {!stage && view.scene.kind !== "discover" && view.scene.choices.length > 0 && <PracticeChoice key={`${view.room_id}:${view.state_version}:${view.scene.vote?.my_choice_id ?? ""}`} choices={view.scene.choices} disabled={busy || !view.partner_joined || !!pending} onCommit={(id) => void decide(id)} />}
             {pending && !busy && <button className="button-primary family-retry" onClick={() => void decide(pending.choice_id)}>{t("family.retry")}</button>}
           </section></FamilyChapterGate>}
         </div>
