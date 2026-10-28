@@ -1,0 +1,22 @@
+- category: HX
+  examples_th:
+  - only one
+  id: A03
+  label_th: l
+  source: s
+  type: critical_info
+- category: DEC
+  examples_th: []
+  id: B01
+  label_th: l
+  type: decision
+- category: DEC
+  examples_th: []
+  id: B03
+  label_th: l
+  type: decision
+- category: COM
+  examples_th: []
+  id: C03
+  label_th: l
+  type: communication

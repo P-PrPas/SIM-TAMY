@@ -45,12 +45,13 @@ def main(argv: list[str] | None = None) -> int:
     except (ValidationError, ValueError) as exc:
         print(f"ERROR family stories: {exc}", file=sys.stderr)
         failed = True
-    try:
-        inst = load_institutions(content_dir)
-        print(f"OK demo/institutions ({len(inst.orgs)} orgs, {len(inst.accounts)} accounts)")
-    except (ValidationError, ValueError, OSError) as exc:
-        print(f"ERROR demo/institutions.yaml: {exc}", file=sys.stderr)
-        failed = True
+    if (content_dir / "demo" / "institutions.yaml").is_file():  # optional, like family stories
+        try:
+            inst = load_institutions(content_dir)
+            print(f"OK demo/institutions ({len(inst.orgs)} orgs, {len(inst.accounts)} accounts)")
+        except (ValidationError, ValueError, OSError) as exc:
+            print(f"ERROR demo/institutions.yaml: {exc}", file=sys.stderr)
+            failed = True
     return 1 if failed else 0
 
 
