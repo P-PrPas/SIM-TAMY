@@ -2,9 +2,9 @@
 
 import uuid
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, StringConstraints
 
 from app.content.institution import DemoRole
 from app.domain.case import Model
@@ -47,7 +47,7 @@ class CohortList(Model):
 
 
 class CohortNameRequest(Model):
-    name: str = Field(min_length=1, max_length=80)
+    name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
 
 
 class CreateAssignmentRequest(Model):
