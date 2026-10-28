@@ -8,7 +8,18 @@ import platform from "./v2/platform.json";
 // pixel visual mode: one namespace per parallel PR (scene, lesson, house)
 import pixelHouse from "./v2/pixel-house.json";
 import pixelLesson from "./v2/pixel-lesson.json";
-import pixelSim from "./v2/pixel-sim.json";
+import pixelSimBase from "./v2/pixel-sim.json";
+// Stage 2-4 speaker and backdrop names live in their own files so the stage PRs never edit the same lines.
+import pixelSimStage2 from "./v2/pixel-sim-stage2.json";
+import pixelSimStage3 from "./v2/pixel-sim-stage3.json";
+import pixelSimStage4 from "./v2/pixel-sim-stage4.json";
+
+const stages = [pixelSimStage2, pixelSimStage3, pixelSimStage4];
+const pixelSim = {
+  ...pixelSimBase,
+  name: Object.assign({}, pixelSimBase.name, ...stages.map((x) => x.name)) as Record<string, string>,
+  backdrop: Object.assign({}, pixelSimBase.backdrop, ...stages.map((x) => x.backdrop)) as Record<string, string>,
+};
 
 const th = { ...base, knowledge, lab, institution, platform, pixelSim, pixelLesson, pixelHouse };
 

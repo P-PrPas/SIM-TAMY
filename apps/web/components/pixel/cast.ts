@@ -7,11 +7,17 @@ export type Cast = { mother: CharacterKey; father: CharacterKey; backdrops: Reco
 
 const DEFAULT: Cast = { mother: "ploy", father: "ton", backdrops: { discover: "sala", choice: "kitchen" } };
 
-/** A stage PR sets the real cast and backdrops of its story here (the entries below are placeholders). */
+/** A stage PR edits only its own entry below (kept apart so the stages merge without conflicts). */
 export const CASTS: Record<string, Cast> = {
   "thai-elements-family": DEFAULT,
+
+  // Stage 2: placeholder until the stage 2 PR sets the real cast and backdrops
   "thai-birth-conversation": { mother: "ploy", father: "ton", backdrops: { discover: "sala", choice: "kitchen" } },
+
+  // Stage 3: placeholder until the stage 3 PR sets the real cast and backdrops
   "gs-a-postpartum-warning": { mother: "mali", father: "non", backdrops: { discover: "sala", choice: "kitchen" } },
+
+  // Stage 4: placeholder until the stage 4 PR sets the real cast and backdrops
   "thai-milk-family": { mother: "ploy", father: "ton", backdrops: { discover: "sala", choice: "kitchen" } },
 };
 
