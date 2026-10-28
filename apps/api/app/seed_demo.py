@@ -25,13 +25,16 @@ from sqlalchemy.orm import Session
 
 from app.ai.llm_client import LLMClient
 from app.api.deps import get_llm_factory, get_store
+from app.content.institution import load_institutions
 from app.content.loader import load_case
 from app.core.config import get_settings
 from app.db.migrate import migrate
-from app.db.models import ClassRoom, LearnerSession, LlmCall, ScoreOverride
+from app.db.models import Assignment, ClassRoom, LearnerSession, LlmCall, ScoreOverride
 from app.db.session import get_engine, get_sessionmaker
 from app.golden import REPO_DIR, Env, LexicalProvider, Outcome, load_golden, run_golden
 from app.main import create_app
+from app.services import institution as institution_service
+from app.services import instructor
 
 CLASS_CODE = "DEMO01"
 # a safe referral, two unsafe/late paths and both Variant C outcomes: a dashboard with variety
@@ -54,6 +57,41 @@ def _reachable() -> None:
         engine.dispose()
 
 
+GOLDEN_STORY_IDS = ("gs-a-postpartum-warning", "gs-b-thai-recovery")
+
+
+def seed_institution_cohorts(db: Session) -> int:
+    """One labeled demo cohort per mock org, with the Golden Scenarios that exist; rows added.
+
+    Stories missing from the catalog are skipped, so this is safe before the GS content lands.
+    Idempotent: a cohort is found by (org, name) and never gets the same story twice.
+    """
+    added = 0
+    catalog = institution_service.catalog()
+    for org in load_institutions(get_settings().content_dir).orgs:
+        if org.demo_cohort_name_th is None:
+            continue
+        cohort = db.scalar(
+            select(ClassRoom).where(
+                ClassRoom.org_id == org.id, ClassRoom.name == org.demo_cohort_name_th
+            )
+        )
+        if cohort is None:
+            info = instructor.create_class(db, org.demo_cohort_name_th, org.id)
+            cohort = db.get(ClassRoom, info.class_id)
+            assert cohort is not None
+            added += 1
+        have = set(db.scalars(select(Assignment.story_id).where(Assignment.class_id == cohort.id)))
+        for story_id in GOLDEN_STORY_IDS:
+            if story_id in catalog and story_id not in have:
+                story = catalog[story_id]
+                db.add(
+                    Assignment(class_id=cohort.id, story_id=story.id, story_version=story.version)
+                )
+                added += 1
+    return added
+
+
 def seed(golden_dir: Path | None = None) -> list[Outcome]:
     """Seed the database named by DATABASE_URL; the outcomes of the sessions it added.
 
@@ -72,6 +110,8 @@ def seed(golden_dir: Path | None = None) -> list[Outcome]:
             migrate(Config("alembic.ini"))  # `make demo` may be the first run on a new database
             maker = get_sessionmaker()
             labels = _labels()
+            with maker.begin() as db:
+                seed_institution_cohorts(db)
             names = [
                 labels["learner_name_template_th"].format(n=n) for n in range(1, 1 + len(SCENARIOS))
             ]
@@ -120,6 +160,14 @@ def reset_class(db: Session) -> int:
     Same shape as the retention purge: the parent session goes and its turns, events and report
     cascade. Rows of other classes, family rooms and anything without this class code stay.
     """
+    # the labeled institution demo cohorts go too; their assignments cascade, rooms are unlinked
+    for org in load_institutions(get_settings().content_dir).orgs:
+        if org.demo_cohort_name_th is not None:
+            db.execute(
+                delete(ClassRoom).where(
+                    ClassRoom.org_id == org.id, ClassRoom.name == org.demo_cohort_name_th
+                )
+            )
     room = db.scalar(select(ClassRoom).where(ClassRoom.code == CLASS_CODE))
     if room is None:
         return 0

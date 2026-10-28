@@ -6,8 +6,10 @@ demo: true
 orgs:
   - id: org-demo-hospital
     name_th: โรงเรียนพ่อแม่ โรงพยาบาลตัวอย่าง (ข้อมูลสาธิต)
+    demo_cohort_name_th: รุ่นตัวอย่าง โรงเรียนพ่อแม่ (ข้อมูลสาธิต)
   - id: org-demo-community
     name_th: ศูนย์สุขภาพชุมชนตัวอย่าง (ข้อมูลสาธิต)
+    demo_cohort_name_th: รุ่นตัวอย่าง ศูนย์สุขภาพชุมชน (ข้อมูลสาธิต)
 accounts:
   - id: staff-h-admin
     org_id: org-demo-hospital

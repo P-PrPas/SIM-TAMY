@@ -21,6 +21,7 @@ STAFF_ROLES: frozenset[str] = frozenset({"org_admin", "educator"})
 class DemoOrg(Model):
     id: str = Field(pattern=r"^[a-z0-9-]+$")
     name_th: NonBlank
+    demo_cohort_name_th: NonBlank | None = None  # seeded by `make seed-demo`
 
 
 class DemoAccount(Model):
