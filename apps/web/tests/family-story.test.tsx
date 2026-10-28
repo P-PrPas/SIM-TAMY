@@ -38,7 +38,7 @@ it("records only committed public statements with their actual actor", () => {
 it("replays recorded wording with matched findings and sources, and starts a separate run", () => {
   const restart = vi.fn();
   render(<FamilyStoryboard turns={[turn, { ...turn, idx: 2, text_th: "Later choice", reply_th: "Later recorded response" }]} grandmother={false} onRestart={restart}
-    report={{ safety_status: "SAFETY_NOT_MET", competencies: [], evidence: [{ idx: 1, text_th: turn.text_th, feedback_th: "Engine finding", safe: false, source_ids: ["REF"] }], sources: [{ id: "REF", title_th: "Relevant source", url: "https://example.org", summary_th: "Scope", category: "guidance" }] }} />);
+    report={{ safety_status: "SAFETY_NOT_MET", competencies: [], dimensions: [], evidence: [{ idx: 1, text_th: turn.text_th, feedback_th: "Engine finding", safe: false, source_ids: ["REF"] }], sources: [{ id: "REF", title_th: "Relevant source", url: "https://example.org", summary_th: "Scope", category: "guidance" }] }} />);
   expect(screen.getByText("Recorded response")).not.toBeNull();
   expect(screen.getByText("Engine finding")).not.toBeNull();
   expect(screen.getByRole("link", { name: "Relevant source" }).getAttribute("href")).toBe("#source-REF");
