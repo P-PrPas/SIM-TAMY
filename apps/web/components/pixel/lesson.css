@@ -1,0 +1,24 @@
+/* Pixel story cards and sort game. Colours follow the brand palette; text is >=16px at >=4.5:1. */
+.pl-lesson, .pl-sort { display: grid; gap: 0.75rem; max-width: 36rem; margin: 1rem 0; font-size: 1rem; color: #231e18; }
+.pl-card { display: grid; gap: 0.75rem; padding: 0.75rem; background: #fff9eb; border: 2px solid #47351f; }
+.pl-art { display: flex; justify-content: center; }
+.pl-text { margin: 0; line-height: 1.7; }
+.pl-sources { margin: 0; padding: 0; list-style: none; font-size: 1rem; color: #47351f; }
+.pl-count { margin: 0; font-weight: 600; }
+.pl-taps, .pl-nav, .pl-bins { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.pl-bins > .pl-bin { flex: 1 1 10rem; }
+.pl-btn { min-height: 44px; padding: 0.5rem 0.9rem; font: inherit; color: #231e18; background: #fff9eb; border: 2px solid #47351f; cursor: pointer; text-align: left; }
+.pl-btn:focus-visible { outline: 3px solid #5b7a99; outline-offset: 2px; }
+.pl-btn:disabled { color: #5a5044; border-color: #776b5c; cursor: not-allowed; }
+.pl-btn[aria-pressed="true"] { background: #efd698; box-shadow: inset 0 0 0 2px #7c5314; }
+.pl-primary { background: #efbd51; font-weight: 600; }
+.pl-nav .pl-btn { flex: 1; text-align: center; }
+.pl-dots { display: flex; gap: 0.4rem; margin: 0; padding: 0; list-style: none; justify-content: center; }
+.pl-dot { width: 12px; height: 12px; background: #fff9eb; border: 2px solid #47351f; }
+.pl-dot[data-done="true"] { background: #7c5314; }
+.pl-dot[aria-current="step"] { outline: 2px solid #231e18; outline-offset: 2px; }
+.pl-pile { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.pl-item { width: 100%; line-height: 1.6; }
+.pl-feedback { min-height: 1.6em; margin: 0; font-weight: 600; }
+.pl-finish { display: grid; gap: 0.5rem; justify-items: center; text-align: center; }
+.pl-complete { font-weight: 600; }
