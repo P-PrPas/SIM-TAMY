@@ -1,8 +1,8 @@
 {
-  "name": { "ploy": "พลอย", "ton": "ต้น", "teacher": "ครูผู้สอน", "mom": "แม่ของพลอย", "friend": "ตัวละคร" },
+  "name": { "ploy": "พลอย", "ton": "ต้น", "teacher": "ครูผู้สอน", "mom": "แม่ของพลอย", "mali": "มะลิ", "non": "นนท์", "yai": "ยาย", "yaisai": "ยายสาย", "counselor": "ผู้ให้คำปรึกษานมแม่", "friend": "ตัวละคร" },
   "backdrop": { "sala": "ศาลาของครู", "kitchen": "ครัวบ้านไม้" },
   "sr": {
-    "scene": "ภาพประกอบ: {backdrop} มี{ploy}และ{speaker}",
+    "scene": "ภาพประกอบ: {backdrop} มี{left}และ{speaker}",
     "warm": "{speaker} ยิ้มรับและขยับเข้ามาใกล้",
     "open": "{speaker} เอียงศีรษะ ยังลังเลอยู่",
     "card": "เก็บบัตรความรู้ {source} ลงสมุดโน้ตแล้ว"

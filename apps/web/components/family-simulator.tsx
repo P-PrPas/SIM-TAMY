@@ -18,10 +18,11 @@ import { FamilyChapterGate, FamilyJournal } from "./family-story";
 import { FamilyFacts, FamilyKnowledgeCard, FamilyVoteStatus } from "./family-cosim";
 import { FamilyChat } from "./family-chat";
 import { FamilyLabReport } from "./family-lab-report";
-import { PixelScene, type SceneCard } from "./pixel/scene-view";
+import { sceneSetup } from "./pixel/cast";
+import { PixelScene, characterOf, type SceneCard } from "./pixel/scene-view";
 import { PixelStage, type BeatLines } from "./pixel/stage";
 import { ChoiceCards } from "./pixel/choice-cards";
-import { ITEM_OF, type ItemKey } from "./pixel/scene-art";
+import { itemFor, type ItemKey } from "./pixel/scene-art";
 import type { Say } from "./family-chat";
 
 type View = components["schemas"]["FamilyView"];
@@ -164,7 +165,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
       const chosen = view.scene?.choices.find((c) => c.id === choiceId);
       const turn = data.transcript.at(-1);
       if (pixel && view.scene?.kind !== "discover" && chosen && turn) {
-        const item = chosen.icon ? ITEM_OF[chosen.icon] : undefined;
+        const item = itemFor(chosen.icon, setup.backdrop);
         if (item) setItems((prior) => prior.includes(item) ? prior : [...prior, item]);
         if (!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) setBeat({ you: chosen.text_th, reply: turn.reply_th });
       }
@@ -203,6 +204,8 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
   const pixel = isPixelStory(storyId);
   const stage = pixel && Boolean(view) && !completed; // visual-first play layout
   const lastTurn = view?.transcript.at(-1);
+  const speakerName = (beat ? lastTurn?.speaker_th : view?.scene?.speaker_th) ?? lastTurn?.speaker_th ?? "";
+  const setup = sceneSetup(storyId, view?.role ?? "mother", view?.scene?.kind === "discover" && !beat ? "discover" : "choice", characterOf(speakerName));
   // Mood only reacts to choice steps; step 1 is the free-chat discover step whose "continue" has no meaning.
   const mood = pixel && (beat || (view?.completed_steps ?? 0) >= 2
     && (!view?.scene || view.scene.speaker_th === lastTurn?.speaker_th)) ? lastTurn?.mood : null;
@@ -304,12 +307,12 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
           </section>}
         </aside>}
         <div className="family-room-main">
-          {stage ? <PixelStage scene={{ speaker: (beat ? lastTurn?.speaker_th : view.scene?.speaker_th) ?? lastTurn?.speaker_th ?? "", backdrop: view.scene?.kind === "discover" && !beat ? "sala" : "kitchen", talking, mood, cards, items }}
+          {stage ? <PixelStage scene={{ speaker: speakerName, backdrop: setup.backdrop, left: setup.left, talking, mood, cards, items }}
               step={view.scene?.id ?? "end"} prompt={view.scene?.prompt_th ?? t(status)} say={say} beat={beat} onTalking={setTalking} onSkip={() => setBeat(null)}
               done={done} total={view.total_steps} onLeave={leave} leaveDisabled={busy}
               partner={card?.mode === "coop" ? (!view.partner_joined ? "waiting" : view.partner_online ? "online" : "offline") : null}
               know={<PixelKnow view={view} busy={busy || !!pending} onShare={(id) => void shareFact(id)} />}>{statusLine}{sceneSection}</PixelStage>
-            : pixel ? <PixelScene speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? ""} backdrop={view.scene?.kind === "discover" ? "sala" : "kitchen"} talking={talking} mood={mood} cards={cards} />
+            : pixel ? <PixelScene speaker={speakerName} backdrop={setup.backdrop} left={setup.left} talking={talking} mood={mood} cards={cards} />
             : <PracticeStage family grandmother={experience === "bridge"} sceneIndex={Math.max(0, card?.chapters_th.indexOf(view.scene?.chapter_th ?? "") ?? 0)} chapter={view.scene?.chapter_th ?? t("family.finished")} speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? t("family.conversation")} />}
           {earlierTurns.length > 0 && !stage && <details className="family-history"><summary><FamilyIcon name="chat" />{t("family.design.history")}<span>{earlierTurns.length}</span><span className="family-disclosure" aria-hidden="true"><FamilyIcon name="chevron" /></span></summary><div>{earlierTurns.map((turn) => <Exchange key={turn.idx} turn={turn} includePrompt />)}</div></details>}
           <section role="log" aria-live="polite" aria-relevant="additions" aria-label={t("family.conversation")} className={stage ? "sr-only" : undefined}>

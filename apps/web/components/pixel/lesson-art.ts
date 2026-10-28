@@ -1,40 +1,13 @@
+import { LESSON_ART_2, LESSON_UNITS_2 } from "./art/lesson-stage2";
+import { LESSON_ART_3, LESSON_UNITS_3 } from "./art/lesson-stage3";
+import { LESSON_ART_4, LESSON_UNITS_4 } from "./art/lesson-stage4";
+import { ART_H, ART_W, blank, box, disc, done, figure, rect, ring, stamp, type Art } from "./lesson-draw";
 import type { Frame } from "./sprite";
 
+export { ART_H, ART_W };
+export type { Art };
+
 /** Code-drawn 96x64 lesson illustrations. Purely illustrative: they carry no facts beyond the card text. */
-export const ART_W = 96;
-export const ART_H = 64;
-type Cv = string[][];
-
-const blank = (): Cv => {
-  const c = Array.from({ length: ART_H }, () => Array<string>(ART_W).fill("p"));
-  for (let y = 52; y < ART_H; y++) c[y]!.fill("c");
-  return c;
-};
-const rect = (c: Cv, x: number, y: number, w: number, h: number, k: string) => {
-  for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) if (c[j]?.[i] !== undefined) c[j]![i] = k;
-};
-const box = (c: Cv, x: number, y: number, w: number, h: number, fill: string) => {
-  rect(c, x, y, w, h, "k"); rect(c, x + 1, y + 1, w - 2, h - 2, fill);
-};
-const disc = (c: Cv, cx: number, cy: number, r: number, k: string) => {
-  for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) if (i * i + j * j <= r * r + r / 2) rect(c, cx + i, cy + j, 1, 1, k);
-};
-const ring = (c: Cv, cx: number, cy: number, r: number, k: string) => {
-  for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) {
-    const d = i * i + j * j;
-    if (d <= r * r + r / 2 && d >= (r - 1) * (r - 1) - 1) rect(c, cx + i, cy + j, 1, 1, k);
-  }
-};
-/** Stamp a char map; "#" is repainted with `paint` when given. */
-const stamp = (c: Cv, x: number, y: number, rows: readonly string[], paint?: string) => {
-  rows.forEach((row, j) => [...row].forEach((ch, i) => { if (ch !== ".") rect(c, x + i, y + j, 1, 1, ch === "#" && paint ? paint : ch); }));
-};
-const done = (c: Cv): Frame => c.map((r) => r.join(""));
-const figure = (c: Cv, cx: number, top: number) => {
-  rect(c, cx - 5, top + 10, 10, 16, "b"); rect(c, cx - 5, top + 10, 10, 1, "k");
-  disc(c, cx, top + 5, 5, "s"); rect(c, cx - 5, top, 10, 3, "h");
-};
-
 const GLYPH = ["..#..", ".###.", "#####", ".###.", "..#.."] as const;
 const SUN = [".#.#.", "..#..", "#####", "..#..", ".#.#."] as const;
 const CLOCK = ["#####", "#.#.#", "#.##.", "#...#", "#####"] as const;
@@ -44,15 +17,13 @@ const SHOE = ["#....", "##...", "#####", "#####", "....."] as const;
 const PLATE = ["..######..", ".########.", "##########", ".########.", "..######.."] as const;
 const APPROX = ["..##...##.", ".#..#.#..#", "#....#...."] as const;
 
-export type ArtKind = "element" | "wheel" | "calendar" | "context" | "table" | "book" | "wisdom" | "safety" | "rights";
-export type Art = { taps: number; draw: (on: readonly boolean[]) => Frame };
 
 const ELEMENT_COLOURS = ["o", "b", "g", "r"] as const;
 const ELEMENT_POS = [[6, 8], [78, 8], [6, 38], [78, 38]] as const;
 const CONTEXT_ICONS = [SUN, CLOCK, CANDLE, HOUSE, SHOE] as const;
 const CONTEXT_POS = [[8, 8], [44, 4], [80, 8], [12, 40], [76, 40]] as const;
 
-export const ART: Record<ArtKind, Art> = {
+const BASE_ART = {
   element: { taps: 4, draw: (on) => {
     const c = blank(); figure(c, 48, 20);
     ELEMENT_POS.forEach(([x, y], i) => { box(c, x, y, 12, 12, on[i] ? ELEMENT_COLOURS[i]! : "l"); stamp(c, x + 3, y + 3, GLYPH, on[i] ? "k" : "m"); });
@@ -105,13 +76,21 @@ export const ART: Record<ArtKind, Art> = {
     for (let i = 0; i < 5; i++) rect(c, 33, 14 + i * 7, 30, 1, "k");
     return done(c);
   } },
-};
+} satisfies Record<string, Art>;
+
+/** Every illustration; stage PRs add theirs in art/lesson-stageN.ts. */
+export const ART = { ...BASE_ART, ...LESSON_ART_2, ...LESSON_ART_3, ...LESSON_ART_4 } satisfies Record<string, Art>;
+export type ArtKind = keyof typeof ART;
 
 /** Which illustration a card gets: by unit and claim index, with a neutral book fallback for any other unit. */
-const ART_BY_UNIT: Record<string, readonly ArtKind[]> = {
+const ART_BY_UNIT: Record<string, readonly string[]> = {
   "KB-TM-ELEMENT-001": ["element", "wheel", "calendar", "context", "table"],
+  ...LESSON_UNITS_2, ...LESSON_UNITS_3, ...LESSON_UNITS_4,
 };
-export const claimArt = (unitId: string, index: number): ArtKind => ART_BY_UNIT[unitId]?.[index] ?? "book";
+export const claimArt = (unitId: string, index: number): ArtKind => {
+  const kind = ART_BY_UNIT[unitId]?.[index];
+  return kind && kind in ART ? (kind as ArtKind) : "book";
+};
 
 /** Two-frame confetti for the sort-game finish screen. */
 export const CELEBRATE: readonly Frame[] = [0, 1].map((f) => {

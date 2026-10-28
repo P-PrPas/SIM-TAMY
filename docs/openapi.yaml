@@ -3792,6 +3792,11 @@ components:
             - pause
             - menu
             - arrow
+            - phone
+            - baby
+            - house
+            - heart
+            - help
           - type: 'null'
           title: Icon
       additionalProperties: false

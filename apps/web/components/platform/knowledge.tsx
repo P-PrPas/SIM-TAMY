@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { t } from "@/lib/i18n";
 import { unitReady } from "@/lib/learning-path";
 import { PixelLesson } from "@/components/pixel/lesson-cards";
+import { isPixelLesson } from "@/components/pixel/registry";
 import { useDemoAccount } from "@/lib/use-demo-account";
 import { useV2 } from "@/lib/use-v2";
 import { v2, type Claim, type Lens, type Source, type UnitDetail, type UnitSummary } from "@/lib/v2-api";
@@ -94,7 +95,6 @@ function WisdomLens({ lens }: { lens: Lens }) {
 }
 
 /** Units shown as pixel story cards by default; add an id to switch another unit on. */
-const PIXEL_LESSON_UNITS: ReadonlySet<string> = new Set(["KB-TM-ELEMENT-001"]);
 
 function Detail({ u }: { u: UnitDetail }) {
   const account = useDemoAccount();
@@ -112,7 +112,7 @@ function Detail({ u }: { u: UnitDetail }) {
         {u.reviewed_on && <> · {t("platform.knowledge.updatedOn")} {formatDate(u.reviewed_on)}</>}
       </p>
     </header>
-    {PIXEL_LESSON_UNITS.has(u.id) && <PixelLesson unit={u} onComplete={record} />}
+    {isPixelLesson(u.id) && <PixelLesson unit={u} onComplete={record} />}
     <section aria-labelledby="claims-title" className="pf-section">
       <h2 id="claims-title">{t("platform.knowledge.claims")}</h2>
       <ul className="pf-list pf-stack">{u.claims.map((c) => <ClaimCard key={c.id} c={c} />)}</ul>

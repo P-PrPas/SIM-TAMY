@@ -1574,7 +1574,7 @@ export interface components {
             /** Short Th */
             short_th?: string | null;
             /** Icon */
-            icon?: ("book" | "notebook" | "pot" | "talk" | "pause" | "menu" | "arrow") | null;
+            icon?: ("book" | "notebook" | "pot" | "talk" | "pause" | "menu" | "arrow" | "phone" | "baby" | "house" | "heart" | "help") | null;
         };
         /** FamilyReport */
         FamilyReport: {
