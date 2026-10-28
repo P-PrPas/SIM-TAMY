@@ -93,9 +93,9 @@ it("shows the final frame at once with reduced motion", async () => {
 });
 
 it("keeps the old layout for other stories", async () => {
-  sessionStorage.setItem("sim-tamy-family:gs-a-postpartum-warning", JSON.stringify({ room_id: ROOM, token: "tok" }));
-  serve("gs-a-postpartum-warning");
-  const { container } = render(<FamilySimulator storyId="gs-a-postpartum-warning" />);
+  sessionStorage.setItem("sim-tamy-family:gs-b-thai-recovery", JSON.stringify({ room_id: ROOM, token: "tok" }));
+  serve("gs-b-thai-recovery");
+  const { container } = render(<FamilySimulator storyId="gs-b-thai-recovery" />);
   await screen.findByText("Which way");
   expect(container.querySelector(".family-hero")).not.toBeNull();
   expect(container.querySelector(".family-session-bar progress")).not.toBeNull();

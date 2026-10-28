@@ -22,19 +22,13 @@ const attempt = (over: Partial<Attempt> = {}): Attempt => ({
   room_id: "r", story_id: "thai-elements-family", title_th: "x", finished_at: "2026-10-01", safety_status: "SAFETY_MET", score_total: 50, objective_ids: [], strong: false, ...over,
 });
 
-// These tests describe the stage 1 house; stage PRs register more ids, so pin the registry to stage 1 here.
-vi.mock("@/components/pixel/registry", () => ({
-  isPixelStory: (id: string) => id === "thai-elements-family",
-  isPixelLesson: (id: string) => id === "KB-TM-ELEMENT-001",
-}));
-
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe("NurseryHouse", () => {
   it("locks stages 2-4 and leaves slots empty without finished attempts", () => {
     render(<NurseryHouse attempts={[attempt({ finished_at: null }), attempt({ story_id: "other" })]} />);
     expect(screen.getAllByText(t("pixelHouse.locked"))).toHaveLength(3);
-    expect(screen.getByText(t("pixelHouse.itemState.table"), { exact: false })).toBeTruthy();
+    expect(screen.getAllByText(t("pixelHouse.itemState.table"), { exact: false })[0]).toBeTruthy();
     expect(houseItems(null).table).toBe(0);
   });
   it("fills the table from a finished attempt and upgrades it only for a strong one, never adds a score", () => {
@@ -62,7 +56,7 @@ describe("NurseryHouse", () => {
     expect(houseItems([], [{ unit_id: "KB-OTHER", completed_at: "2026-10-01" }]).book).toBe(false);
     expect(houseItems([], done).book).toBe(true);
     const { container, rerender } = render(<NurseryHouse attempts={[]} lessons={[]} />);
-    const bookRow = () => screen.getByText(t("pixelHouse.items.book"), { exact: false }).closest("li")!.textContent;
+    const bookRow = () => screen.getAllByText(t("pixelHouse.items.book"), { exact: false })[0]!.closest("li")!.textContent;
     const artRects = () => container.querySelectorAll(".nh-art rect").length;
     expect(bookRow()).toContain(t("pixelHouse.itemState.book"));
     const empty = artRects();

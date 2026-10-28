@@ -162,7 +162,7 @@ it("shows both choices only when the pair disagrees", async () => {
 });
 
 it("keeps the classic layout for non-pixel stories", async () => {
-  const other = "gs-a-postpartum-warning";
+  const other = "gs-b-thai-recovery";
   open(other);
   serve(() => Response.json(view({ story_id: other })), other);
   const { container } = render(<FamilySimulator storyId={other} />);
