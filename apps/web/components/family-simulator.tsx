@@ -8,6 +8,8 @@ import type { components } from "@/lib/api/schema";
 import { t } from "@/lib/i18n";
 import { FamilyArtwork, FamilyIcon } from "./family-art";
 import { FamilyReportPanel } from "./family-report";
+import { HOUSE_STORY } from "./pixel/house";
+import { HouseReveal } from "./pixel/reveal";
 import { PracticeStage } from "./practice-stage";
 import { PracticeChoice } from "./practice-choice";
 import { FamilyChapterGate, FamilyJournal } from "./family-story";
@@ -275,6 +277,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         </div>
       </div>
       <FamilyJournal turns={view.transcript} coop={experience === "coop"} waiting={t(status)} />
+      {view.report && storyId === HOUSE_STORY && <HouseReveal evidence={view.report.evidence} safetyStatus={view.report.safety_status} />}
       {view.report && <FamilyReportPanel report={view.report} turns={view.transcript} grandmother={experience === "bridge"} coop={experience === "coop"} onRestart={() => { setRole(view.role); leave(); }} />}
       {view.report && view.report.score_total != null && credentials && <FamilyLabReport report={view.report} roomId={credentials.room_id} token={credentials.token} />}
     </>}

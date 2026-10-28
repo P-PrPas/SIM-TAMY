@@ -8,12 +8,16 @@ import { useDemoAccount } from "@/lib/use-demo-account";
 import { useV2 } from "@/lib/use-v2";
 import { storyHref, v2, type Attempt, type LearningPaths, type PathObjective } from "@/lib/v2-api";
 
+import { NurseryHouse } from "../pixel/house";
 import { Async, DemoBadge, labelOr } from "./shared";
 
 export function StageCards() {
+  const account = useDemoAccount();
   const paths = useV2((s) => v2.learningPaths(s), "paths");
+  const passport = useV2(account ? (s) => v2.passport(account, s) : null, `passport:${account ?? ""}`);
   return <main className="pf-page">
     <header><h1>{t("platform.learn.title")}</h1><p className="pf-lead">{t("platform.learn.intro")}</p></header>
+    <NurseryHouse attempts={passport.data?.attempts ?? null} />
     <Async r={paths}>{(data) => data.stages.length === 0
       ? <p className="pf-note">{t("platform.learn.empty")}</p>
       : <ol className="pf-grid pf-list">

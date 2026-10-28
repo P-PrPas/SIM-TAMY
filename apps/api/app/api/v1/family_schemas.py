@@ -119,6 +119,11 @@ class FamilyEvidence(Model):
     feedback_th: str
     source_ids: list[str]
     safe: bool
+    # Finished-report only: lets the end-of-chapter reveal replay each choice (LP-03).
+    skills: list[FamilySkill] = []
+    dimension: str | None = None
+    critical: bool = False
+    kind: Literal["choice", "discover"] = "choice"
 
 
 class FamilyCompetency(Model):

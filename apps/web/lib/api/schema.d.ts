@@ -1499,6 +1499,24 @@ export interface components {
             source_ids: string[];
             /** Safe */
             safe: boolean;
+            /**
+             * Skills
+             * @default []
+             */
+            skills: ("communication" | "responsibility" | "safety" | "support" | "shared_decision")[];
+            /** Dimension */
+            dimension?: string | null;
+            /**
+             * Critical
+             * @default false
+             */
+            critical: boolean;
+            /**
+             * Kind
+             * @default choice
+             * @enum {string}
+             */
+            kind: "choice" | "discover";
         };
         /** FamilyExchange */
         FamilyExchange: {
