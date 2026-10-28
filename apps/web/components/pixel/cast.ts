@@ -17,8 +17,8 @@ export const CASTS: Record<string, Cast> = {
   // Stage 3: placeholder until the stage 3 PR sets the real cast and backdrops
   "gs-a-postpartum-warning": { mother: "mali", father: "non", backdrops: { discover: "sala", choice: "kitchen" } },
 
-  // Stage 4: placeholder until the stage 4 PR sets the real cast and backdrops
-  "thai-milk-family": { mother: "ploy", father: "ton", backdrops: { discover: "sala", choice: "kitchen" } },
+  // Stage 4: the counsellor talks in a quiet room; the other steps happen in the living room with the grandmother on a video call.
+  "thai-milk-family": { mother: "ploy", father: "ton", backdrops: { discover: "consult", choice: "livingroom" } },
 };
 
 /** The player's own character stands on the left; when the speaker is that character, the partner stands there instead. */

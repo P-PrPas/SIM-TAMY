@@ -12,6 +12,12 @@ import { characterOf } from "@/components/pixel/scene-view";
 import { t } from "@/lib/i18n";
 import type { Attempt } from "@/lib/v2-api";
 
+// These tests describe the chapter-1 house and registry; later stages register without changing what they check.
+vi.mock("@/components/pixel/registry", () => ({
+  isPixelStory: (id: string) => id === "thai-elements-family",
+  isPixelLesson: (id: string) => id === "KB-TM-ELEMENT-001",
+}));
+
 afterEach(() => {
   cleanup();
   for (const m of ["registry", "art/scene-stage2", "art/scene-stage3"]) vi.doUnmock(`@/components/pixel/${m}`);

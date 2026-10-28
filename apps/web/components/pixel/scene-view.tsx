@@ -16,7 +16,7 @@ const LEFT_X = 40, SPEAKER_X = 248, TOP = 100;
 /** Speaker display name (from the story) to sprite. Unknown speakers get the neutral sprite. */
 export function characterOf(name: string): CharacterKey {
   const known: [string, CharacterKey][] = [["ploy", "ploy"], ["ton", "ton"], ["teacher", "teacher"], ["mom", "mom"], ["mali", "mali"], ["non", "non"],
-    ["yai", "yai"], ["yaisai", "yai"], ["counselor", "counselor"]];
+    ["yai", "yai"], ["yaisai", "yai"], ["counselor", "counselor"], ["pair", "ton"]];
   return known.find(([key]) => t(`pixelSim.name.${key}`) === name)?.[1] ?? "neutral";
 }
 

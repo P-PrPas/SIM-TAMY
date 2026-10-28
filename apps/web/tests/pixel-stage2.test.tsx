@@ -6,7 +6,7 @@ import { LESSON_UNITS_2 } from "@/components/pixel/art/lesson-stage2";
 import { CASTS, sceneSetup } from "@/components/pixel/cast";
 import { ART, claimArt } from "@/components/pixel/lesson-art";
 import { isPixelLesson, isPixelStory } from "@/components/pixel/registry";
-import { BACKDROPS, CARD_SLOTS, ICONS, ITEMS, ITEM_OF, itemShownOn } from "@/components/pixel/scene-art";
+import { BACKDROPS, CARD_SLOTS, ICONS, itemFor } from "@/components/pixel/scene-art";
 import { characterOf } from "@/components/pixel/scene-view";
 import { t } from "@/lib/i18n";
 
@@ -75,14 +75,11 @@ describe("stage 2 scene", () => {
     expect(sceneSetup(STORY, "mother", "choice", "ton").left).toBe("ploy");
   });
 
-  it("shows its props only on the veranda and has card slots there", () => {
-    expect(ITEM_OF.heart).toBeDefined();
-    expect(ITEM_OF.talk).toBeDefined();
+  it("leaves its props on the veranda only and has card slots there", () => {
+    // other stages may map the same icons to their own props; each prop shows only on its stage's backdrop
     for (const icon of ["heart", "talk"] as const) {
-      const key = ITEM_OF[icon]!;
-      expect(ITEMS[key]).toBeDefined();
-      expect(itemShownOn(key, "veranda")).toBe(true);
-      expect(itemShownOn(key, "kitchen")).toBe(false);
+      expect(itemFor(icon, "veranda")).toBeDefined();
+      expect(itemFor(icon, "kitchen")).not.toBe(itemFor(icon, "veranda"));
     }
     expect(CARD_SLOTS.veranda!.length).toBeGreaterThan(0);
   });

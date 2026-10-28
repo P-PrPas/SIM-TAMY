@@ -11,7 +11,7 @@ const STAGE2 = { stories: ["thai-birth-conversation"], lessons: ["KB-IP-HERITAGE
 const STAGE3: { stories: string[]; lessons: string[] } = { stories: [], lessons: [] };
 
 // Stage 4 (thai-milk-family + KB-BF-COLOSTRUM-001)
-const STAGE4: { stories: string[]; lessons: string[] } = { stories: [], lessons: [] };
+const STAGE4 = { stories: ["thai-milk-family"], lessons: ["KB-BF-COLOSTRUM-001"] };
 
 const STAGES = [STAGE1, STAGE2, STAGE3, STAGE4];
 
