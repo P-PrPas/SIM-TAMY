@@ -147,3 +147,15 @@ Demo data is labeled on screen (AGENTS rule 9). Mobile-first 360px, the existing
 
 Real auth, passwords, SSO, billing, white-label, tenant hardening, PDF export beyond print/CSV,
 pilot study, buyer interviews, EMR/HIS, AI-generated curriculum.
+
+### Focused family learning path (LP-01..04)
+
+`apps/web/lib/learning-path.ts` curates navigation priority only. Stage 1 links
+`thai-elements-family`, stage 2 `thai-birth-conversation`, stage 3 GS-A and GS-B,
+and stage 4 `thai-milk-family`. API availability still controls every link.
+`golden-first-night` remains a follow-up; other family stories, role-specific
+solo cases and instructor tools remain accessible through collapsed sections
+in `/lab`. Existing routes, sessions, objective progress and scoring are unchanged.
+The knowledge index combines preconception and antenatal references into one
+navigation group and collapses the source registry; unit detail metadata and
+citations retain their original meaning. This does not retire or approve content.

@@ -9,11 +9,14 @@ import { v2, type Claim, type Lens, type Source, type UnitDetail, type UnitSumma
 
 import { Async, formatDate, labelOr } from "./shared";
 
-const STAGE_ORDER = ["preconception", "antenatal", "intrapartum", "postpartum", "newborn"];
+const STAGE_ORDER = ["pregnancy", "intrapartum", "postpartum", "newborn"];
 
 function groupByStage(items: UnitSummary[]): Array<[string, UnitSummary[]]> {
   const groups = new Map<string, UnitSummary[]>();
-  for (const u of items) groups.set(u.care_stage, [...(groups.get(u.care_stage) ?? []), u]);
+  for (const u of items) {
+    const stage = ["preconception", "antenatal"].includes(u.care_stage) ? "pregnancy" : u.care_stage;
+    groups.set(stage, [...(groups.get(stage) ?? []), u]);
+  }
   const rank = (s: string) => (STAGE_ORDER.includes(s) ? STAGE_ORDER.indexOf(s) : STAGE_ORDER.length);
   return [...groups].sort((a, b) => rank(a[0]) - rank(b[0]));
 }
@@ -28,8 +31,8 @@ function ExternalLink({ url, children }: { url: string; children: ReactNode }) {
 
 function SourceRegistry() {
   const sources = useV2((s) => v2.sources(s), "sources");
-  return <section aria-labelledby="registry-title" className="pf-section">
-    <h2 id="registry-title">{t("platform.knowledge.registry")}</h2>
+  return <details className="pf-section pf-disclosure">
+    <summary>{t("platform.knowledge.registry")}</summary>
     <p className="pf-muted">{t("platform.knowledge.registryIntro")}</p>
     <Async r={sources}>{({ items }) => items.length === 0
       ? <p className="pf-note">{t("platform.knowledge.noSources")}</p>
@@ -43,7 +46,7 @@ function SourceRegistry() {
         <p className="pf-meta">{t("platform.knowledge.rights")}: {labelOr(`platform.knowledge.rights_${s.rights_status}`, s.rights_status)}</p>
         {s.url && <ExternalLink url={s.url}>{t("platform.knowledge.sourceLink")}</ExternalLink>}
       </li>)}</ul>}</Async>
-  </section>;
+  </details>;
 }
 
 export function KnowledgeIndex() {
