@@ -8,7 +8,8 @@ import type { components } from "@/lib/api/schema";
 import { t } from "@/lib/i18n";
 import { FamilyArtwork, FamilyIcon } from "./family-art";
 import { FamilyReportPanel } from "./family-report";
-import { HOUSE_STORY } from "./pixel/house";
+import { isPixelStory } from "./pixel/registry";
+import { PixelKnow } from "./pixel/know";
 import { HouseReveal } from "./pixel/reveal";
 import { PracticeStage } from "./practice-stage";
 import { PracticeChoice } from "./practice-choice";
@@ -27,7 +28,6 @@ type Role = View["role"];
 type Credentials = { room_id: string; token: string; invite?: string };
 type Decision = components["schemas"]["FamilyDecision"];
 const GOLDEN_STORY = "golden-first-night";
-const PIXEL_STORY = "thai-elements-family"; // the only story with the living pixel scene (LP-01)
 const BEAT_MS = 1800; // consequence beat length; reduced motion skips it
 
 function newClientId() {
@@ -199,7 +199,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
   }
 
   const experience = storyId === "first-night" || storyId === GOLDEN_STORY || storyId.startsWith("gs-") ? "coop" : storyId === "parenthood" ? "journey" : "bridge";
-  const pixel = storyId === PIXEL_STORY;
+  const pixel = isPixelStory(storyId);
   const stage = pixel && Boolean(view) && !completed; // visual-first play layout
   const lastTurn = view?.transcript.at(-1);
   // Mood only reacts to choice steps; step 1 is the free-chat discover step whose "continue" has no meaning.
@@ -289,12 +289,12 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
       </div>}
       <div className={stage ? "family-room-grid is-stage" : "family-room-grid"}>
         {(!stage || !view.partner_joined) && <aside className="family-room-sidebar">
-          <details open className="family-private"><summary><FamilyIcon name="lock" /><span>{t("family.private")}</span><span className="family-disclosure" aria-hidden="true"><FamilyIcon name="chevron" /></span></summary><p>{view.private_brief_th}</p></details>
+          {!stage && <><details open className="family-private"><summary><FamilyIcon name="lock" /><span>{t("family.private")}</span><span className="family-disclosure" aria-hidden="true"><FamilyIcon name="chevron" /></span></summary><p>{view.private_brief_th}</p></details>
           {experience === 'coop' && <section className="family-participants" aria-label={t("family.design.participants")}>
             {([view.role, view.role === 'mother' ? 'father' : 'mother'] as const).map((item, index) => <div key={item}><span className="family-role-avatar" aria-hidden="true">{t(`family.design.${item}Initial`)}</span><p><strong>{t(`family.${item}`)}</strong><small>{t(index === 0 ? 'family.design.you' : view.partner_joined ? 'family.design.joined' : 'family.design.notJoined')}</small></p><span className={`family-presence ${index === 0 || view.partner_joined ? 'has-joined' : ''} ${index === 1 && view.partner_online ? 'is-online' : ''}`} aria-hidden="true" /></div>)}
             {view.partner_joined && <p role="status" className="family-online-note">{t(view.partner_online ? "family.cosim.presence.online" : "family.cosim.presence.offline")}</p>}
           </section>}
-          <FamilyFacts view={view} busy={busy || !!pending} onShare={(id) => void shareFact(id)} />
+          <FamilyFacts view={view} busy={busy || !!pending} onShare={(id) => void shareFact(id)} /></>}
           {!view.partner_joined && <section className="family-invite-panel"><h2>{t("family.waitPartner")}</h2><p>{t("family.shareHelp")}</p>
             <label htmlFor="family-share" className="sr-only">{t("family.invitation")}</label>
             <input id="family-share" readOnly value={inviteLink} onFocus={(event) => event.target.select()} />
@@ -304,8 +304,10 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         </aside>}
         <div className="family-room-main">
           {stage ? <PixelStage scene={{ speaker: (beat ? lastTurn?.speaker_th : view.scene?.speaker_th) ?? lastTurn?.speaker_th ?? "", backdrop: view.scene?.kind === "discover" && !beat ? "sala" : "kitchen", talking, mood, cards, items }}
-              step={view.scene?.id ?? "end"} prompt={view.scene?.prompt_th ?? ""} say={say} beat={beat} onTalking={setTalking} onSkip={() => setBeat(null)}
-              done={done} total={view.total_steps} onLeave={leave} leaveDisabled={busy}>{statusLine}{sceneSection}</PixelStage>
+              step={view.scene?.id ?? "end"} prompt={view.scene?.prompt_th ?? t(status)} say={say} beat={beat} onTalking={setTalking} onSkip={() => setBeat(null)}
+              done={done} total={view.total_steps} onLeave={leave} leaveDisabled={busy}
+              partner={card?.mode === "coop" ? (!view.partner_joined ? "waiting" : view.partner_online ? "online" : "offline") : null}
+              know={<PixelKnow view={view} busy={busy || !!pending} onShare={(id) => void shareFact(id)} />}>{statusLine}{sceneSection}</PixelStage>
             : pixel ? <PixelScene speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? ""} backdrop={view.scene?.kind === "discover" ? "sala" : "kitchen"} talking={talking} mood={mood} cards={cards} />
             : <PracticeStage family grandmother={experience === "bridge"} sceneIndex={Math.max(0, card?.chapters_th.indexOf(view.scene?.chapter_th ?? "") ?? 0)} chapter={view.scene?.chapter_th ?? t("family.finished")} speaker={view.scene?.speaker_th ?? lastTurn?.speaker_th ?? t("family.conversation")} />}
           {earlierTurns.length > 0 && !stage && <details className="family-history"><summary><FamilyIcon name="chat" />{t("family.design.history")}<span>{earlierTurns.length}</span><span className="family-disclosure" aria-hidden="true"><FamilyIcon name="chevron" /></span></summary><div>{earlierTurns.map((turn) => <Exchange key={turn.idx} turn={turn} includePrompt />)}</div></details>}
@@ -318,7 +320,7 @@ export function FamilySimulator({ storyId, children }: { storyId: string; childr
         </div>
       </div>
       <FamilyJournal turns={view.transcript} coop={experience === "coop"} waiting={t(status)} />
-      {view.report && storyId === HOUSE_STORY && <HouseReveal evidence={view.report.evidence} safetyStatus={view.report.safety_status} />}
+      {view.report && pixel && <HouseReveal evidence={view.report.evidence} safetyStatus={view.report.safety_status} />}
       {view.report && <FamilyReportPanel report={view.report} turns={view.transcript} grandmother={experience === "bridge"} coop={experience === "coop"} onRestart={() => { setRole(view.role); leave(); }} />}
       {view.report && view.report.score_total != null && credentials && <FamilyLabReport report={view.report} roomId={credentials.room_id} token={credentials.token} />}
     </>}

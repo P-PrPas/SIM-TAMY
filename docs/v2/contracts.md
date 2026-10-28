@@ -76,6 +76,7 @@ Implementation notes from stream B (binding for consumers):
   lists the first example question of each intent for the current discover step (sample strings only,
   no intent IDs or labels); empty on other steps.
 - Pixel stage (LP-01): `FamilyChoice` gains optional display-only `short_th` (non-blank, <= 30 chars, a faithful shortening of that choice's `text_th`) and `icon` (`book|notebook|pot|talk|pause|menu|arrow`). Play-time `FamilyOption` exposes only these two beside `id`/`text_th`; skills, feedback, dimension and `safe` stay hidden. Without `short_th` the web shows `text_th`; the full sentence is always readable before committing. The web's consequence beat uses only `mood`, the committed choice's `icon` and step.
+- Pixel stage registry (LP-01): `apps/web/components/pixel/registry.ts` (`PIXEL_STORIES`, `isPixelStory`) is the single list of stories drawn with the pixel stage; each stage PR only adds its id. Co-op stories use the same stage: the dialogue panel starts with a `<details>` "what you know" (role-private brief, my facts with the share action, shared timeline; open while unshared facts remain), the HUD shows partner presence, and the status strip carries the waiting/turn text. No API change.
 - `app/ai/evidence.py::evidence_pack` is the only consumer of `retrieve_claims`; with no release it
   returns `release_id="none"` and knowledge answers abstain.
 
