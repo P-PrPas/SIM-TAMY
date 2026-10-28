@@ -134,3 +134,45 @@ All additions are optional in the story schema, so existing stories and pinned r
   It is Draft, gives no diagnosis or treatment, and claims no expert review.
 
 Event kinds: `decision`, `vote`, `share` (column `family_events.kind`, default `decision`).
+
+## 2.0 Golden Scenarios, typed chat and AI-03 debrief (ADR-15, contracts section 3-5)
+
+`/simulate/[storyId]` plays any family story. GS-A (`gs-a-postpartum-warning`, critical-safety
+route) and GS-B (`gs-b-thai-recovery`, positive Thai-service route) are authored only from the
+knowledge base (`docs/knowledge base/`), each claim traceable to a source code in the story's
+`sources`. They are stage 3, Draft, `knowledge_unit_ids` / `objective_ids` pointing at the knowledge
+stream's units and curriculum objectives.
+
+**Story schema** (`app/domain/family.py`, `content/schemas/family.schema.json`): optional `stage`,
+`objective_ids`, `knowledge_unit_ids`, `rubric` (default discovery 25 / decision 35 / communication
+25 / evidence_scope 15), `boundary_th`. A step has `kind: choice | discover`. A discover step has
+`character_th`, `intents[{id, label_th, examples_th, reveals, unit_ids, dimension, reply_th,
+high_risk}]`, `min_reveals` and `abstain_th`, and exactly one `continue` choice. Choices carry an
+optional `dimension`. A card may carry a three-part `lens` (Thai Wisdom Lens). Older stories are
+unchanged and play exactly as before.
+
+**Engine.** `ask` events reveal an intent's facts into that role's brief (shareable); a repeat ask is
+logged and never re-reveals. `continue` needs `min_reveals` distinct revealing intents. Rubric
+dimension scores and `score_total` (0-100, weighted over dimensions with opportunities) are computed
+from events by `rubric_score` and shown in the finished report only. The Critical Safety gate is
+separate and is never averaged: a missed critical step is `SAFETY_NOT_MET` at any total.
+
+**Typed chat** (`POST /v1/family/rooms/{id}/messages`): input length cap, rule-based boundary for
+real-world health, diagnosis and dose requests (`prompts/v2/guard_rules.yaml`), then AI-01 maps the
+text to an allowed intent or choice ID. A discover intent logs an `ask` and gets a validated AI-02
+reply (allowed facts + evidence pack, 2 regenerations, then the authored `reply_th`; `high_risk`
+intents use the authored template only). A non-critical, non-joint choice step may commit from text;
+critical and joint steps only offer their buttons (`clarification.options`). Retries with the same
+`client_turn_id` are idempotent. Each call writes `llm_calls` trace columns (capability, prompt and
+schema version, validation status, fallback reason, release, room), never raw text.
+
+**Evidence.** `app/ai/evidence.py` calls the knowledge stream's `retrieve_claims` when present; until
+then the pack is empty (`release_id = "none"`) and knowledge answers abstain with authored text.
+
+**Debrief** (`POST /v1/family/rooms/{id}/debrief`): after completion only (409 `REPORT_NOT_READY`
+before), AI-03 phrases feedback from the scorer's result; readonly score and safety are overwritten,
+unknown event/objective/claim/asset IDs or pass wording after a failed gate fall back to a template.
+Stored once per debrief version in `family_debriefs`.
+
+**Eval.** `make eval-v2` scores AI-01 on `eval/v2/dev.yaml` and the separate `heldout.yaml`. The mock
+provider is a deterministic lexical stand-in, so its numbers do not describe any real model.

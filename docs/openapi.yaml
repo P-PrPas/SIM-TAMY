@@ -1122,12 +1122,22 @@ paths:
       - Family
       summary: Create
       operationId: createFamilyRoom
+      parameters:
+      - name: X-Demo-Account
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+          title: X-Demo-Account
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/FamilyCreate'
-        required: true
       responses:
         '201':
           description: Successful Response
@@ -1149,6 +1159,15 @@ paths:
           type: string
           format: uuid
           title: Room Id
+      - name: X-Demo-Account
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+          title: X-Demo-Account
       requestBody:
         required: true
         content:
@@ -1262,6 +1281,70 @@ paths:
               schema:
                 $ref: '#/components/schemas/FamilyView'
 
+  /v1/family/rooms/{room_id}/debrief:
+    post:
+      tags:
+      - Family
+      summary: Debrief
+      operationId: getFamilyDebrief
+      parameters:
+      - name: room_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Room Id
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebriefOutput'
+  /v1/family/rooms/{room_id}/messages:
+    post:
+      tags:
+      - Family
+      summary: Send Message
+      operationId: sendFamilyMessage
+      parameters:
+      - name: room_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Room Id
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyMessage'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMessageResult'
 components:
   securitySchemes:
     SessionToken:
@@ -1475,6 +1558,10 @@ components:
       title: FamilyFactView
     FamilyKnowledgeCard:
       properties:
+        lens:
+          anyOf:
+          - $ref: '#/components/schemas/FamilyLensView'
+          - type: 'null'
         tradition_th:
           type: string
           title: Tradition Th
@@ -2647,6 +2734,257 @@ components:
             report:
               $ref: "#/components/schemas/ReportResponse"
 
+    DebriefOutput:
+      properties:
+        schema_version:
+          type: string
+          const: ai.debrief.v1
+          title: Schema Version
+          default: ai.debrief.v1
+        attempt_id:
+          type: string
+          title: Attempt Id
+        score_total_readonly:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Score Total Readonly
+        critical_safety_result_readonly:
+          anyOf:
+          - type: string
+            enum:
+            - pass
+            - fail
+          - type: 'null'
+          title: Critical Safety Result Readonly
+        strengths:
+          items:
+            $ref: '#/components/schemas/DebriefPoint'
+          type: array
+          title: Strengths
+          default: []
+        improvements:
+          items:
+            $ref: '#/components/schemas/DebriefPoint'
+          type: array
+          title: Improvements
+          default: []
+        recommended_asset_ids:
+          items:
+            type: string
+          type: array
+          title: Recommended Asset Ids
+          default: []
+        cited_claim_ids:
+          items:
+            type: string
+          type: array
+          title: Cited Claim Ids
+          default: []
+        fallback_used:
+          type: boolean
+          title: Fallback Used
+          default: false
+      type: object
+      required:
+      - attempt_id
+      title: DebriefOutput
+      description: ai.debrief.v1. Readonly fields are overwritten from the scorer before anything is shown.
+    DebriefPoint:
+      properties:
+        text:
+          type: string
+          title: Text
+        event_ids:
+          items:
+            type: string
+          type: array
+          minItems: 1
+          title: Event Ids
+        rubric_dimension_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Rubric Dimension Id
+        objective_ids:
+          items:
+            type: string
+          type: array
+          title: Objective Ids
+          default: []
+      type: object
+      required:
+      - text
+      - event_ids
+      title: DebriefPoint
+    FamilyCitation:
+      properties:
+        knowledge_id:
+          type: string
+          title: Knowledge Id
+        claim_id:
+          type: string
+          title: Claim Id
+        source_id:
+          type: string
+          title: Source Id
+        title:
+          type: string
+          title: Title
+        locator:
+          type: string
+          title: Locator
+      additionalProperties: false
+      type: object
+      required:
+      - knowledge_id
+      - claim_id
+      - source_id
+      - title
+      - locator
+      title: FamilyCitation
+    FamilyClarification:
+      properties:
+        options:
+          items:
+            $ref: '#/components/schemas/FamilyOption'
+          type: array
+          title: Options
+      additionalProperties: false
+      type: object
+      required:
+      - options
+      title: FamilyClarification
+      description: Allowed options as buttons. Discover options are re-sent as text; choice options vote.
+    FamilyDialogueTurn:
+      properties:
+        step_id:
+          type: string
+          title: Step Id
+        speaker_th:
+          type: string
+          title: Speaker Th
+        text_th:
+          type: string
+          title: Text Th
+        reply_th:
+          type: string
+          title: Reply Th
+      additionalProperties: false
+      type: object
+      required:
+      - step_id
+      - speaker_th
+      - text_th
+      - reply_th
+      title: FamilyDialogueTurn
+      description: One typed question and the character's validated answer, visible to the asker only.
+    FamilyDimension:
+      properties:
+        id:
+          type: string
+          title: Id
+        weight:
+          type: integer
+          title: Weight
+        earned:
+          type: integer
+          title: Earned
+        possible:
+          type: integer
+          title: Possible
+        score:
+          type: integer
+          title: Score
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - weight
+      - earned
+      - possible
+      - score
+      title: FamilyDimension
+    FamilyLensView:
+      properties:
+        wisdom_th:
+          type: string
+          title: Wisdom Th
+        safety_th:
+          type: string
+          title: Safety Th
+        rights_th:
+          type: string
+          title: Rights Th
+      additionalProperties: false
+      type: object
+      required:
+      - wisdom_th
+      - safety_th
+      - rights_th
+      title: FamilyLensView
+    FamilyMessage:
+      properties:
+        text:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Text
+        state_version:
+          type: integer
+          minimum: 0.0
+          title: State Version
+        client_turn_id:
+          type: string
+          format: uuid
+          title: Client Turn Id
+      additionalProperties: false
+      type: object
+      required:
+      - text
+      - state_version
+      - client_turn_id
+      title: FamilyMessage
+      description: Typed learner text (AI-01). Never commits a critical or joint decision by itself.
+    FamilyMessageResult:
+      properties:
+        view:
+          $ref: '#/components/schemas/FamilyView'
+        reply:
+          anyOf:
+          - $ref: '#/components/schemas/FamilyReply'
+          - type: 'null'
+        clarification:
+          anyOf:
+          - $ref: '#/components/schemas/FamilyClarification'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      required:
+      - view
+      - reply
+      - clarification
+      title: FamilyMessageResult
+    FamilyReply:
+      properties:
+        speaker_th:
+          type: string
+          title: Speaker Th
+        text_th:
+          type: string
+          title: Text Th
+        citations:
+          items:
+            $ref: '#/components/schemas/FamilyCitation'
+          type: array
+          title: Citations
+      additionalProperties: false
+      type: object
+      required:
+      - speaker_th
+      - text_th
+      - citations
+      title: FamilyReply
     FamilyCompetency:
       properties:
         skill:
@@ -2684,6 +3022,12 @@ components:
           - mother
           - father
           title: Role
+        assignment_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Assignment Id
       additionalProperties: false
       type: object
       required:
@@ -2829,6 +3173,17 @@ components:
         safety_status:
           type: string
           title: Safety Status
+        score_total:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Score Total
+        dimensions:
+          items:
+            $ref: '#/components/schemas/FamilyDimension'
+          type: array
+          title: Dimensions
+          default: []
         competencies:
           items:
             $ref: '#/components/schemas/FamilyCompetency'
@@ -2889,6 +3244,26 @@ components:
           anyOf:
           - $ref: '#/components/schemas/FamilyKnowledgeCard'
           - type: 'null'
+        kind:
+          type: string
+          enum:
+          - choice
+          - discover
+          title: Kind
+          default: choice
+        character_th:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Character Th
+        accepts_text:
+          type: boolean
+          title: Accepts Text
+          default: false
+        can_continue:
+          type: boolean
+          title: Can Continue
+          default: true
       additionalProperties: false
       type: object
       required:
@@ -3027,6 +3402,18 @@ components:
           anyOf:
           - $ref: '#/components/schemas/FamilyReport'
           - type: 'null'
+        dialogue:
+          items:
+            $ref: '#/components/schemas/FamilyDialogueTurn'
+          type: array
+          title: Dialogue
+          default: []
+        assignment_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Assignment Id
       additionalProperties: false
       type: object
       required:
