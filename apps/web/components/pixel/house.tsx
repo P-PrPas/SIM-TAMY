@@ -33,6 +33,10 @@ export function houseItems(attempts: readonly Attempt[] | null, lessons: readonl
 }
 type Items = ReturnType<typeof houseItems>;
 
+/** Item name or "how to get it" hint of a zone; stage 1 keeps its original strings. */
+const label = (zone: (typeof ZONES)[number], item: "book" | "table", hint = false) =>
+  zone === "1" ? t(hint ? `pixelHouse.itemState.${item}` : `pixelHouse.items.${item}`) : t(`pixelHouse.zoneItems.${zone}.${item}${hint ? "Hint" : ""}`);
+
 function Art({ items }: { items: Record<(typeof ZONES)[number], Items> }) {
   const P = PALETTE;
   return <svg className="nh-art" viewBox="0 0 320 180" shapeRendering="crispEdges" aria-hidden="true">
@@ -71,8 +75,8 @@ export function NurseryHouse({ attempts, lessons = null }: { attempts: readonly 
           {open && <>
             {" "}<Link href={`/learn/${z}`}>{t("pixelHouse.openZone")}{t(`pixelHouse.zones.${z}`)}</Link>
             <ul>
-              <li>{t("pixelHouse.items.book")}: {t(have.book ? "pixelHouse.itemState.have" : "pixelHouse.itemState.book")}</li>
-              <li>{t("pixelHouse.items.table")}: {have.table === 0 ? t("pixelHouse.itemState.table")
+              <li>{label(z, "book")}: {have.book ? t("pixelHouse.itemState.have") : label(z, "book", true)}</li>
+              <li>{label(z, "table")}: {have.table === 0 ? label(z, "table", true)
                 : `${t("pixelHouse.itemState.have")}${have.table === 1 ? ` (${t("pixelHouse.itemState.tableMore")})` : ""}`}</li>
             </ul>
           </>}
