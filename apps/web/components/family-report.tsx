@@ -5,7 +5,7 @@ import { FamilyStoryboard } from "./family-story";
 import { ParentProfileCard } from "./parent-profile";
 
 type Report = components["schemas"]["FamilyReport"];
-const icons = { communication: "chat", responsibility: "family", safety: "shield", support: "heart" };
+const icons = { communication: "chat", responsibility: "family", safety: "shield", support: "heart", shared_decision: "bridge" };
 
 export function FamilyReportPanel({ report, turns, grandmother, coop, onRestart }: {
   report: Report; turns: components["schemas"]["FamilyView"]["transcript"]; grandmother: boolean; coop: boolean; onRestart: () => void;

@@ -22,6 +22,9 @@ class FamilyRoom(Base):
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now()
     )
+    # Presence only: last poll per role. Never exposes timestamps, just an online boolean.
+    host_seen_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True))
+    partner_seen_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True))
 
 
 class FamilyEvent(Base):
@@ -34,6 +37,8 @@ class FamilyEvent(Base):
     )
     idx: Mapped[int] = mapped_column(Integer, primary_key=True)
     role: Mapped[str] = mapped_column(Text)
+    # decision (one turn), vote (joint step) or share (private fact -> shared timeline)
+    kind: Mapped[str] = mapped_column(Text, server_default="decision")
     choice_id: Mapped[str] = mapped_column(Text)
     reply_th: Mapped[str | None] = mapped_column(Text)
     client_turn_id: Mapped[uuid.UUID] = mapped_column(Uuid)

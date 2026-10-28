@@ -1,5 +1,7 @@
 """Replayable, deterministic formative feedback. Never predicts family health."""
 
+from collections.abc import Iterable
+from dataclasses import dataclass, field
 from typing import NamedTuple
 
 from app.domain.family import FamilyChoice, FamilyRole, FamilySkill, FamilyStory
@@ -10,11 +12,14 @@ class Assessment(NamedTuple):
     competencies: dict[FamilySkill, tuple[int, int]]
 
 
-def assess(story: FamilyStory, choices: list[str]) -> Assessment:
+def assess(story: FamilyStory, choices: list[str], shared: Iterable[str] = ()) -> Assessment:
     chosen = selections(story, choices)
     if len(chosen) != len(story.steps):
         raise ValueError("report is available only after completion")
     skills: tuple[FamilySkill, ...] = ("communication", "responsibility", "safety", "support")
+    facts = [fact for fact in story.facts if fact.id in set(shared)]
+    if story.facts or any(step.joint for step in story.steps):
+        skills = (*skills, "shared_decision")
     return Assessment(
         safety_met=not any(
             step.critical and not choice.safe
@@ -22,8 +27,10 @@ def assess(story: FamilyStory, choices: list[str]) -> Assessment:
         ),
         competencies={
             skill: (
-                sum(skill in choice.skills for choice in chosen),
-                sum(any(skill in c.skills for c in step.choices) for step in story.steps),
+                sum(skill in choice.skills for choice in chosen)
+                + sum(skill in fact.skills for fact in facts),
+                sum(any(skill in c.skills for c in step.choices) for step in story.steps)
+                + sum(skill in fact.skills for fact in story.facts),
             )
             for skill in skills
         },
@@ -52,10 +59,83 @@ def choose(story: FamilyStory, choices: list[str], role: FamilyRole, choice_id: 
     return updated
 
 
-def prompt(story: FamilyStory, choices: list[str]) -> str:
+def prompt(story: FamilyStory, choices: list[str], facts: Iterable[str] = ()) -> str:
+    """Prompt for the step after `choices`; `facts` are fact IDs shared when it began."""
     chosen = selections(story, choices)
     if len(chosen) == len(story.steps):
         return ""
     flags = {flag for choice in chosen for flag in choice.flags}
+    flags.update(f"fact:{fact}" for fact in facts)
     step = story.steps[len(chosen)]
     return next((line for flag, line in step.prompt_if.items() if flag in flags), step.prompt_th)
+
+
+class FamilyEventRecord(NamedTuple):
+    """The replay-relevant part of a stored event: decision, joint vote or fact share."""
+
+    kind: str
+    role: FamilyRole
+    choice_id: str
+    reply_th: str | None = None
+
+
+@dataclass
+class Progress:
+    choices: list[str] = field(default_factory=list)
+    replies: list[str | None] = field(default_factory=list)
+    step_facts: list[frozenset[str]] = field(default_factory=list)  # shared when step i locked
+    shared: list[tuple[FamilyRole, str]] = field(default_factory=list)
+    votes: dict[str, str] = field(default_factory=dict)  # open round, role -> choice
+    split: dict[str, str] | None = None  # last round that disagreed
+    events: int = 0
+
+    @property
+    def version(self) -> int:
+        """Optimistic-lock version: a lone pending vote does not invalidate the partner's view."""
+        return self.events - (1 if len(self.votes) == 1 else 0)
+
+    @property
+    def facts(self) -> frozenset[str]:
+        return frozenset(fact for _, fact in self.shared)
+
+
+def replay(story: FamilyStory, events: Iterable[FamilyEventRecord]) -> Progress:
+    """Rebuild room state purely from the append-only events (deterministic, no clock)."""
+    done = Progress()
+    for event in events:
+        done.events += 1
+        if event.kind == "share":
+            fact = next((f for f in story.facts if f.id == event.choice_id), None)
+            if fact is None or fact.role != event.role:
+                raise ValueError("unknown or foreign fact")
+            if event.choice_id not in done.facts:
+                done.shared.append((event.role, event.choice_id))
+            continue
+        index = len(done.choices)
+        if index >= len(story.steps):
+            raise ValueError("too many decisions")
+        step = story.steps[index]
+        if not any(c.id == event.choice_id for c in step.choices):
+            raise ValueError("unknown decision")
+        if event.kind == "decision":
+            if step.joint or (story.mode == "coop" and step.role != event.role):
+                raise ValueError("not this role's turn")
+            done.choices.append(event.choice_id)
+            done.replies.append(event.reply_th)
+            done.step_facts.append(done.facts)
+        elif event.kind == "vote":
+            if not step.joint or event.role in done.votes:
+                raise ValueError("not a joint step or already voted")
+            done.votes[event.role] = event.choice_id
+            if len(done.votes) == 2:
+                if len(set(done.votes.values())) == 1:
+                    done.choices.append(event.choice_id)
+                    done.replies.append(None)
+                    done.step_facts.append(done.facts)
+                    done.split = None
+                else:
+                    done.split = dict(done.votes)
+                done.votes = {}
+        else:
+            raise ValueError("unknown event kind")
+    return done

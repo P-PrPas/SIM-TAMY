@@ -1226,6 +1226,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FamilyView'
+  /v1/family/rooms/{room_id}/shares:
+    post:
+      tags:
+      - Family
+      summary: Share
+      operationId: shareFamilyFact
+      parameters:
+      - name: room_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Room Id
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyShare'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyView'
 
 components:
   securitySchemes:
@@ -1395,6 +1430,153 @@ components:
       - realism_avg
       - items
       title: ClassPilotFeedback
+    FamilyCardSource:
+      properties:
+        id:
+          type: string
+          title: Id
+        title_th:
+          type: string
+          title: Title Th
+        url:
+          type: string
+          title: Url
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - title_th
+      - url
+      title: FamilyCardSource
+    FamilyFactView:
+      properties:
+        id:
+          type: string
+          title: Id
+        role:
+          type: string
+          enum:
+          - mother
+          - father
+          title: Role
+        text_th:
+          type: string
+          title: Text Th
+        shared:
+          type: boolean
+          title: Shared
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - role
+      - text_th
+      - shared
+      title: FamilyFactView
+    FamilyKnowledgeCard:
+      properties:
+        tradition_th:
+          type: string
+          title: Tradition Th
+        learning_point_th:
+          type: string
+          title: Learning Point Th
+        evidence_status:
+          type: string
+          enum:
+          - traditional_practice
+          - supported_by_guidance
+          - insufficient_evidence
+          - caution
+          title: Evidence Status
+        precautions_th:
+          items:
+            type: string
+          type: array
+          title: Precautions Th
+        when_to_consult_th:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: When To Consult Th
+        sources:
+          items:
+            $ref: '#/components/schemas/FamilyCardSource'
+          type: array
+          title: Sources
+      additionalProperties: false
+      type: object
+      required:
+      - tradition_th
+      - learning_point_th
+      - evidence_status
+      - precautions_th
+      - when_to_consult_th
+      - sources
+      title: FamilyKnowledgeCard
+    FamilyShare:
+      properties:
+        fact_id:
+          type: string
+          maxLength: 64
+          pattern: ^[a-z0-9-]+$
+          title: Fact Id
+        client_turn_id:
+          type: string
+          format: uuid
+          title: Client Turn Id
+      additionalProperties: false
+      type: object
+      required:
+      - fact_id
+      - client_turn_id
+      title: FamilyShare
+    FamilyVote:
+      properties:
+        my_choice_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: My Choice Id
+        waiting_for_partner:
+          type: boolean
+          title: Waiting For Partner
+        disagreement:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/FamilyVoteChoice'
+            type: array
+          - type: 'null'
+          title: Disagreement
+      additionalProperties: false
+      type: object
+      required:
+      - my_choice_id
+      - waiting_for_partner
+      - disagreement
+      title: FamilyVote
+      description: Joint-step state. The partner's choice appears only once both have voted (disagreement).
+    FamilyVoteChoice:
+      properties:
+        role:
+          type: string
+          enum:
+          - mother
+          - father
+          title: Role
+        choice_id:
+          type: string
+          title: Choice Id
+        text_th:
+          type: string
+          title: Text Th
+      additionalProperties: false
+      type: object
+      required:
+      - role
+      - choice_id
+      - text_th
+      title: FamilyVoteChoice
     PilotFeedback:
       properties:
         role:
@@ -2474,6 +2656,7 @@ components:
           - responsibility
           - safety
           - support
+          - shared_decision
           title: Skill
         observed:
           type: integer
@@ -2694,6 +2877,18 @@ components:
             $ref: '#/components/schemas/FamilyOption'
           type: array
           title: Choices
+        joint:
+          type: boolean
+          title: Joint
+          default: false
+        vote:
+          anyOf:
+          - $ref: '#/components/schemas/FamilyVote'
+          - type: 'null'
+        card:
+          anyOf:
+          - $ref: '#/components/schemas/FamilyKnowledgeCard'
+          - type: 'null'
       additionalProperties: false
       type: object
       required:
@@ -2796,9 +2991,29 @@ components:
         state_version:
           type: integer
           title: State Version
+        completed_steps:
+          type: integer
+          title: Completed Steps
+          default: 0
         total_steps:
           type: integer
           title: Total Steps
+        partner_online:
+          type: boolean
+          title: Partner Online
+          default: false
+        my_facts:
+          items:
+            $ref: '#/components/schemas/FamilyFactView'
+          type: array
+          title: My Facts
+          default: []
+        shared_facts:
+          items:
+            $ref: '#/components/schemas/FamilyFactView'
+          type: array
+          title: Shared Facts
+          default: []
         scene:
           anyOf:
           - $ref: '#/components/schemas/FamilyScene'
