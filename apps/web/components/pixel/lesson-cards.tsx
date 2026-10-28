@@ -51,7 +51,7 @@ export function PixelLesson({ unit, onComplete }: { unit: UnitDetail; onComplete
   useEffect(() => { if (phase === "done") complete(); });
 
   if (cards.length === 0) return null;
-  if (phase === "sort") return <LessonSort unit={unit} items={items} onDone={() => setPhase("done")} />;
+  if (phase === "sort") return <LessonSort unit={unit} items={items} onDone={complete} />;
   if (phase === "done") return <p className="pl-complete" role="status">{t("pixelLesson.lessonDone")}</p>;
 
   const last = i === cards.length - 1;

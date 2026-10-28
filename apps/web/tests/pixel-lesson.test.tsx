@@ -91,3 +91,23 @@ it("goes from the last card into the game and calls onComplete only after it", (
   expect(screen.getByText(t("pixelLesson.sortTitle"))).toBeTruthy();
   expect(onComplete).not.toHaveBeenCalled();
 });
+
+it("keeps the result, final feedback and replay available when the lesson game ends", () => {
+  const onComplete = vi.fn();
+  render(<PixelLesson unit={unit} onComplete={onComplete} />);
+  for (let i = 0; i < 5; i++) fireEvent.click(screen.getByRole("button", { name: t("pixelLesson.next") }));
+  fireEvent.click(screen.getByRole("button", { name: t("pixelLesson.toGame") }));
+  const items = buildSortItems(unit);
+  for (let round = 0; round < 2; round++) {
+    for (const [i, item] of items.entries()) {
+      fireEvent.click(screen.getByRole("button", { name: item.text }));
+      const bin = i === items.length - 1 ? (item.bin === "scope" ? "tradition" : "scope") : item.bin;
+      fireEvent.click(screen.getByRole("button", { name: t(bin === "scope" ? "pixelLesson.binScope" : "pixelLesson.binTradition") }));
+    }
+    expect(screen.getByText(t("pixelLesson.doneTitle"))).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toContain(t("pixelLesson.miss"));
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: t("pixelLesson.again") }));
+    expect(screen.queryByText(t("pixelLesson.doneTitle"))).toBeNull();
+  }
+});

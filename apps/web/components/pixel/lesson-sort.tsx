@@ -79,6 +79,7 @@ export function LessonSort({ unit, items, attempt = 0, onDone }: {
 
   return <section className="pl-sort" aria-labelledby="pl-sort-title">
     <h2 id="pl-sort-title">{t("pixelLesson.sortTitle")}</h2>
+    <p className="pl-feedback" role="status" aria-live="polite">{feedback}</p>
     {finished ? <div className="pl-finish">
       <Sprite frames={CELEBRATE} scale={3} fps={2} />
       <h3>{t("pixelLesson.doneTitle")}</h3>
@@ -92,7 +93,6 @@ export function LessonSort({ unit, items, attempt = 0, onDone }: {
         {(["tradition", "scope"] as const).map((b) =>
           <button key={b} type="button" className="pl-btn pl-bin" disabled={!picked} onClick={() => drop(b)}>{binLabel(b)}</button>)}
       </div>
-      <p className="pl-feedback" role="status" aria-live="polite">{feedback}</p>
       <h3 className="pl-sub">{t("pixelLesson.pending")} {pending.length}</h3>
       <ul className="pl-pile">
         {pending.map((i) => <li key={i.id}>
