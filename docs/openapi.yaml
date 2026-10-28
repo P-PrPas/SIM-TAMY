@@ -1262,6 +1262,94 @@ paths:
               schema:
                 $ref: '#/components/schemas/FamilyView'
 
+  # --- 2.0 knowledge base (Stream A, contracts section 4) ---
+  /v1/knowledge/release:
+    get:
+      tags:
+      - Knowledge
+      summary: Get Release
+      operationId: getKnowledgeRelease
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeReleaseInfo'
+  /v1/knowledge/sources:
+    get:
+      tags:
+      - Knowledge
+      summary: List Sources
+      operationId: listKnowledgeSources
+      parameters:
+      - name: kind
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - enum:
+            - catalog
+            - kb_source
+            type: string
+          - type: 'null'
+          title: Kind
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceList'
+  /v1/knowledge/units:
+    get:
+      tags:
+      - Knowledge
+      summary: List Units
+      operationId: listKnowledgeUnits
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitList'
+  /v1/knowledge/units/{unit_id}:
+    get:
+      tags:
+      - Knowledge
+      summary: Get Unit
+      operationId: getKnowledgeUnit
+      parameters:
+      - name: unit_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Unit Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/learning-paths:
+    get:
+      tags:
+      - Knowledge
+      summary: Learning Paths
+      operationId: listLearningPaths
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPathsView'
+
 components:
   securitySchemes:
     SessionToken:
@@ -3042,3 +3130,303 @@ components:
       - transcript
       - report
       title: FamilyView
+    # --- 2.0 knowledge base ---
+    KnowledgeReleaseInfo:
+      properties:
+        id:
+          type: string
+          title: Id
+        unit_count:
+          type: integer
+          title: Unit Count
+      type: object
+      required:
+      - id
+      - unit_count
+      title: KnowledgeReleaseInfo
+    SourceItem:
+      properties:
+        id:
+          type: string
+          title: Id
+        kind:
+          type: string
+          enum:
+          - catalog
+          - kb_source
+          title: Kind
+        title:
+          type: string
+          title: Title
+        publisher:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Publisher
+        year:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Year
+        url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url
+        rights_status:
+          type: string
+          enum:
+          - unknown
+          - metadata_only
+          - public_web
+          - own_summary
+          title: Rights Status
+      type: object
+      required:
+      - id
+      - kind
+      - title
+      - rights_status
+      title: SourceItem
+    SourceList:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/SourceItem'
+          type: array
+          title: Items
+      type: object
+      required:
+      - items
+      title: SourceList
+    UnitListItem:
+      properties:
+        id:
+          type: string
+          title: Id
+        version:
+          type: string
+          title: Version
+        title_th:
+          type: string
+          title: Title Th
+        care_stage:
+          type: string
+          title: Care Stage
+        domain:
+          type: integer
+          title: Domain
+        has_lens:
+          type: boolean
+          title: Has Lens
+      type: object
+      required:
+      - id
+      - version
+      - title_th
+      - care_stage
+      - domain
+      - has_lens
+      title: UnitListItem
+    UnitList:
+      properties:
+        release_id:
+          type: string
+          title: Release Id
+        items:
+          items:
+            $ref: '#/components/schemas/UnitListItem'
+          type: array
+          title: Items
+      type: object
+      required:
+      - release_id
+      - items
+      title: UnitList
+    ClaimSource:
+      properties:
+        source_id:
+          type: string
+          title: Source Id
+        title:
+          type: string
+          title: Title
+        url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url
+        locator:
+          type: string
+          title: Locator
+      type: object
+      required:
+      - source_id
+      - title
+      - locator
+      title: ClaimSource
+    ClaimView:
+      properties:
+        id:
+          type: string
+          title: Id
+        type:
+          type: string
+          title: Type
+        text_th:
+          type: string
+          title: Text Th
+        sources:
+          items:
+            $ref: '#/components/schemas/ClaimSource'
+          type: array
+          title: Sources
+      type: object
+      required:
+      - id
+      - type
+      - text_th
+      - sources
+      title: ClaimView
+    LensView:
+      properties:
+        wisdom_th:
+          type: string
+          title: Wisdom Th
+        safety_th:
+          type: string
+          title: Safety Th
+        rights_th:
+          type: string
+          title: Rights Th
+      type: object
+      required:
+      - wisdom_th
+      - safety_th
+      - rights_th
+      title: LensView
+    UnitDetail:
+      properties:
+        id:
+          type: string
+          title: Id
+        version:
+          type: string
+          title: Version
+        title_th:
+          type: string
+          title: Title Th
+        care_stage:
+          type: string
+          title: Care Stage
+        domain:
+          type: integer
+          title: Domain
+        evidence_status:
+          type: string
+          title: Evidence Status
+        review_basis:
+          type: string
+          title: Review Basis
+        reviewed_on:
+          type: string
+          title: Reviewed On
+        claims:
+          items:
+            $ref: '#/components/schemas/ClaimView'
+          type: array
+          title: Claims
+        lens:
+          anyOf:
+          - $ref: '#/components/schemas/LensView'
+          - type: 'null'
+        contraindications_th:
+          items:
+            type: string
+          type: array
+          title: Contraindications Th
+        escalation_th:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Escalation Th
+      type: object
+      required:
+      - id
+      - version
+      - title_th
+      - care_stage
+      - domain
+      - evidence_status
+      - review_basis
+      - reviewed_on
+      - claims
+      - contraindications_th
+      title: UnitDetail
+    ObjectiveView:
+      properties:
+        id:
+          type: string
+          title: Id
+        title_th:
+          type: string
+          title: Title Th
+        dimension:
+          type: string
+          title: Dimension
+        unit_ids:
+          items:
+            type: string
+          type: array
+          title: Unit Ids
+        story_ids:
+          items:
+            type: string
+          type: array
+          title: Story Ids
+      type: object
+      required:
+      - id
+      - title_th
+      - dimension
+      - unit_ids
+      - story_ids
+      title: ObjectiveView
+    StageView:
+      properties:
+        stage:
+          type: integer
+          title: Stage
+        title_th:
+          type: string
+          title: Title Th
+        summary_th:
+          type: string
+          title: Summary Th
+        objectives:
+          items:
+            $ref: '#/components/schemas/ObjectiveView'
+          type: array
+          title: Objectives
+      type: object
+      required:
+      - stage
+      - title_th
+      - summary_th
+      - objectives
+      title: StageView
+    LearningPathsView:
+      properties:
+        release_id:
+          type: string
+          title: Release Id
+        stages:
+          items:
+            $ref: '#/components/schemas/StageView'
+          type: array
+          title: Stages
+      type: object
+      required:
+      - release_id
+      - stages
+      title: LearningPathsView
