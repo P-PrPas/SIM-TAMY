@@ -1657,6 +1657,63 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Cohort'
+  /v1/cohorts/{cohort_id}:
+    delete:
+      tags:
+      - Institution
+      summary: Remove Cohort
+      operationId: removeCohort
+      parameters:
+      - name: cohort_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Cohort Id
+      - name: X-Demo-Account
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Demo-Account
+      responses:
+        '204':
+          description: Successful Response
+  /v1/cohorts/{cohort_id}/assignments/{assignment_id}:
+    delete:
+      tags:
+      - Institution
+      summary: Remove Assignment
+      operationId: removeCohortAssignment
+      parameters:
+      - name: cohort_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Cohort Id
+      - name: assignment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Assignment Id
+      - name: X-Demo-Account
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Demo-Account
+      responses:
+        '204':
+          description: Successful Response
   /v1/cohorts/{cohort_id}/clone:
     post:
       tags:

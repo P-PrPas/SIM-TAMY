@@ -53,6 +53,7 @@ class ClassRoom(Base):
     created_at: Mapped[datetime] = _ts()
     # 2.0 cohort (ADR-15): the mock organization from content/demo/institutions.yaml
     org_id: Mapped[str | None] = mapped_column(Text)
+    archived_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True))
 
 
 class Assignment(Base):
@@ -66,6 +67,7 @@ class Assignment(Base):
     story_version: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = _ts()
     expires_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True))
+    archived_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True))
 
 
 class PassportLesson(Base):

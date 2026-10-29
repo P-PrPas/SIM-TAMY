@@ -80,20 +80,17 @@ def _cohort_out(row: ClassRoom, assignment_count: int) -> out.Cohort:
 def _counts(db: Session, class_ids: Sequence[uuid.UUID]) -> dict[uuid.UUID, int]:
     rows = db.execute(
         select(Assignment.class_id, func.count(Assignment.id))
-        .where(Assignment.class_id.in_(class_ids))
+        .where(Assignment.class_id.in_(class_ids), Assignment.archived_at.is_(None))
         .group_by(Assignment.class_id)
     )
     return {class_id: count for class_id, count in rows}
 
 
-def _org_cohorts(db: Session, org_id: str) -> list[ClassRoom]:
-    return list(
-        db.scalars(
-            select(ClassRoom)
-            .where(ClassRoom.org_id == org_id)
-            .order_by(ClassRoom.created_at.desc(), ClassRoom.id.desc())
-        )
-    )
+def _org_cohorts(db: Session, org_id: str, *, include_archived: bool = False) -> list[ClassRoom]:
+    query = select(ClassRoom).where(ClassRoom.org_id == org_id)
+    if not include_archived:
+        query = query.where(ClassRoom.archived_at.is_(None))
+    return list(db.scalars(query.order_by(ClassRoom.created_at.desc(), ClassRoom.id.desc())))
 
 
 def cohort_of(db: Session, account: DemoAccount, cohort_id: uuid.UUID) -> ClassRoom:
@@ -101,7 +98,7 @@ def cohort_of(db: Session, account: DemoAccount, cohort_id: uuid.UUID) -> ClassR
     if account.role not in STAFF_ROLES:
         raise ApiError("FORBIDDEN", "not staff")
     row = db.get(ClassRoom, cohort_id)
-    if row is None or row.org_id is None or row.org_id != account.org_id:
+    if row is None or row.org_id is None or row.org_id != account.org_id or row.archived_at:
         raise ApiError("NOT_FOUND", "cohort not found")
     return row
 
@@ -123,7 +120,7 @@ def _assignments(db: Session, cohort_id: uuid.UUID) -> list[Assignment]:
     return list(
         db.scalars(
             select(Assignment)
-            .where(Assignment.class_id == cohort_id)
+            .where(Assignment.class_id == cohort_id, Assignment.archived_at.is_(None))
             .order_by(Assignment.created_at, Assignment.id)
         )
     )
@@ -175,6 +172,19 @@ def add_assignment(
         db.add(row)
         db.flush()
     return _assignment_out(row, cohort.code, {story.id: story.title_th})
+
+
+def archive_cohort(db: Session, cohort: ClassRoom) -> None:
+    cohort.archived_at = datetime.now(UTC)
+    db.flush()
+
+
+def archive_assignment(db: Session, cohort: ClassRoom, assignment_id: uuid.UUID) -> None:
+    row = db.get(Assignment, assignment_id)
+    if row is None or row.class_id != cohort.id or row.archived_at:
+        raise ApiError("NOT_FOUND", "assignment not found")
+    row.archived_at = datetime.now(UTC)
+    db.flush()
 
 
 def clone_cohort(db: Session, source: ClassRoom, name: str) -> out.Cohort:
@@ -281,7 +291,10 @@ def _rooms_of(db: Session, class_ids: Sequence[uuid.UUID]) -> list[FamilyRoom]:
 def overview(db: Session, org_id: str) -> out.OrgOverview:
     org = org_of(org_id)
     ids = [c.id for c in _org_cohorts(db, org_id)]
-    done = [a for a in attempts(db, _rooms_of(db, ids)) if a.finished] if ids else []
+    history_ids = [c.id for c in _org_cohorts(db, org_id, include_archived=True)]
+    done = (
+        [a for a in attempts(db, _rooms_of(db, history_ids)) if a.finished] if history_ids else []
+    )
     return out.OrgOverview(
         org=out.OrgRef(id=org.id, name_th=org.name_th),
         demo=True,
@@ -327,7 +340,9 @@ def analytics(db: Session, cohort: ClassRoom) -> out.CohortAnalytics:
 
 
 def join_info(db: Session, code: str) -> out.JoinInfo:
-    cohort = db.scalar(select(ClassRoom).where(ClassRoom.code == code.upper()))
+    cohort = db.scalar(
+        select(ClassRoom).where(ClassRoom.code == code.upper(), ClassRoom.archived_at.is_(None))
+    )
     if cohort is None:
         raise ApiError("CLASS_NOT_FOUND", "class code not found", {"code": code})
     all_rows = _assignments(db, cohort.id)

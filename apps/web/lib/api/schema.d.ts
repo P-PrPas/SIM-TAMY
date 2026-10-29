@@ -700,6 +700,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/cohorts/{cohort_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Cohort */
+        delete: operations["removeCohort"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cohorts/{cohort_id}/assignments/{assignment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Assignment */
+        delete: operations["removeCohortAssignment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/cohorts/{cohort_id}/clone": {
         parameters: {
             query?: never;
@@ -3739,6 +3773,51 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Cohort"];
                 };
+            };
+        };
+    };
+    removeCohort: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                cohort_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    removeCohortAssignment: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Demo-Account"?: string | null;
+            };
+            path: {
+                cohort_id: string;
+                assignment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
