@@ -31,14 +31,14 @@ export function LoadState({
 
 export function Stat({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
-    <div className="rounded-2xl border border-stone-300 bg-white p-4">
+    <div className="pf-card">
       <dt className="text-stone-700">{label}</dt>
       <dd className="mt-1 text-3xl font-bold text-stone-950">{value}</dd>
-      {hint && <p className="mt-1 text-sm text-stone-700">{hint}</p>}
+      {hint && <dd className="mt-1 text-sm text-stone-700">{hint}</dd>}
     </div>
   );
 }
 
 export const button =
-  "inline-flex min-h-11 items-center justify-center rounded-lg bg-brand-900 px-5 font-semibold text-white disabled:opacity-50";
+  "button-primary disabled:opacity-50";
 export const field = "mt-2 min-h-11 w-full rounded-lg border border-stone-500 bg-white px-3";

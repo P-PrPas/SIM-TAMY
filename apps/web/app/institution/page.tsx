@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { LoadState, Stat } from "@/components/institution-bits";
 import { DemoBadge, useStaff } from "@/components/institution-shell";
 import { api } from "@/lib/api/runtime";
@@ -12,6 +14,11 @@ export default function OverviewPage() {
     const { data } = await api().GET("/v1/orgs/{org_id}/overview", { params: { path: { org_id: orgId } } });
     if (!data) throw new Error("empty overview");
     return data;
+  }, id);
+  const cohorts = useLoad(async () => {
+    const { data } = await api().GET("/v1/orgs/{org_id}/cohorts", { params: { path: { org_id: orgId } } });
+    if (!data) throw new Error("empty cohorts");
+    return data.items;
   }, id);
 
   return (
@@ -33,6 +40,22 @@ export default function OverviewPage() {
               hint={t("institution.overview.finishedHint")}
             />
           </dl>
+          <div className="dashboard-panels">
+            <section className="pf-card"><h3>{t("institution.overview.recent")}</h3>
+              <LoadState error={cohorts.error} loading={!cohorts.data} onRetry={cohorts.reload} />
+              {cohorts.data?.length === 0 && <p className="pf-note">{t("institution.cohorts.empty")}</p>}
+              <ul className="pf-list">{cohorts.data?.slice(0, 5).map((cohort) => <li key={cohort.id}>
+                <Link href={`/institution/cohorts/${cohort.id}`} className="pf-link">{cohort.name}<span aria-hidden="true">→</span></Link>
+                <p className="pf-meta">{t("institution.cohorts.assignmentCount")}: {cohort.assignment_count}</p>
+              </li>)}</ul>
+              <Link href="/institution/cohorts" className="button-secondary">{t("institution.overview.manage")}</Link>
+            </section>
+            <section className="pf-card"><h3>{t("institution.overview.next")}</h3>
+              <p className="pf-muted">{t("institution.overview.nextText")}</p>
+              <div className="pf-stack"><Link href="/institution/cohorts" className="button-primary">{t("institution.cohorts.create")}</Link>
+                <Link href="/institution/analytics" className="pf-link">{t("institution.nav.analytics")}</Link></div>
+            </section>
+          </div>
         </>
       )}
     </section>

@@ -9,6 +9,7 @@ import { useStaff } from "@/components/institution-shell";
 import { api } from "@/lib/api/runtime";
 import { t } from "@/lib/i18n";
 import { useLoad } from "@/lib/use-load";
+import { RemoveSetting } from "@/components/remove-setting";
 
 export default function CohortDetailPage() {
   const cohortId = String(useParams<{ id: string }>().id);
@@ -119,6 +120,7 @@ export default function CohortDetailPage() {
             <li key={a.id} className="rounded-lg border border-stone-300 bg-white p-3">
               <span className="font-semibold">{a.title_th}</span>
               <span className="text-stone-700"> · {t("institution.cohort.version")} {a.story_version}</span>
+              <RemoveSetting name={a.title_th} remove={() => api().DELETE("/v1/cohorts/{cohort_id}/assignments/{assignment_id}", { params: { path: { cohort_id: cohortId, assignment_id: a.id } } })} onRemoved={() => { setMessage(t("institution.manage.removed")); assignments.reload(); cohort.reload(); }} />
             </li>
           ))}
         </ul>
