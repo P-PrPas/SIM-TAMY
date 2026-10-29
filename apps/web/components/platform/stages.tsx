@@ -51,10 +51,9 @@ export function LearningStages() {
             <span className="pf-kicker">{t("platform.learn.stageLabel")} {core.stage}</span>
             <h3><Link href={`/learn/${core.stage}`}>{stage.title_th}</Link></h3>
             <p className="pf-muted">{t(`platform.home.stage${core.stage}Text`)}</p>
-            <Link href={`/learn/${core.stage}`} className="pf-link">{t("platform.learn.openStage")}</Link>
             <div className="pf-stage-start">
-              {unit && <Link href={`/knowledge/${encodeURIComponent(unit.id)}`} className="pf-link">{t("platform.home.readLesson")}</Link>}
-              {story && <Link href={storyHref(story.id)} className="pf-link">{t("platform.home.trySimulation")}</Link>}
+              {story && <Link href={storyHref(story.id)} className="button-secondary" aria-label={`${t("platform.home.trySimulation")} ${t("platform.learn.stageLabel")} ${core.stage}`}>{t("platform.home.trySimulation")}</Link>}
+              {unit && <Link href={`/knowledge/${encodeURIComponent(unit.id)}`} className="pf-link" aria-label={`${t("platform.home.readLesson")} ${t("platform.learn.stageLabel")} ${core.stage}`}>{t("platform.home.readLesson")}</Link>}
             </div>
           </div>
         </li>;

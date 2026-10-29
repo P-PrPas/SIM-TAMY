@@ -121,10 +121,19 @@ describe("Home", () => {
     render(<HomePage />);
     const section = screen.getByRole("region", { name: t("platform.home.stagesTitle") });
     await waitFor(() => expect(within(section).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["Stage one", "Stage two", "Stage three", "Stage four"]));
-    await waitFor(() => expect(within(section).getAllByRole("link", { name: t("platform.home.readLesson") }).map((a) => a.getAttribute("href")))
+    await waitFor(() => expect(within(section).getAllByRole("link", { name: new RegExp(t("platform.home.readLesson")) }).map((a) => a.getAttribute("href")))
       .toEqual(CORE_PATH.map((core) => `/knowledge/${core.units[0]}`)));
-    expect(within(section).getAllByRole("link", { name: t("platform.home.trySimulation") }).map((a) => a.getAttribute("href")))
+    expect(within(section).getAllByRole("link", { name: new RegExp(t("platform.home.trySimulation")) }).map((a) => a.getAttribute("href")))
       .toEqual(CORE_PATH.map((core) => storyHref(core.stories[0]!)));
+    for (const core of CORE_PATH) {
+      const context = `${t("platform.learn.stageLabel")} ${core.stage}`;
+      const simulation = within(section).getByRole("link", { name: `${t("platform.home.trySimulation")} ${context}` });
+      expect(simulation.classList.contains("button-secondary")).toBe(true);
+      expect(within(section).getByRole("link", { name: `${t("platform.home.readLesson")} ${context}` })).toBeTruthy();
+      const card = simulation.closest("li") as HTMLElement;
+      expect(within(card).getAllByRole("link")).toHaveLength(3);
+      expect(within(card).getAllByRole("link").filter((link) => link.getAttribute("href") === `/learn/${core.stage}`)).toHaveLength(1);
+    }
     expect(within(section).queryByRole("link", { name: "GS-B title" })).toBeNull();
     expect(await screen.findByRole("button", { name: /Learner One/ })).toBeTruthy();
     expect(screen.queryByText("Educator One")).toBeNull();
@@ -136,7 +145,7 @@ describe("Home", () => {
     mockApi({ ...base, "/family/stories": [stories.find((s) => s.id === "first-night")], "/demo/accounts": () => Response.json({ error: { code: "X" } }, { status: 500 }) });
     render(<HomePage />);
     expect(await screen.findByRole("alert")).toBeTruthy();
-    expect(screen.queryByRole("link", { name: t("platform.home.trySimulation") })).toBeNull();
+    expect(screen.queryByRole("link", { name: new RegExp(t("platform.home.trySimulation")) })).toBeNull();
     expect(screen.getByRole("link", { name: new RegExp(t("platform.home.ctaStart")) })).toBeTruthy();
   });
 
@@ -179,7 +188,7 @@ describe("Learning Journey", () => {
     mockApi(base);
     render(<StageCards />);
     expect(await screen.findByRole("heading", { name: "Stage one" })).toBeTruthy();
-    const links = screen.getAllByRole("link", { name: new RegExp(t("platform.learn.openStage")) });
+    const links = ["Stage one", "Stage two"].map((name) => screen.getByRole("link", { name }));
     expect(links.map((a) => a.getAttribute("href"))).toEqual(["/learn/1", "/learn/2"]);
   });
 

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { t } from "../lib/i18n";
+import { CORE_PATH } from "../lib/learning-path";
 
 // The 2.0 endpoints are not in docs/openapi.yaml yet, so Prism cannot serve them: mock every /v1 call here.
 // Re-point these at the real API (or Prism) once streams A, B and C have merged and the contract is regenerated.
@@ -8,7 +9,10 @@ const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers
 const data: Record<string, unknown> = {
   "/v1/learning-paths": { release_id: "r1", stages: [1, 2, 3, 4].map((n) => ({ stage: n, title_th: `Stage ${n}`, summary_th: "Summary", objectives: [
     { id: `OBJ-${n}-01`, title_th: `Objective ${n}`, dimension: "discovery", unit_ids: ["KB-1"], story_ids: ["gs-a-postpartum-warning"] }] })) },
-  "/v1/knowledge/units": { release_id: "r1", items: [{ id: "KB-1", version: "1", title_th: "Unit one", care_stage: "postpartum", domain: 3, has_lens: true }] },
+  "/v1/knowledge/units": { release_id: "r1", items: [
+    { id: "KB-1", version: "1", title_th: "Unit one", care_stage: "postpartum", domain: 3, has_lens: true },
+    ...CORE_PATH.map((core) => ({ id: core.units[0], version: "1", title_th: `Core unit ${core.stage}`, care_stage: "postpartum", domain: core.stage, has_lens: true })),
+  ] },
   "/v1/knowledge/units/KB-1": {
     id: "KB-1", version: "1", title_th: "Unit one", care_stage: "postpartum", domain: 3, evidence_status: "synthesis", review_basis: "knowledge_base_2026",
     reviewed_on: null, claims: [{ id: "C1", type: "safety", text_th: "Claim", sources: [{ source_id: "S07", title: "Source", url: "https://example.org", locator: "4.2" }] }],
@@ -127,6 +131,14 @@ for (const width of [360, 844, 1440]) {
     await page.goto("/");
     const stages = page.getByRole("region", { name: t("platform.home.stagesTitle") });
     await expect(stages.getByRole("heading", { level: 3 })).toHaveText(["Stage 1", "Stage 2", "Stage 3", "Stage 4"]);
+    for (const core of CORE_PATH) {
+      const context = `${t("platform.learn.stageLabel")} ${core.stage}`;
+      const simulation = stages.getByRole("link", { name: `${t("platform.home.trySimulation")} ${context}`, exact: true });
+      const lesson = stages.getByRole("link", { name: `${t("platform.home.readLesson")} ${context}`, exact: true });
+      await expect(simulation).toHaveAttribute("href", `/simulate/${core.stories[0]}`);
+      await expect(lesson).toHaveAttribute("href", `/knowledge/${core.units[0]}`);
+      await expect(simulation.locator("xpath=ancestor::li[1]").getByRole("link")).toHaveCount(3);
+    }
     await page.getByRole("link", { name: t("platform.home.ctaStart"), exact: true }).click();
     await expect(page).toHaveURL(/#stages$/);
     await expect(stages.getByRole("heading", { level: 2 })).toBeInViewport();
