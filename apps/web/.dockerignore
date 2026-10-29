@@ -5,3 +5,4 @@ e2e
 coverage
 test-results
 playwright-report
+playwright*.config.ts
