@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="328" viewBox="0 0 1280 328" role="img" aria-labelledby="title desc">
+  <title id="title">Four stages. One shared journey.</title>
+  <desc id="desc">The SIM-TAMY learning path: before and during pregnancy, preparing for birth, postpartum and recovery, newborn and family care.</desc>
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="#e6dfd4"/></pattern>
+  </defs>
+  <rect width="1280" height="328" rx="24" fill="#fcfaf6"/>
+  <rect x=".5" y=".5" width="1279" height="327" rx="24" fill="url(#grid)" stroke="#e6dfd4"/>
+  <path d="M40 40h8v8h-8zm12 0h8v8h-8zm12 0h8v8h-8z" fill="#c68d1c"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="88" y="48" font-size="12" font-weight="700" letter-spacing="2.4" fill="#7c5314">THE SIM-TAMY LEARNING PATH</text>
+    <text x="40" y="101" font-size="37" font-weight="700" letter-spacing="-1.2" fill="#30261b">Four stages. One shared journey.</text>
+    <text x="40" y="131" font-size="16" fill="#6c6458">Read a lesson. Practice a conversation. Reflect on the evidence.</text>
+    <path d="M174 231H1104" stroke="#efd698" stroke-width="3" stroke-dasharray="5 7"/>
+    <g transform="translate(40 169)">
+      <rect width="282" height="119" rx="16" fill="#fff" stroke="#e6dfd4"/>
+      <rect x="18" y="18" width="38" height="30" rx="7" fill="#f8edcf"/>
+      <text x="37" y="39" text-anchor="middle" font-size="15" font-weight="700" fill="#7c5314">01</text>
+      <text x="18" y="78" font-size="18" font-weight="700" fill="#30261b">Before &amp; during</text>
+      <text x="18" y="101" font-size="18" font-weight="700" fill="#30261b">pregnancy</text>
+      <path d="M236 22h7v7h-7zm7 7h7v7h-7zm-14 0h7v7h-7zm7 7h7v7h-7z" fill="#c68d1c"/>
+    </g>
+    <g transform="translate(346 169)">
+      <rect width="282" height="119" rx="16" fill="#fff" stroke="#e6dfd4"/>
+      <rect x="18" y="18" width="38" height="30" rx="7" fill="#f8edcf"/>
+      <text x="37" y="39" text-anchor="middle" font-size="15" font-weight="700" fill="#7c5314">02</text>
+      <text x="18" y="78" font-size="18" font-weight="700" fill="#30261b">Preparing</text>
+      <text x="18" y="101" font-size="18" font-weight="700" fill="#30261b">for birth</text>
+      <path d="M236 22h7v7h-7zm7 7h7v7h-7zm-14 0h7v7h-7zm7 7h7v7h-7z" fill="#c68d1c"/>
+    </g>
+    <g transform="translate(652 169)">
+      <rect width="282" height="119" rx="16" fill="#fff" stroke="#e6dfd4"/>
+      <rect x="18" y="18" width="38" height="30" rx="7" fill="#f8edcf"/>
+      <text x="37" y="39" text-anchor="middle" font-size="15" font-weight="700" fill="#7c5314">03</text>
+      <text x="18" y="78" font-size="18" font-weight="700" fill="#30261b">Postpartum</text>
+      <text x="18" y="101" font-size="18" font-weight="700" fill="#30261b">&amp; recovery</text>
+      <path d="M236 22h7v7h-7zm7 7h7v7h-7zm-14 0h7v7h-7zm7 7h7v7h-7z" fill="#c68d1c"/>
+    </g>
+    <g transform="translate(958 169)">
+      <rect width="282" height="119" rx="16" fill="#47351f"/>
+      <rect x="18" y="18" width="38" height="30" rx="7" fill="#efbd51"/>
+      <text x="37" y="39" text-anchor="middle" font-size="15" font-weight="700" fill="#30261b">04</text>
+      <text x="18" y="78" font-size="18" font-weight="700" fill="#fff9eb">Newborn</text>
+      <text x="18" y="101" font-size="18" font-weight="700" fill="#fff9eb">&amp; family care</text>
+      <path d="M236 22h7v7h-7zm7 7h7v7h-7zm-14 0h7v7h-7zm7 7h7v7h-7z" fill="#efbd51"/>
+    </g>
+  </g>
+</svg>

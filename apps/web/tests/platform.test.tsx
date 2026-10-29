@@ -277,8 +277,8 @@ describe("Simulation Lab", () => {
     fireEvent.click(screen.getByText(t("platform.lab.moreModules")));
     expect(screen.queryByText("Fixture")).toBeNull();
     const hrefs = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
-    for (const h of ["/lab/solo", "/replay", "/instructor", "/validation"]) expect(hrefs).toContain(h);
-    for (const h of ["/family", "/golden", "/simulate/gs-b-thai-recovery"]) expect(hrefs).not.toContain(h);
+    for (const h of ["/lab/solo", "/instructor", "/validation"]) expect(hrefs).toContain(h);
+    for (const h of ["/family", "/golden", "/replay", "/simulate/gs-b-thai-recovery"]) expect(hrefs).not.toContain(h);
   });
 
   it("hides unavailable core stories without promoting archived stories", async () => {

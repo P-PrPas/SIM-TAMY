@@ -1,7 +1,7 @@
 import { defineConfig } from "@playwright/test";
 import { demoStorage } from "./e2e/fixtures/account";
 
-// Stage golden path (C02): same stack as playwright.live.config.ts plus the offline Replay gallery.
+// Stage golden path (C02): same stack as playwright.live.config.ts with the complete family journeys.
 // Needs a migrated PostgreSQL in DATABASE_URL; the LLM is always the mock provider.
 const apiUrl = "http://127.0.0.1:8000";
 const webUrl = "http://127.0.0.1:3100";

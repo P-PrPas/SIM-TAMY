@@ -4,7 +4,7 @@
 |---|---|
 | **ผลิตภัณฑ์** | SIM-TAMY: AI-Powered Virtual Patient Simulation & Red-Flag Competency Assessment (Lead Case: Thai Midwifery) |
 | **เวอร์ชัน PRD** | 1.0 (Draft for Implementation) |
-| **เอกสารต้นทาง** | `SIM-TAMY_v2.md` (Concept & Business), Knowledge Hub ของงาน (Content — ทีม Content เป็นเจ้าของ) |
+| **เอกสารต้นทาง** | [Original concept (archived)](https://github.com/P-PrPas/SIM-TAMY/blob/ad115002965049d33a85bc4fa228a16dc76fca19/docs/SIM-TAMY_v2.md) (Concept & Business), Knowledge Hub ของงาน (Content — ทีม Content เป็นเจ้าของ) |
 | **ผู้อ่านหลัก** | Engineering Lead / Developers ที่ setup repo และ implement |
 | **สถานะการตัดสินใจ** | ทุกข้อที่ระบุ **[Proposed]** คือข้อเสนอเริ่มต้น ทีมแก้ได้ แต่ต้องบันทึกเป็น ADR (หัวข้อ 6.3) |
 

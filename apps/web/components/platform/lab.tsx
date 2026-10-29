@@ -64,11 +64,6 @@ export function Lab() {
           <Link href="/lab/solo" className="button-gold">{t("platform.lab.soloCta")}<span aria-hidden="true"> →</span></Link>
         </li>
         <li className="pf-card">
-          <h3>{t("platform.lab.replayTitle")}</h3>
-          <p className="pf-muted">{t("platform.lab.replayText")}</p>
-          <Link href="/replay" className="pf-link">{t("platform.lab.replayCta")}<span aria-hidden="true"> →</span></Link>
-        </li>
-        <li className="pf-card">
           <h3>{t("platform.lab.instructorTitle")}</h3>
           <p className="pf-muted">{t("platform.lab.instructorText")}</p>
           <Link href="/instructor" className="pf-link">{t("platform.lab.instructorCta")}<span aria-hidden="true"> →</span></Link>

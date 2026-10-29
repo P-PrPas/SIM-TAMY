@@ -28,6 +28,10 @@ Shared rules:
 - A stream that needs a DB change beyond `0006` adds `0007+` after rebasing on the latest `main`.
 - Legacy routes (`/family`, `/golden`, `/bridge`, `/parenthood`, `/briefing`..`/report`, `/replay`,
   `/instructor`) keep working; D removes them from the top navigation only.
+  Submission cleanup (2026-10-29): the standalone recorded-example player is retired;
+  `/replay` now permanently redirects to `/lab`. Its entry points are removed from Home,
+  the lab and solo practice. Report consequence timelines and deterministic engine replay
+  remain available. Static recording APIs and builders remain engineering tools.
 
 ## 2. Content files
 

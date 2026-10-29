@@ -3,7 +3,7 @@
     python scripts/prestage.py <api-url> <web-url> [--wait 120]
 
 Checks the API health (and times the first answer, which is the Render cold start), the web app,
-the case list, the family stories, the offline Replay gallery and the browser CORS preflight
+the case list, the family stories and the browser CORS preflight
 (POST with Authorization) from the web origin. It only sends GET and one OPTIONS request: no session
 or room is created, so it leaves no data behind. It prints no token, key or response body; only
 names, counts and timings.
@@ -74,14 +74,6 @@ def run(api: str, web: str, fetch: Fetch, wait_s: float = 0) -> list[tuple[str, 
     status, _, stories = fetch("GET", f"{api}/v1/family/stories", {})
     count = len(stories) if isinstance(stories, list) else 0
     record("family stories load", status == 200 and count >= 1, f"HTTP {status}, {count} stories")
-
-    status, _, rec = fetch("GET", f"{api}/v1/replay/recordings", {})
-    n = len(rec.get("items", [])) if isinstance(rec, dict) else 0
-    record(
-        "replay gallery (offline fallback)",
-        status == 200 and n >= 1,
-        f"HTTP {status}, {n} recordings",
-    )
 
     # The browser preflights the real calls: POST with a bearer token and a JSON body.
     status, got, _ = fetch(

@@ -63,7 +63,7 @@ async function ask(page: Page, text: string) {
   await expect(page.getByText(text, { exact: true })).toBeVisible();
 }
 
-test("solo: ask, decide, safety-gated report with evidence, then branch and example replay", async ({ page }) => {
+test("solo: ask, decide, safety-gated report with evidence, then branch consequences and return to the lab", async ({ page }) => {
   await requireMockApi(page);
   await page.goto("/lab/solo");
   await page.locator("#case").selectOption("PP-001");
@@ -120,15 +120,11 @@ test("solo: ask, decide, safety-gated report with evidence, then branch and exam
   }
   await noOverflow(page);
 
-  // Alternate path without a model: a shipped example plays from static recordings.
-  // A cold `next dev` can drop the first load of a freshly compiled route; reload until the list renders.
-  await expect(async () => {
-    await page.goto("/replay");
-    await expect(page.getByRole("button", { name: t("replay.open") }).first()).toBeVisible({ timeout: 8_000 });
-  }).toPass({ timeout: 45_000 });
-  await page.getByRole("button", { name: t("replay.open") }).first().click();
-  await expect(page.getByRole("button", { name: t("replay.pause") })).toBeVisible();
-  await audit(page);
+  // Retired example bookmarks return to the current learning experience.
+  await page.goto("/replay");
+  await expect(page).toHaveURL(/\/lab$/);
+  await expect(page.getByRole("heading", { name: t("platform.lab.title"), exact: true })).toBeVisible();
+
 });
 
 async function chooseReply(page: Page, text: string) {
