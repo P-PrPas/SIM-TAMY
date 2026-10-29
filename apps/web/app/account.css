@@ -1,0 +1,28 @@
+/* Account screens reuse the supplied brand, font, radii and control styles. */
+.login-page { display: grid; align-items: center; gap: 32px; padding-block: 40px 64px; }
+.login-form { max-width: 480px; width: 100%; margin-inline: auto; }
+.login-form h1 { margin-top: 18px; }
+.login-form form { margin-top: 28px; }
+.login-form label, .demo-accounts label { display: block; margin-bottom: 8px; font-weight: 600; }
+.login-form input, .demo-accounts select { width: 100%; min-width: 0; padding: 12px 14px; border: 1px solid var(--color-stone-400); border-radius: var(--radius-control); background: var(--color-surface); }
+.password-field { display: flex; border: 1px solid var(--color-stone-400); border-radius: var(--radius-control); background: var(--color-surface); }
+.password-field input { border: 0; background: none; flex: 1; width: 0; }
+.password-field button { flex-shrink: 0; white-space: nowrap; padding-inline: 14px; min-width: 76px; min-height: 44px; font-weight: 600; color: var(--color-brand-800); }
+.login-note { margin-top: 20px; }
+.login-demo { overflow: hidden; border: 1px solid var(--color-line); border-radius: var(--radius-panel); background: var(--color-surface); }
+.login-demo h2 { font-size: 1.5rem; font-weight: 650; }
+.login-demo-body { padding: 28px; }
+.login-demo-body > p { margin-top: 8px; }
+.demo-accounts { margin-top: 20px; }
+.demo-accounts > summary { font-weight: 650; color: var(--color-brand-800); min-height: 48px; padding: 10px 14px; border: 1px solid var(--color-stone-400); border-radius: var(--radius-control); }
+.demo-accounts[open] > summary { margin-bottom: 16px; }
+@media (min-width: 768px) { .login-page { grid-template-columns: 1fr 1fr; gap: 40px; min-height: 75dvh; } }
+@media (min-width: 900px) { .login-page { gap: 72px; } }
+@media (max-width: 639px) {
+  .login-page { gap: 24px; padding-top: 24px; }
+  .login-demo { order: -1; }
+  .login-demo .pf-stage-art, .login-demo-body > p { display: none; }
+  .login-demo-body { padding: 20px; }
+  .login-demo h2 { font-size: 1.125rem; }
+  .demo-accounts { margin-top: 12px; }
+}

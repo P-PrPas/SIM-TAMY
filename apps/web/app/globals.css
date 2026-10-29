@@ -3,6 +3,7 @@
 @import "./experience.css";
 @import "./pixel.css";
 @import "./platform.css";
+@import "./account.css";
 
 @theme {
   --color-brand-50: #fff9eb;
