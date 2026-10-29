@@ -1,3 +1,4 @@
+import { demoStorage } from "./fixtures/account";
 import { expect, test, type Page } from "@playwright/test";
 
 import type { components } from "../lib/api/schema";
@@ -19,7 +20,7 @@ test("two isolated devices complete a shared story and see the critical checkpoi
   const link = await page.locator("#family-share").inputValue();
   await page.getByRole("button", { name: t("family.design.copy"), exact: true }).click();
   await expect(page.getByRole("button", { name: t("family.design.copied"), exact: true })).toBeVisible();
-  const partnerContext = await browser.newContext({ viewport: { width: 360, height: 780 } });
+  const partnerContext = await browser.newContext({ storageState: demoStorage("parent-h-dad-1"), viewport: { width: 360, height: 780 } });
   try {
     const partner = await partnerContext.newPage();
     await partner.goto(link);

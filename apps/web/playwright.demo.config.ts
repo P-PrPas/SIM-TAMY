@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { demoStorage } from "./e2e/fixtures/account";
 
 // Stage golden path (C02): same stack as playwright.live.config.ts plus the offline Replay gallery.
 // Needs a migrated PostgreSQL in DATABASE_URL; the LLM is always the mock provider.
@@ -14,6 +15,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0, // first route visit in `next dev` can compile past the expect timeout
   use: {
     baseURL: webUrl,
+    storageState: demoStorage(),
     channel: process.env.CI ? "chromium" : "chrome",
     viewport: { width: 360, height: 780 },
     screenshot: "only-on-failure",

@@ -16,9 +16,31 @@
 .demo-accounts { margin-top: 20px; }
 .demo-accounts > summary { font-weight: 650; color: var(--color-brand-800); min-height: 48px; padding: 10px 14px; border: 1px solid var(--color-stone-400); border-radius: var(--radius-control); }
 .demo-accounts[open] > summary { margin-bottom: 16px; }
+.account-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--color-brand-100); color: var(--color-brand-900); display: inline-grid; place-items: center; font-weight: 700; flex-shrink: 0; }
+.account-menu { position: relative; z-index: 30; }
+.account-menu > summary { list-style: none; display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 4px; border-radius: var(--radius-control); }
+.account-menu > summary::-webkit-details-marker { display: none; }
+.account-name { max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-popover { position: absolute; right: 0; top: calc(100% + 8px); width: min(300px, calc(100vw - 40px)); padding: 20px; border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: 0 10px 32px #30261b18; }
+.account-popover a, .account-popover button { display: flex; align-items: center; min-height: 44px; width: 100%; margin-top: 8px; padding-block: 8px; font-weight: 600; }
+.account-popover button { border-top: 1px solid var(--color-line); color: var(--color-muted); }
+.institution-workspace { display: grid; align-items: start; gap: 24px; }
+.institution-workspace > header { grid-column: 1 / -1; margin-bottom: 0; }
+.institution-sidebar { padding: 20px; background: var(--color-surface); border: 1px solid var(--color-line); border-radius: var(--radius-card); }
+.institution-sidebar nav { margin-top: 16px; }
+.institution-sidebar ul { display: grid; gap: 8px; list-style: none; }
+.institution-sidebar a { display: flex; align-items: center; min-height: 48px; padding: 10px 14px; border-radius: var(--radius-control); font-weight: 600; }
+.institution-sidebar a[aria-current] { color: var(--color-brand-950); background: var(--color-brand-100); }
+.institution-sidebar a:hover { background: var(--color-stone-100); }
+.institution-content h2 { font-size: 1.5rem; font-weight: 650; }
 @media (min-width: 768px) { .login-page { grid-template-columns: 1fr 1fr; gap: 40px; min-height: 75dvh; } }
-@media (min-width: 900px) { .login-page { gap: 72px; } }
+@media (min-width: 900px) {
+  .login-page { gap: 72px; }
+  .institution-workspace { grid-template-columns: 240px minmax(0, 1fr); }
+  .institution-sidebar { position: sticky; top: 24px; }
+}
 @media (max-width: 639px) {
+  .account-name { display: none; }
   .login-page { gap: 24px; padding-top: 24px; }
   .login-demo { order: -1; }
   .login-demo .pf-stage-art, .login-demo-body > p { display: none; }

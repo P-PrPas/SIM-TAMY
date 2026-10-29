@@ -268,10 +268,21 @@ summary { min-height: 44px; padding-block: 10px; box-sizing: border-box; }
 .site-nav { gap: 20px; }
 .site-nav nav { gap: 20px; font-size: .9375rem; }
 .site-header.is-focused .site-nav { padding-block: 14px; }
+.site-nav .account-menu { flex-shrink: 0; }
+.site-nav .account-signin { min-height: 44px; padding: 8px 16px; }
+.site-nav nav { margin-left: auto; }
 @media (max-width: 1199px) {
   .site-nav { flex-wrap: wrap; }
   .site-nav .nav-toggle { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
   .site-nav nav { display: none; width: 100%; }
   .site-nav nav.is-open { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-top: 12px; border-top: 1px solid var(--color-line); }
   .site-nav nav a { justify-content: start; text-align: left; padding: 10px 12px; }
+  .site-nav nav { order: 3; margin-left: 0; }
+  .site-nav .account-menu, .site-nav .account-signin { order: 2; }
+}
+@media (max-width: 639px) {
+  .site-nav { gap: 8px; }
+  .site-nav .brand { gap: 8px; }
+  .site-nav .brand strong { font-size: 20px; }
+  .site-nav .nav-toggle { padding-inline: 10px; }
 }

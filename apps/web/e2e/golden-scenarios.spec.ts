@@ -1,3 +1,4 @@
+import { demoStorage } from "./fixtures/account";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -91,8 +92,8 @@ async function openKnowledge(page: Page) {
 }
 
 async function setup(browser: Browser, id: string, assigned = false) {
-  const hostContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  const partnerContext = await browser.newContext({ viewport: { width: 360, height: 780 } });
+  const hostContext = await browser.newContext({ storageState: demoStorage(), viewport: { width: 1280, height: 800 } });
+  const partnerContext = await browser.newContext({ storageState: demoStorage("parent-h-dad-1"), viewport: { width: 360, height: 780 } });
   const host = await hostContext.newPage();
   const partner = await partnerContext.newPage();
   await requireMockApi(host);

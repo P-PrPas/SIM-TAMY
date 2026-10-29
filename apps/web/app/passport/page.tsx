@@ -1,5 +1,5 @@
-import { Passport } from "@/components/platform/passport";
+import { redirect } from "next/navigation";
 
 export default function PassportPage() {
-  return <Passport />;
+  redirect("/profile");
 }

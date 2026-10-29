@@ -1,3 +1,4 @@
+import { demoStorage } from "./fixtures/account";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -140,8 +141,8 @@ async function chooseReply(page: Page, text: string) {
 }
 
 test("family co-op: desktop host and 360px mobile partner finish a shared story", async ({ browser }) => {
-  const hostContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  const partnerContext = await browser.newContext({ viewport: { width: 360, height: 780 } });
+  const hostContext = await browser.newContext({ storageState: demoStorage(), viewport: { width: 1280, height: 800 } });
+  const partnerContext = await browser.newContext({ storageState: demoStorage("parent-h-dad-1"), viewport: { width: 360, height: 780 } });
   try {
     const host = await hostContext.newPage();
     const partner = await partnerContext.newPage();
@@ -185,8 +186,8 @@ test("family co-op: desktop host and 360px mobile partner finish a shared story"
 type Saved = { room_id: string; token: string };
 
 test("family co-op: golden-first-night private facts, disagreement and joint decision", async ({ browser }) => {
-  const hostContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  const partnerContext = await browser.newContext({ viewport: { width: 360, height: 780 } });
+  const hostContext = await browser.newContext({ storageState: demoStorage(), viewport: { width: 1280, height: 800 } });
+  const partnerContext = await browser.newContext({ storageState: demoStorage("parent-h-dad-1"), viewport: { width: 360, height: 780 } });
   try {
     const host = await hostContext.newPage();
     const partner = await partnerContext.newPage();

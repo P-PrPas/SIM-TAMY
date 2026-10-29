@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import HomePage from "../app/page";
@@ -10,6 +10,8 @@ import { StageCards, StageDetail } from "../components/platform/learn";
 import { Passport } from "../components/platform/passport";
 import { StoryGate } from "../components/platform/not-ready";
 import { setDemoAccount } from "../lib/demo-account";
+import { setLogin } from "../lib/demo-login";
+import type { DemoAccount } from "../lib/v2-api";
 import { t } from "../lib/i18n";
 import { CORE_PATH, storyReady, unitReady } from "../lib/learning-path";
 import { storyHref, v2Get } from "../lib/v2-api";
@@ -52,7 +54,7 @@ const stories = [
   { id: "gs-a-postpartum-warning", title_th: "GS-A title", description_th: "d", mode: "coop", chapters_th: [] },
 ];
 const cases = { items: [{ case_id: "PP-001", title_th: "Solo case" }, { case_id: "DEV-001", title_th: "Fixture" }] };
-const accounts = { items: [
+const accounts: { items: DemoAccount[] } = { items: [
   { id: "acc-l1", org_id: "o", display_name_th: "Learner One", role: "learner" },
   { id: "acc-e1", org_id: "o", display_name_th: "Educator One", role: "educator" },
 ] };
@@ -103,18 +105,18 @@ describe("v2 api module", () => {
 });
 
 describe("navigation", () => {
-  it("offers the five family destinations plus a discreet institution link, and no legacy items", () => {
+  it("offers learner destinations without the passport or institution workspace in primary navigation", () => {
     render(<SiteHeader />);
     const nav = screen.getByRole("navigation", { name: t("nav.label") });
     const hrefs = within(nav).getAllByRole("link").map((a) => a.getAttribute("href"));
-    expect(hrefs).toEqual(["/", "/learn", "/lab", "/passport", "/knowledge", "/institution"]);
+    expect(hrefs).toEqual(["/", "/learn", "/lab", "/knowledge"]);
     expect(within(nav).getByRole("link", { name: t("platform.nav.learn") }).getAttribute("aria-current")).toBe("page");
     for (const legacy of ["/family", "/golden", "/replay", "/instructor", "/bridge"]) expect(hrefs).not.toContain(legacy);
   });
 });
 
 describe("Home", () => {
-  it("prioritizes the four stages and their curated entries, with a labeled learner-only profile picker", async () => {
+  it("prioritizes four stages and curated entries, with login instead of profile switching", async () => {
     mockApi({ ...base, "/learning-paths": { ...paths, stages: [paths.stages[0], paths.stages[1],
       { stage: 3, title_th: "Stage three", objectives: [] }, { stage: 4, title_th: "Stage four", objectives: [] }] },
       "/knowledge/units": { ...units, items: CORE_PATH.map((core) => ({ ...units.items[0], id: core.units[0] })) } });
@@ -135,43 +137,43 @@ describe("Home", () => {
       expect(within(card).getAllByRole("link").filter((link) => link.getAttribute("href") === `/learn/${core.stage}`)).toHaveLength(1);
     }
     expect(within(section).queryByRole("link", { name: "GS-B title" })).toBeNull();
-    expect(await screen.findByRole("button", { name: /Learner One/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Learner One/ })).toBeNull();
     expect(screen.queryByText("Educator One")).toBeNull();
-    expect(screen.getAllByText(t("platform.common.demoBadge")).length).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: t("platform.login.submit") }).getAttribute("href")).toBe("/login");
     expect(screen.getByText(t("platform.home.continuePick"))).toBeTruthy();
   });
 
-  it("does not link missing scenarios and survives a failing accounts call", async () => {
-    mockApi({ ...base, "/family/stories": [stories.find((s) => s.id === "first-night")], "/demo/accounts": () => Response.json({ error: { code: "X" } }, { status: 500 }) });
+  it("does not link missing scenarios and offers retry when learning paths fail", async () => {
+    mockApi({ ...base, "/family/stories": [stories.find((s) => s.id === "first-night")], "/learning-paths": () => Response.json({ error: { code: "X" } }, { status: 500 }) });
     render(<HomePage />);
     expect(await screen.findByRole("alert")).toBeTruthy();
     expect(screen.queryByRole("link", { name: new RegExp(t("platform.home.trySimulation")) })).toBeNull();
     expect(screen.getByRole("link", { name: new RegExp(t("platform.home.ctaStart")) })).toBeTruthy();
   });
 
-  it("picks an account, persists it, and shows the latest finished attempt", async () => {
+  it("uses the logged-in learner and clears the progress view on logout", async () => {
+    setLogin(accounts.items[0]!);
     mockApi({ ...base, "/passport/acc-l1": { account: { id: "acc-l1", display_name_th: "Learner One" }, attempts: [
       attempt({ title_th: "Older", finished_at: "2026-10-01T00:00:00Z" }), attempt({ title_th: "Newest" }), attempt({ title_th: "Unfinished", finished_at: null })] } });
     render(<HomePage />);
-    fireEvent.click(await screen.findByRole("button", { name: /Learner One/ }));
     expect(localStorage.getItem("sim-tamy-demo-account")).toBe("acc-l1");
     expect(await screen.findByText("Newest")).toBeTruthy();
     expect(screen.queryByText("Unfinished")).toBeNull();
     expect(calls.some((c) => new URL(c.url).pathname === "/v1/passport/acc-l1" && c.headers.get("X-Demo-Account") === "acc-l1")).toBe(true);
-    fireEvent.click(screen.getByRole("button", { name: t("platform.profile.clear") }));
+    act(() => setLogin(null));
     expect(localStorage.getItem("sim-tamy-demo-account")).toBeNull();
     expect(await screen.findByText(t("platform.home.continuePick"))).toBeTruthy();
   });
 
   it("points to the Lab when the picked account has no finished attempt", async () => {
-    setDemoAccount("acc-l1");
+    setLogin(accounts.items[0]!);
     mockApi({ ...base, "/passport/acc-l1": { account: { id: "acc-l1", display_name_th: "L" }, attempts: [] } });
     render(<HomePage />);
     expect(await screen.findByText(t("platform.home.continueNone"))).toBeTruthy();
   });
 
   it("offers retry instead of claiming there is no progress when the passport fails", async () => {
-    setDemoAccount("acc-l1");
+    setLogin(accounts.items[0]!);
     mockApi(base);
     render(<HomePage />);
     const section = screen.getByRole("region", { name: t("platform.home.continueTitle") });
@@ -289,13 +291,13 @@ describe("Simulation Lab", () => {
 });
 
 describe("Learning Passport", () => {
-  it("asks for a profile first and labels the page as demo", async () => {
+  it("requires login instead of a profile picker", async () => {
     mockApi(base);
     render(<Passport />);
-    expect(screen.getByText(t("platform.passport.pickFirst"))).toBeTruthy();
+    expect(screen.getByRole("link", { name: t("platform.login.submit") }).getAttribute("href")).toBe("/login?next=/profile");
     expect(screen.getAllByText(t("platform.common.demoBadge")).length).toBeGreaterThan(0);
     expect(screen.getByText(t("platform.common.demoNote"))).toBeTruthy();
-    expect(await screen.findByRole("button", { name: /Learner One/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Learner One/ })).toBeNull();
   });
 
   it("shows an empty state linking to the Lab", async () => {

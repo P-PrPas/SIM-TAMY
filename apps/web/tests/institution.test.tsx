@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AnalyticsPage from "../app/institution/analytics/page";
@@ -12,6 +12,8 @@ import JoinCodePage from "../app/join/[code]/page";
 import { InstitutionShell } from "../components/institution-shell";
 import { ApiError } from "../lib/api/client";
 import { getDemoAccount } from "../lib/demo-account";
+import { setLogin } from "../lib/demo-login";
+import type { DemoAccount } from "../lib/v2-api";
 import { t } from "../lib/i18n";
 
 const mocks = vi.hoisted(() => ({
@@ -34,7 +36,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-const accounts = [
+const accounts: DemoAccount[] = [
   { id: "staff-h-edu-1", org_id: "org-h", display_name_th: "Educator H", role: "educator" },
   { id: "staff-h-rev", org_id: "org-h", display_name_th: "Reviewer H", role: "reviewer" },
   { id: "parent-1", org_id: "org-h", display_name_th: "Parent 1", role: "learner" },
@@ -77,9 +79,10 @@ function staffPage(page: React.ReactNode) {
   return render(<InstitutionShell>{page}</InstitutionShell>);
 }
 async function pick(id: string) {
-  const select = (await screen.findByLabelText(t("institution.picker.label"))) as HTMLSelectElement;
-  await waitFor(() => expect(select.options.length).toBeGreaterThan(1));
-  fireEvent.change(select, { target: { value: id } });
+  const account = accounts.find((a) => a.id === id);
+  if (!account) throw new Error("missing test account");
+  act(() => setLogin(account));
+  await screen.findByRole("navigation", { name: t("institution.nav.label") });
 }
 
 beforeEach(() => {
@@ -90,12 +93,11 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllEnvs(); });
 
 describe("S2 institution shell", () => {
-  it("lists only educators and org admins, gates content on a pick, and stores the account", async () => {
+  it("requires staff login and no longer offers a profile picker", async () => {
     staffPage(<OverviewPage />);
-    expect(await screen.findByText(t("institution.picker.required"))).toBeTruthy();
+    expect(await screen.findByText(t("platform.login.staffRequired"))).toBeTruthy();
     expect(screen.getAllByText(t("institution.demoLabel")).length).toBeGreaterThan(0);
-    const select = (await screen.findByLabelText(t("institution.picker.label"))) as HTMLSelectElement;
-    await waitFor(() => expect(select.options.length).toBe(3)); // placeholder + educator + org admin
+    expect(screen.queryByRole("combobox")).toBeNull();
     expect(screen.queryByText(/Reviewer H/)).toBeNull();
     expect(screen.queryByText(/Parent 1/)).toBeNull();
     await pick("staff-h-edu-1");
@@ -106,12 +108,12 @@ describe("S2 institution shell", () => {
     expect(screen.getByRole("navigation", { name: t("institution.nav.label") })).toBeTruthy();
   });
 
-  it("remembers a staff pick and ignores a stored non-staff account", async () => {
+  it("ignores an obsolete picker ID and restores the logged-in institution account", async () => {
     localStorage.setItem("sim-tamy-demo-account", "parent-1");
     const first = staffPage(<OverviewPage />);
-    expect(await screen.findByText(t("institution.picker.required"))).toBeTruthy();
+    expect(await screen.findByText(t("platform.login.staffRequired"))).toBeTruthy();
     first.unmount();
-    localStorage.setItem("sim-tamy-demo-account", "staff-c-admin");
+    setLogin(accounts[3]!);
     staffPage(<OverviewPage />);
     await waitFor(() => expect(mocks.get).toHaveBeenCalledWith("/v1/orgs/{org_id}/overview", { params: { path: { org_id: "org-c" } } }));
   });

@@ -7,7 +7,6 @@ import { useDemoAccount } from "@/lib/use-demo-account";
 import { useV2 } from "@/lib/use-v2";
 import { v2, type Attempt } from "@/lib/v2-api";
 
-import { ProfilePicker } from "./profile-picker";
 import { Async, DemoBadge, formatDate } from "./shared";
 
 function AttemptCard({ a, objectiveTitle }: { a: Attempt; objectiveTitle: (id: string) => string }) {
@@ -41,7 +40,7 @@ export function Passport() {
     </header>
     {!account ? <>
       <p className="pf-note">{t("platform.passport.pickFirst")}</p>
-      <ProfilePicker />
+      <Link href="/login?next=/profile" className="pf-link">{t("platform.login.submit")}</Link>
     </> : <Async r={passport}>{(data) => {
       const attempts = data.attempts.filter((a) => a.finished_at)
         .sort((a, b) => (b.finished_at ?? "").localeCompare(a.finished_at ?? ""));
@@ -68,7 +67,7 @@ export function Passport() {
           <ul className="pf-grid pf-list">{attempts.map((a) => <AttemptCard key={a.room_id} a={a} objectiveTitle={objectiveTitle} />)}</ul>
           {attempts.some((a) => a.score_total !== null) && <p className="pf-meta">{t("platform.passport.scoreNote")}</p>}
         </section>
-        <ProfilePicker />
+
       </>;
     }}</Async>}
   </main>;
