@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import LoginPage from "../app/login/page";
+import { AccountGate } from "../components/account-gate";
+import { AccountMenu } from "../components/account-menu";
+import { SiteHeader } from "../components/site-shell";
 import { DEMO_PASSWORD, LOGIN_KEY, loginDestination, readLogin, setLogin } from "../lib/demo-login";
 import { t } from "../lib/i18n";
 import type { DemoAccount } from "../lib/v2-api";
@@ -56,10 +59,40 @@ describe("demo login", () => {
     setLogin(staff);
     expect(sessionStorage.getItem("sim-tamy-session")).toBeNull();
     expect(sessionStorage.getItem("sim-tamy-family:story")).toBeNull();
-    setLogin(null);
+    render(<AccountMenu />);
+    fireEvent.click(screen.getByText(t("platform.login.logout")));
     expect(readLogin(localStorage.getItem(LOGIN_KEY))).toBeNull();
     expect(localStorage.getItem("sim-tamy-demo-account")).toBeNull();
     expect(sessionStorage.getItem("other-app")).toBe("keep");
   });
 });
 
+describe("role routes", () => {
+  it("blocks a learner screen before mounting it for a staff account", async () => {
+    setLogin(staff); mock.path = "/learn/1";
+    render(<AccountGate><p>learner secret</p></AccountGate>);
+    expect(screen.queryByText("learner secret")).toBeNull();
+    await waitFor(() => expect(mock.replace).toHaveBeenCalledWith("/institution"));
+  });
+  it("requires login for protected pages and sends learners away from institution tools", async () => {
+    mock.path = "/profile";
+    const page = render(<AccountGate><p>protected</p></AccountGate>);
+    await waitFor(() => expect(mock.replace).toHaveBeenCalledWith("/login?next=%2Fprofile"));
+    page.unmount();
+    setLogin(learner); mock.path = "/institution";
+    render(<AccountGate><p>staff tools</p></AccountGate>);
+    expect(screen.queryByText("staff tools")).toBeNull();
+    await waitFor(() => expect(mock.replace).toHaveBeenCalledWith("/profile"));
+  });
+  it("shows only workspace navigation to staff and puts the learner profile in the account menu", () => {
+    setLogin(staff); mock.path = "/institution";
+    const header = render(<SiteHeader />);
+    const nav = screen.getByRole("navigation", { name: t("nav.label") });
+    expect(within(nav).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/institution"]);
+    header.unmount();
+    act(() => setLogin(learner)); mock.path = "/";
+    render(<SiteHeader />);
+    expect(screen.getByRole("link", { name: t("platform.login.viewProfile") }).getAttribute("href")).toBe("/profile");
+    expect(screen.queryByRole("link", { name: t("platform.nav.passport") })).toBeNull();
+  });
+});

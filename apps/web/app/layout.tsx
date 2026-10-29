@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import localFont from "next/font/local";
 
 import { SiteFooter, SiteHeader } from "@/components/site-shell";
+import { AccountGate } from "@/components/account-gate";
 import { t } from "@/lib/i18n";
 
 import "./globals.css";
@@ -22,7 +23,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           {t("app.skipToContent")}
         </a>
         <SiteHeader />
-        <div id="main-content" tabIndex={-1}>{children}</div>
+        <div id="main-content" tabIndex={-1}><AccountGate>{children}</AccountGate></div>
         <SiteFooter />
       </body>
     </html>

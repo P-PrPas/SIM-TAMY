@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { demoStorage } from "./e2e/fixtures/account";
 
 const apiUrl = "http://127.0.0.1:4010";
 const webUrl = "http://127.0.0.1:3100";
@@ -10,6 +11,7 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL: webUrl,
+    storageState: demoStorage(),
     channel: process.env.CI ? "chromium" : "chrome",
     viewport: { width: 360, height: 780 },
     screenshot: "only-on-failure",

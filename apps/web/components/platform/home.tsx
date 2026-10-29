@@ -3,16 +3,16 @@
 import Link from "next/link";
 
 import { t } from "@/lib/i18n";
-import { useDemoAccount } from "@/lib/use-demo-account";
+import { useLogin } from "@/lib/use-login";
 import { useV2 } from "@/lib/use-v2";
 import { v2 } from "@/lib/v2-api";
 
-import { ProfilePicker } from "./profile-picker";
 import { Async, DemoBadge, formatDate } from "./shared";
 import { LearningStages, StageArt } from "./stages";
 
 function Continue() {
-  const account = useDemoAccount();
+  const { account: profile } = useLogin();
+  const account = profile?.role === "learner" ? profile.id : undefined;
   const passport = useV2(account ? (s) => v2.passport(account, s) : null, `passport:${account ?? ""}`);
   const latest = account
     ? [...(passport.data?.attempts ?? [])].filter((a) => a.finished_at)
@@ -20,12 +20,12 @@ function Continue() {
     : undefined;
   return <section className="pf-card" aria-labelledby="continue-title">
     <div className="pf-row"><h2 id="continue-title">{t("platform.home.continueTitle")}</h2>{account && <DemoBadge />}</div>
-    {!account && <p className="pf-muted">{t("platform.home.continuePick")}</p>}
+    {!account && <><p className="pf-muted">{t("platform.home.continuePick")}</p><Link href="/login" className="pf-link">{t("platform.login.submit")}</Link></>}
     {account && <Async r={passport}>{() => latest
       ? <>
         <p className="pf-muted">{t("platform.home.continueLast")}</p>
         <p><strong>{latest.title_th}</strong>{latest.finished_at && <> <span className="pf-muted">({formatDate(latest.finished_at)})</span></>}</p>
-        <Link href="/learn" className="pf-link">{t("platform.home.continueNext")}<span aria-hidden="true"> →</span></Link>
+        <Link href="/profile" className="pf-link">{t("platform.login.viewProgress")}<span aria-hidden="true"> →</span></Link>
       </>
       : <>
         <p className="pf-muted">{t("platform.home.continueNone")}</p>
@@ -57,9 +57,8 @@ export function Home() {
       <LearningStages />
     </section>
 
-    <div className="pf-grid pf-section pf-home-account">
+    <div className="pf-section pf-home-account">
       <Continue />
-      <ProfilePicker />
     </div>
     <aside className="pf-institution pf-section">
       <div><h2>{t("platform.home.pillar4Title")}</h2><p className="pf-muted">{t("platform.home.pillar4Text")}</p></div>

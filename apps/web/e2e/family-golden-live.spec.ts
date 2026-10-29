@@ -1,3 +1,4 @@
+import { demoStorage } from "./fixtures/account";
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
 import type { components } from "../lib/api/schema";
@@ -25,7 +26,7 @@ test("two devices share private facts, disagree, re-vote and lock a joint decisi
   await page.goto("/golden");
   await page.getByRole("button", { name: t("family.create"), exact: true }).click();
   const link = await page.locator("#family-share").inputValue();
-  const partnerContext = await browser.newContext({ viewport: { width: 360, height: 780 } });
+  const partnerContext = await browser.newContext({ storageState: demoStorage("parent-h-dad-1"), viewport: { width: 360, height: 780 } });
   try {
     const partner = await partnerContext.newPage();
     await partner.goto(link);

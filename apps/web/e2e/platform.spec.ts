@@ -28,7 +28,10 @@ const data: Record<string, unknown> = {
 };
 
 async function mock(page: Page, account?: string) {
-  if (account) await page.addInitScript((id) => localStorage.setItem("sim-tamy-demo-account", id), account);
+  await page.addInitScript((id) => {
+    localStorage.setItem("sim-tamy-demo-account", id);
+    localStorage.setItem("sim-tamy-login", JSON.stringify({ id, role: "learner", org_id: "o", display_name_th: "Learner One" }));
+  }, account ?? "acc-l1");
   await page.route("**/v1/**", (route) => {
     if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
     const body = data[new URL(route.request().url()).pathname];
@@ -74,15 +77,18 @@ for (const [name, path, ready] of pages) {
   });
 }
 
-test("top navigation shows the five family destinations and the institution link, not legacy routes", async ({ page }) => {
+test("top navigation shows learner destinations and keeps profile outside the primary links", async ({ page }) => {
   await mock(page);
   await page.goto("/");
   await page.getByRole("button", { name: t("platform.nav.openMenu") }).click();
   const nav = page.getByRole("navigation", { name: t("nav.label") });
-  for (const key of ["home", "learn", "lab", "passport", "knowledge", "institution"]) {
+  for (const key of ["home", "learn", "lab", "knowledge"]) {
     await expect(nav.getByRole("link", { name: t(`platform.nav.${key}`) })).toBeVisible();
   }
   await expect(nav.locator('a[href="/family"], a[href="/replay"], a[href="/instructor"]')).toHaveCount(0);
+  await expect(nav.locator('a[href="/passport"], a[href="/institution"]')).toHaveCount(0);
+  await page.locator(".account-menu > summary").click();
+  await expect(page.getByRole("link", { name: t("platform.login.viewProfile"), exact: true })).toHaveAttribute("href", "/profile");
 });
 
 test("the Passport never shows pass wording for a SAFETY_NOT_MET attempt", async ({ page }) => {

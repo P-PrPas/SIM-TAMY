@@ -1,3 +1,4 @@
+import { demoStorage } from "./fixtures/account";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -26,7 +27,7 @@ for (const [id, stage] of [["thai-elements-family", 1], ["thai-birth-conversatio
     const read = async () => (await (await page.request.get(`${apiUrl}/v1/family/rooms/${saved.room_id}`, {
       headers: { Authorization: `Bearer ${saved.token}` },
     })).json()) as View;
-    const partnerContext = id === "thai-milk-family" ? await browser.newContext({ viewport: { width: 360, height: 780 } }) : null;
+    const partnerContext = id === "thai-milk-family" ? await browser.newContext({ storageState: demoStorage(), viewport: { width: 360, height: 780 } }) : null;
     const partner = partnerContext ? await partnerContext.newPage() : null;
     try {
       if (partner) {
