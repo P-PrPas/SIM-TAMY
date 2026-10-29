@@ -85,6 +85,61 @@ def test_demo_accounts_lists_orgs_staff_and_free_learners(api: Api):
     assert any(i["org_id"] is None and i["role"] == "learner" for i in items)
 
 
+def test_removing_assignment_keeps_attempts_and_blocks_new_starts(api: Api):
+    cohort = new_cohort(api, HOSPITAL, EDU_H)
+    assignment = assign(api, cohort["id"], EDU_H)
+    room_id = attempt(api, assignment["id"], SAFE, host="parent-h-mom-1")
+    path = f"/v1/cohorts/{cohort['id']}/assignments/{assignment['id']}"
+    assert api.client.delete(path, headers=EDU_C).status_code == 404
+    assert api.client.delete(path, headers=EDU_H).status_code == 204
+    assert (
+        api.client.get(f"/v1/cohorts/{cohort['id']}/assignments", headers=EDU_H).json()["items"]
+        == []
+    )
+    assert api.client.get(f"/v1/join/{cohort['code']}").json()["assignments"] == []
+    blocked = api.client.post(
+        "/v1/family/rooms",
+        json={"story_id": STORY, "role": "mother", "assignment_id": assignment["id"]},
+    )
+    assert blocked.status_code == 404
+    assert api.client.get("/v1/passport/parent-h-mom-1").json()["attempts"][0]["room_id"] == str(
+        room_id
+    )
+    assert (
+        api.client.get(f"/v1/cohorts/{cohort['id']}/analytics", headers=EDU_H).json()["n_finished"]
+        == 1
+    )
+    assert assign(api, cohort["id"], EDU_H)["id"] != assignment["id"]
+    with api.db() as db:
+        assert db.get(FamilyRoom, room_id).assignment_id == uuid.UUID(assignment["id"])
+        assert len(list(db.query(FamilyEvent).filter_by(room_id=room_id))) == len(SAFE)
+
+
+def test_removing_cohort_is_org_scoped_and_retains_org_history(api: Api):
+    cohort = new_cohort(api, HOSPITAL, EDU_H)
+    assignment = assign(api, cohort["id"], EDU_H)
+    attempt(api, assignment["id"], SAFE, host="parent-h-mom-1")
+    path = f"/v1/cohorts/{cohort['id']}"
+    assert api.client.delete(path).status_code == 401
+    assert api.client.delete(path, headers={"X-Demo-Account": "parent-h-mom-1"}).status_code == 403
+    assert api.client.delete(path, headers=EDU_C).status_code == 404
+    assert api.client.delete(path, headers=EDU_H).status_code == 204
+    assert api.client.get(f"/v1/orgs/{HOSPITAL}/cohorts", headers=EDU_H).json()["items"] == []
+    overview = api.client.get(f"/v1/orgs/{HOSPITAL}/overview", headers=EDU_H).json()
+    assert overview["cohort_count"] == 0
+    assert overview["assignment_count"] == 0
+    assert overview["finished_attempts"] == 1
+    assert api.client.get(f"/v1/join/{cohort['code']}").status_code == 404
+    assert (
+        api.client.post(
+            "/v1/family/rooms",
+            json={"story_id": STORY, "role": "mother", "assignment_id": assignment["id"]},
+        ).status_code
+        == 404
+    )
+    assert api.client.get("/v1/passport/parent-h-mom-1").json()["attempts"]
+
+
 def test_staff_routes_need_a_known_staff_account_of_that_org(api: Api):
     url = f"/v1/orgs/{HOSPITAL}/overview"
     assert api.client.get(url).status_code == 401

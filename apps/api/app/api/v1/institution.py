@@ -2,7 +2,7 @@
 
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 
 from app.api.deps import Db, Demo
 from app.api.v1.institution_schemas import (
@@ -55,6 +55,27 @@ def list_cohorts(org_id: str, db: Db, account: Demo) -> CohortList:
 def create_cohort(org_id: str, body: CohortNameRequest, db: Db, account: Demo) -> Cohort:
     service.staff_in_org(account, org_id)
     return service.create_cohort(db, org_id, body.name)
+
+
+@router.delete(
+    "/cohorts/{cohort_id}", status_code=204, response_class=Response, operation_id="removeCohort"
+)
+def remove_cohort(cohort_id: uuid.UUID, db: Db, account: Demo) -> Response:
+    service.archive_cohort(db, service.cohort_of(db, account, cohort_id))
+    return Response(status_code=204)
+
+
+@router.delete(
+    "/cohorts/{cohort_id}/assignments/{assignment_id}",
+    status_code=204,
+    response_class=Response,
+    operation_id="removeCohortAssignment",
+)
+def remove_assignment(
+    cohort_id: uuid.UUID, assignment_id: uuid.UUID, db: Db, account: Demo
+) -> Response:
+    service.archive_assignment(db, service.cohort_of(db, account, cohort_id), assignment_id)
+    return Response(status_code=204)
 
 
 @router.post(

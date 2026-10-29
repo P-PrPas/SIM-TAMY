@@ -25,7 +25,7 @@ from app.core.config import get_settings
 from app.core.errors import ApiError
 from app.core.security import hash_token, new_token
 from app.db.family import FamilyRoom
-from app.db.models import Assignment
+from app.db.models import Assignment, ClassRoom
 from app.services import family, family_chat, family_debrief
 
 router = APIRouter(prefix="/v1/family", tags=["Family"])
@@ -57,8 +57,11 @@ def create(body: FamilyCreate, db: Db, account: Account = None) -> FamilyCreated
     )
     if story is None or (story.status != "Approved" and not get_settings().allow_draft_cases):
         raise ApiError("CASE_NOT_AVAILABLE", "family story not available")
-    if body.assignment_id and db.get(Assignment, body.assignment_id) is None:
-        raise ApiError("NOT_FOUND", "assignment not found")
+    if body.assignment_id:
+        assignment = db.get(Assignment, body.assignment_id)
+        cohort = db.get(ClassRoom, assignment.class_id) if assignment else None
+        if not assignment or assignment.archived_at or not cohort or cohort.archived_at:
+            raise ApiError("NOT_FOUND", "assignment not found")
     token, invite = new_token(), new_token()
     row = FamilyRoom(
         assignment_id=body.assignment_id,

@@ -87,6 +87,11 @@ score. Event IDs exposed to AI-03 and the UI: `"<room_id>:<idx>"`.
 
 ## 4. API (all under `/v1`, standard error envelope)
 
+Migration `0008` adds nullable `archived_at` to classes and assignments. Removal returns 204 and
+archives settings instead of deleting evidence. Active counts exclude archived settings; organization
+finished-attempt totals and account passports retain their recorded history. Archived cohorts reject
+new join-code access, and archived cohorts/assignments reject new room creation. Existing rooms work.
+
 | Route | Verb | Owner | Behavior |
 |---|---|---|---|
 | `/knowledge/sources` | GET | A | registry, filter `?kind=` |
@@ -100,6 +105,8 @@ score. Event IDs exposed to AI-03 and the UI: `"<room_id>:<idx>"`.
 | `/demo/accounts` | GET | C | mock accounts for the profile picker |
 | `/orgs/{org_id}/overview`, `/orgs/{org_id}/cohorts` | GET/POST | C | cohorts of that org only |
 | `/cohorts/{id}/clone`, `/cohorts/{id}/assignments` | POST | C | assignable: stories in the catalog (Draft allowed while `ALLOW_DRAFT_CASES=true`) |
+| `/cohorts/{id}` | DELETE | C | owning organization's staff only; archive cohort, retain learning evidence |
+| `/cohorts/{id}/assignments/{assignment_id}` | DELETE | C | archive only an assignment of that cohort; retain existing rooms and analytics |
 | `/cohorts/{id}/analytics` | GET | C | from finished rooms only; every rate shows numerator, `n`, story version; per-objective rates hidden when `n < 3` |
 | `/join/{code}` | GET | C | class + active assignments; expired → helpful error (CT-14) |
 | `/passport/{account_id}` | GET | C | finished attempts of that account, objectives touched, safety result per attempt (never averaged); `attempts[].strong` (display only) and `lessons: [{unit_id, completed_at}]` |
