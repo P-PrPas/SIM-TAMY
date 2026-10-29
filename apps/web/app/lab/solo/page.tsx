@@ -83,7 +83,6 @@ export default function JoinPage() {
         <p className="hero-description">{t("join.description")}</p>
         <div className="hero-actions">
           <a href="#practice" className="button-primary">{t("join.heroCta")}<span aria-hidden="true"> ↗</span></a>
-          <Link href="/replay" className="button-text">{t("replay.switch")}<span aria-hidden="true"> →</span></Link>
         </div>
         <p className="hero-note"><span aria-hidden="true">✓</span> {t("join.heroNote")}</p>
       </div>

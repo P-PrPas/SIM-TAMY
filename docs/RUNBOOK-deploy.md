@@ -28,9 +28,10 @@ You do the account steps; the repo already holds the Blueprint (`render.yaml`) a
    - `CORS_ORIGINS` = `https://<project>.vercel.app`
    - `CORS_ORIGIN_REGEX` (only if you want preview deployments to work) = `https://<project>-.*-<vercel-team>\.vercel\.app`
 2. Save; Render redeploys. If `NEXT_PUBLIC_API_URL` ever changes, redeploy the web project too (it is baked in at build time).
-3. Browser check (acceptance for T-093; needs the Join/Briefing/Chat flow of PR #17 on `main`,
-   until then the web has only the landing page): open the Vercel URL over HTTPS, join with a case, send a message,
-   commit the decision, complete the session and open the report. DevTools -> Network: no CORS errors.
+3. Browser check: open the Vercel URL over HTTPS, sign in with a synthetic learner account, open
+   a core lesson and scenario, commit a decision, and view the report and profile dashboard.
+   Sign out and use an institution account to verify the workspace and its account-specific navigation.
+   DevTools -> Network: no CORS errors.
    Preflight check from a terminal:
    `curl -si -X OPTIONS https://<service>.onrender.com/health -H "Origin: https://<project>.vercel.app" -H "Access-Control-Request-Method: GET"`
    must contain `access-control-allow-origin: https://<project>.vercel.app`.
@@ -48,11 +49,14 @@ the next visitor can still wait through a cold start. Before sending the link:
 
 ## 5. Storage and cookie policy (T-093)
 
-The learner token is in `sessionStorage` and sent as `Authorization: Bearer ...`. There are no cookies,
-so there is no `SameSite`/CSRF surface and the API does not enable CORS credentials. Both platforms
-redirect HTTP to HTTPS. Secrets are only in the Render dashboard.
+Room/session tokens are kept in the tab's `sessionStorage` and sent as `Authorization: Bearer ...`.
+Fixed demo login stores synthetic account metadata in `localStorage` and sends the existing
+`X-Demo-Account` header; passwords are not persisted. This prototype login is not server
+authentication. See [demo-login.md](v2/demo-login.md) for account switching and route guards.
+The API does not enable CORS credentials. Both platforms redirect HTTP to HTTPS; server secrets
+belong in the Render dashboard.
 
-## 6. Switching to a real LLM later
+## 6. Configuring a live LLM
 
 Add `LLM_API_KEY` (and `LLM_PROVIDER`, `LLM_MODEL_*`, `LLM_BASE_URL`) in the Render dashboard; never in
 `render.yaml`. Set `LLM_PROVIDER` back to `mock` to fall back to the deterministic provider.

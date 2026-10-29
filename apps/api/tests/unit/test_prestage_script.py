@@ -26,7 +26,6 @@ def healthy(method: str, url: str, headers: dict[str, str]) -> tuple[int, dict[s
         API + "/health": {"status": "ok", "db": "ok", "llm_provider": "mock", "commit": "abc"},
         API + "/v1/cases": {"items": [{"case_id": "X"}]},
         API + "/v1/family/stories": [{"id": "s"}],
-        API + "/v1/replay/recordings": {"items": [{"recording_id": "r"}]},
     }
     return (200, {}, body[url]) if url in body else (200, {}, b"<html>")
 
@@ -34,7 +33,7 @@ def healthy(method: str, url: str, headers: dict[str, str]) -> tuple[int, dict[s
 def test_everything_healthy_passes() -> None:
     results = prestage.run(API, WEB, healthy)
 
-    assert len(results) == 6 and all(ok for _, ok, _ in results)
+    assert len(results) == 5 and all(ok for _, ok, _ in results)
 
 
 def test_a_broken_family_endpoint_is_named() -> None:

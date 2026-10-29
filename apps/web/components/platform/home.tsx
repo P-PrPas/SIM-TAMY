@@ -43,7 +43,6 @@ export function Home() {
         <p className="pf-lead">{t("platform.home.description")}</p>
         <div className="pf-actions">
           <a href="#stages" className="button-primary">{t("platform.home.ctaStart")}</a>
-          <Link href="/replay" className="button-text">{t("platform.home.previewCta")}</Link>
         </div>
       </div>
       <figure className="pf-home-preview">

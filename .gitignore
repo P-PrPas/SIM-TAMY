@@ -32,3 +32,12 @@ coverage/
 Thumbs.db
 .idea/
 .vscode/
+
+# Historical working documents stay local; retain published contracts and content sources.
+/docs/design/
+/docs/features/
+/docs/results/
+/docs/evidence/
+/docs/demo/
+/docs/SIM-TAMY_v2.md
+/docs/research/chat-engagement-patterns.md

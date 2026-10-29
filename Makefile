@@ -108,7 +108,7 @@ seed-demo:
 demo-reset:
 	@test "$(DEMO_DB)" = 1 || { echo "refusing: this deletes the DEMO01 class; confirm the database is a demo one with DEMO_DB=1"; exit 2; }
 	cd $(API) && SIMTAMY_DEMO_DB=1 CONTENT_DIR=../../content ../../$(PY) -m app.seed_demo --reset
-# Read-only pre-stage check (health, web, cases, family stories, replay, CORS): make prestage URL=<api> WEB=<web> [WAIT=120]
+# Read-only pre-stage check (health, web, cases, family stories, CORS): make prestage URL=<api> WEB=<web> [WAIT=120]
 prestage:
 	@test -n "$(URL)" -a -n "$(WEB_URL)" || { echo "usage: make prestage URL=<api-url> WEB_URL=<web-url> [WAIT=120]"; exit 2; }
 	$(PY) scripts/prestage.py $(URL) $(WEB_URL) $(if $(WAIT),--wait $(WAIT))

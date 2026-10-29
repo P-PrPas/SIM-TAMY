@@ -1,10 +1,14 @@
-# Replay snapshots
+# Synthetic engineering snapshots
+
+The learner-facing recorded-example gallery has been retired. `/replay` redirects to `/lab`.
+These snapshots and their API/build tools remain available for deterministic engineering
+checks. They are separate from report consequence timelines and engine event-log replay.
 
 `dev001-engineering.json` is generated from the synthetic DEV-001 engineering fixture by
 `python -m scripts.build_dev_replay` (run inside `apps/api`). Its score and findings come
 from the deterministic engine. It is **not** a clinical case and must never be used for a
-real product demo. It is retained for engineering tests and excluded from the learner
-gallery. Do not export real patient data or unreviewed learner free text.
+real product demo. It is retained for engineering tests and excluded from recording listings.
+Do not export real patient data or unreviewed learner free text.
 
 The public replay API is disabled in application defaults. Compose, `.env.example`,
 and the Render Blueprint explicitly enable it with `ENABLE_REPLAY=true`.
@@ -24,4 +28,4 @@ engine; all six reports and their metadata are unchanged by this dialogue revisi
 
 No live learner text or real patient data is used. Case status remains Draft in their
 data; authored wording does not assert expert approval. DEV-001 remains excluded from
-the learner gallery and its engineering snapshot is unchanged.
+recording listings and its engineering snapshot is unchanged.
