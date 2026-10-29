@@ -6,14 +6,16 @@ import { AccountGate } from "../components/account-gate";
 import { AccountMenu } from "../components/account-menu";
 import { SiteHeader } from "../components/site-shell";
 import { DEMO_PASSWORD, LOGIN_KEY, loginDestination, readLogin, setLogin } from "../lib/demo-login";
+import { learningProgress } from "../lib/learning-progress";
 import { t } from "../lib/i18n";
-import type { DemoAccount } from "../lib/v2-api";
+import type { Attempt, DemoAccount } from "../lib/v2-api";
 
 const mock = vi.hoisted(() => ({ path: "/login", replace: vi.fn() }));
 vi.mock("next/navigation", () => ({ usePathname: () => mock.path, useRouter: () => ({ replace: mock.replace }) }));
 vi.mock("next/image", () => ({ default: () => null }));
 const learner: DemoAccount = { id: "parent-1", role: "learner", org_id: "org-1", display_name_th: "Learner one" };
 const staff: DemoAccount = { id: "staff-1", role: "educator", org_id: "org-1", display_name_th: "Educator one" };
+const attempt: Attempt = { room_id: "room-1", story_id: "thai-elements-family", title_th: "First practice", finished_at: "2026-10-29T00:00:00Z", safety_status: "SAFETY_NOT_MET", score_total: 75, objective_ids: [], strong: false };
 beforeEach(() => {
   localStorage.clear(); sessionStorage.clear(); mock.replace.mockReset(); mock.path = "/login";
   history.replaceState({}, "", "/");
@@ -95,4 +97,11 @@ describe("role routes", () => {
     expect(screen.getByRole("link", { name: t("platform.login.viewProfile") }).getAttribute("href")).toBe("/profile");
     expect(screen.queryByRole("link", { name: t("platform.nav.passport") })).toBeNull();
   });
+});
+
+it("derives stage progress from distinct completed lessons and finished attempts, separately from safety", () => {
+  const lessons = [{ unit_id: "KB-TM-ELEMENT-001", completed_at: "2026-10-29" }];
+  const stages = learningProgress([attempt, { ...attempt, room_id: "repeat" }, { ...attempt, story_id: "thai-birth-conversation", finished_at: null }], [...lessons, ...lessons]);
+  expect(stages.map((s) => s.completed)).toEqual([2, 0, 0, 0]);
+  expect(learningProgress([], lessons)[0]?.completed).toBe(1);
 });

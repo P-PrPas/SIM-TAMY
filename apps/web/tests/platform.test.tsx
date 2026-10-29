@@ -291,25 +291,24 @@ describe("Simulation Lab", () => {
 });
 
 describe("Learning Passport", () => {
-  it("requires login instead of a profile picker", async () => {
+  it("requires login instead of offering a profile picker", async () => {
     mockApi(base);
     render(<Passport />);
     expect(screen.getByRole("link", { name: t("platform.login.submit") }).getAttribute("href")).toBe("/login?next=/profile");
     expect(screen.getAllByText(t("platform.common.demoBadge")).length).toBeGreaterThan(0);
-    expect(screen.getByText(t("platform.common.demoNote"))).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Learner One/ })).toBeNull();
   });
 
-  it("shows an empty state linking to the Lab", async () => {
-    setDemoAccount("acc-l1");
+  it("shows empty progress with a link to the learning stages", async () => {
+    setLogin(accounts.items[0]!);
     mockApi({ ...base, "/passport/acc-l1": { account: { id: "acc-l1", display_name_th: "L" }, attempts: [] } });
     render(<Passport />);
     expect(await screen.findByText(t("platform.passport.empty"))).toBeTruthy();
-    expect(screen.getByRole("link", { name: new RegExp(t("platform.passport.emptyCta")) }).getAttribute("href")).toBe("/lab");
+    expect(screen.getByRole("link", { name: t("platform.home.ctaStart") }).getAttribute("href")).toBe("/learn");
   });
 
   it("shows safety per attempt, never pass wording when SAFETY_NOT_MET, scores only when present, and badges as topics", async () => {
-    setDemoAccount("acc-l1");
+    setLogin(accounts.items[0]!);
     mockApi({ ...base, "/passport/acc-l1": { account: { id: "acc-l1", display_name_th: "L" }, attempts: [
       attempt({ room_id: "a", title_th: "Unsafe run", safety_status: "SAFETY_NOT_MET", score_total: 95 }),
       attempt({ room_id: "b", title_th: "Safe run", score_total: null, finished_at: "2026-10-19T10:00:00Z" }),
