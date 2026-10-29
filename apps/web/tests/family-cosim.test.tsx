@@ -78,6 +78,7 @@ it("shows the partner as offline when presence is false", async () => {
 });
 
 it("tells the learner when the story is not offered by the API", async () => {
+  sessionStorage.clear();
   vi.stubGlobal("fetch", vi.fn(async () => Response.json([])));
   render(<FamilySimulator storyId="golden-first-night" />);
   expect(await screen.findByText(t("family.cosim.unavailable"))).toBeTruthy();
