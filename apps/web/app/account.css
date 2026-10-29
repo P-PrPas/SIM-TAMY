@@ -55,12 +55,20 @@
 .institution-sidebar a[aria-current] { color: var(--color-brand-950); background: var(--color-brand-100); }
 .institution-sidebar a:hover { background: var(--color-stone-100); }
 .institution-content h2 { font-size: 1.5rem; font-weight: 650; }
+.dashboard-panels { display: grid; gap: 24px; margin-top: 28px; }
+.dashboard-panels h3 { font-size: 1.125rem; font-weight: 650; }
+.dashboard-panels li { padding-block: 12px; border-bottom: 1px solid var(--color-line); }
+.dashboard-panels li:last-child { border-bottom: 0; }
+.dashboard-panels .pf-link { justify-content: space-between; gap: 16px; width: 100%; }
+.delete-button { min-height: 44px; padding: 8px 16px; border: 1px solid #be123c; border-radius: var(--radius-control); color: #881337; font-weight: 600; background: var(--color-surface); }
+.delete-confirm { margin-top: 12px; padding: 16px; border: 1px solid var(--color-line); border-radius: var(--radius-control); background: var(--color-canvas); }
 @media (min-width: 768px) { .login-page { grid-template-columns: 1fr 1fr; gap: 40px; min-height: 75dvh; } }
 @media (min-width: 900px) {
   .login-page { gap: 72px; }
   .profile-layout { grid-template-columns: minmax(0, 1fr) 280px; }
   .institution-workspace { grid-template-columns: 240px minmax(0, 1fr); }
   .institution-sidebar { position: sticky; top: 24px; }
+  .dashboard-panels { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 639px) {
   .account-name { display: none; }

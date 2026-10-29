@@ -8,6 +8,7 @@ import { useStaff } from "@/components/institution-shell";
 import { api } from "@/lib/api/runtime";
 import { t } from "@/lib/i18n";
 import { useLoad } from "@/lib/use-load";
+import { RemoveSetting } from "@/components/remove-setting";
 
 export default function CohortsPage() {
   const { org_id: orgId, id } = useStaff();
@@ -68,6 +69,7 @@ export default function CohortsPage() {
               >
                 {t("institution.cohorts.open")}
               </Link>
+              <div className="mt-3"><RemoveSetting name={cohort.name} remove={() => api().DELETE("/v1/cohorts/{cohort_id}", { params: { path: { cohort_id: cohort.id } } })} onRemoved={() => { setMessage(t("institution.manage.removed")); reload(); }} /></div>
             </li>
           ))}
         </ul>

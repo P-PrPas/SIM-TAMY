@@ -61,3 +61,40 @@ for (const width of [360, 844, 1440]) {
     await expect(page.getByText(t("platform.dashboard.noLessons"))).toBeVisible();
   });
 }
+
+test("institution login has only workspace features and manages cohorts and assignments", async ({ page }, info) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await login(page, "staff-h-edu-1");
+  await expect(page).toHaveURL(/\/institution$/);
+  await expect(page.getByRole("heading", { name: t("institution.overview.title"), exact: true })).toBeVisible();
+  await expect(page.locator(".site-nav nav a")).toHaveCount(1);
+  await expect(page.locator('a[href="/learn"], a[href="/lab"], a[href="/profile"]')).toHaveCount(0);
+  await accessible(page);
+  await page.screenshot({ path: info.outputPath("institution.png"), fullPage: true });
+  await page.goto("/learn");
+  await expect(page).toHaveURL(/\/institution$/);
+  await page.getByRole("link", { name: t("institution.overview.manage"), exact: true }).click();
+  const name = `Dashboard test ${Date.now()}`;
+  await page.getByLabel(t("institution.cohorts.name")).fill(name);
+  await page.getByRole("button", { name: t("institution.cohorts.create"), exact: true }).click();
+  const row = page.locator("li").filter({ has: page.getByText(name, { exact: true }) });
+  await row.getByRole("link", { name: t("institution.cohorts.open") }).click();
+  await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+  await page.getByLabel(t("institution.cohort.storyLabel")).selectOption("thai-elements-family");
+  await page.getByRole("button", { name: t("institution.cohort.assign"), exact: true }).click();
+  const removeAssignment = page.getByRole("button", { name: new RegExp(`^${t("institution.manage.remove")}`) });
+  await expect(removeAssignment).toHaveCount(1);
+  await removeAssignment.click();
+  await page.getByRole("button", { name: t("institution.manage.confirmButton"), exact: true }).click();
+  await expect(removeAssignment).toHaveCount(0);
+  await page.getByRole("link", { name: t("institution.cohort.back"), exact: true }).click();
+  const removeCohort = page.getByRole("button", { name: `${t("institution.manage.remove")} ${name}`, exact: true });
+  await removeCohort.click();
+  await page.getByRole("button", { name: t("institution.manage.cancel"), exact: true }).click();
+  await expect(removeCohort).toBeVisible();
+  await removeCohort.click();
+  await page.getByRole("button", { name: t("institution.manage.confirmButton"), exact: true }).click();
+  await expect(removeCohort).toHaveCount(0);
+  await accessible(page);
+  await logout(page);
+});

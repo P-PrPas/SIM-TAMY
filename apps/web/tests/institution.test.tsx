@@ -19,11 +19,12 @@ import { t } from "../lib/i18n";
 const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   post: vi.fn(),
+  remove: vi.fn(),
   push: vi.fn(),
   params: {} as Record<string, string>,
   search: new URLSearchParams(),
 }));
-vi.mock("@/lib/api/runtime", () => ({ api: () => ({ GET: mocks.get, POST: mocks.post }) }));
+vi.mock("@/lib/api/runtime", () => ({ api: () => ({ GET: mocks.get, POST: mocks.post, DELETE: mocks.remove }) }));
 vi.mock("next/navigation", () => ({
   usePathname: () => "/institution",
   useParams: () => mocks.params,
@@ -86,7 +87,7 @@ async function pick(id: string) {
 }
 
 beforeEach(() => {
-  mocks.get.mockReset(); mocks.post.mockReset(); mocks.push.mockReset();
+  mocks.get.mockReset(); mocks.post.mockReset(); mocks.push.mockReset(); mocks.remove.mockReset();
   mocks.params = {}; mocks.search = new URLSearchParams(); localStorage.clear();
   routes();
 });
@@ -127,6 +128,29 @@ describe("S2 institution shell", () => {
 });
 
 describe("S2 cohorts and assignments", () => {
+  it("requires confirmation before removing a cohort and keeps the list after a failed request", async () => {
+    mocks.remove.mockRejectedValueOnce(new ApiError("FORBIDDEN", 403)).mockResolvedValue({});
+    staffPage(<CohortsPage />);
+    await pick("staff-h-edu-1");
+    fireEvent.click(await screen.findByRole("button", { name: `${t("institution.manage.remove")} Cohort one` }));
+    fireEvent.click(screen.getByRole("button", { name: t("institution.manage.cancel") }));
+    expect(mocks.remove).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: `${t("institution.manage.remove")} Cohort one` }));
+    fireEvent.click(screen.getByRole("button", { name: t("institution.manage.confirmButton") }));
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(screen.getByRole("link", { name: t("institution.cohorts.open") })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: t("institution.manage.confirmButton") }));
+    await waitFor(() => expect(mocks.remove).toHaveBeenLastCalledWith("/v1/cohorts/{cohort_id}", { params: { path: { cohort_id: "c-1" } } }));
+    expect(await screen.findByText(t("institution.manage.removed"))).toBeTruthy();
+  });
+
+  it("removes an assignment from its own cohort after confirmation", async () => {
+    mocks.params = { id: "c-1" }; mocks.remove.mockResolvedValue({});
+    staffPage(<CohortDetailPage />); await pick("staff-h-edu-1");
+    fireEvent.click(await screen.findByRole("button", { name: `${t("institution.manage.remove")} First night` }));
+    fireEvent.click(screen.getByRole("button", { name: t("institution.manage.confirmButton") }));
+    await waitFor(() => expect(mocks.remove).toHaveBeenCalledWith("/v1/cohorts/{cohort_id}/assignments/{assignment_id}", { params: { path: { cohort_id: "c-1", assignment_id: "a-1" } } }));
+  });
   it("creates a cohort and reloads the list", async () => {
     mocks.post.mockResolvedValue({ data: cohort });
     staffPage(<CohortsPage />);
