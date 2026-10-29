@@ -1,5 +1,9 @@
 # SIM-TAMY design system
 
+Account update, 2026-10-29: the owner replaced profile pickers with a fixed demo login and moved
+the learner's Passport into `/profile`. See [account and dashboard guidance](pages/accounts.md)
+and `docs/v2/demo-login.md`. This supersedes the Home profile-picker references below.
+
 ## Four-stage entry update — 2026-10-29 (LP-01, LP-04)
 
 The current 2.0 entry supersedes the original landing-page layout below. The owner chose to retain
