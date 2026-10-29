@@ -8,6 +8,7 @@ for (const viewport of [{ width: 360, height: 780 }, { width: 844, height: 390 }
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/lab/solo");
     await expect(page.locator("#case:enabled")).toBeVisible();
+    if (viewport.width < 1200) await page.getByRole("button", { name: t("platform.nav.openMenu") }).click();
     await expect(page.getByRole("navigation", { name: t("nav.label") })).toBeVisible();
     await expect(page.locator("a.brand")).toBeVisible();
     await expect(page.locator("a.brand")).toHaveAccessibleName(/SIM-TAMY/);

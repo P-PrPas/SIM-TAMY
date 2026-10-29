@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { ConsequenceReplayPanel, GlassBoxPanel } from "@/components/report-panels";
 import { SafetyAudit } from "@/components/safety-audit";
@@ -181,6 +182,10 @@ export default function ReportPage() {
       </section>}
     </section>
     <PilotFeedbackForm key={report.session_id} sessionId={report.session_id} />
+    <nav aria-label={t("platform.home.nextActions")} className="pf-actions border-t border-line pt-6 print:hidden">
+      <Link href="/lab/solo#practice" className="button-primary">{t("platform.home.practiceAgain")}</Link>
+      <Link href="/" className="button-secondary">{t("platform.nav.home")}</Link>
+    </nav>
     {loading && <p role="status" className="mt-4">{t("report.loading")}</p>}
   </main>;
 }

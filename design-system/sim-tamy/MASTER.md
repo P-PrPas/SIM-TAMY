@@ -1,5 +1,31 @@
 # SIM-TAMY design system
 
+## Four-stage entry update — 2026-10-29 (LP-01, LP-04)
+
+The current 2.0 entry supersedes the original landing-page layout below. The owner chose to retain
+gold, ivory, brown and Noto Sans Thai, and prioritize the four life stages over platform pillars.
+The current `CORE_PATH` remains authoritative: one lesson and one simulation per stage; other
+content remains grey and unavailable by default. No new clinical text, scoring or availability rules.
+
+- Home: split introduction with a decorative preview made from the existing pixel scene and sprites;
+  a single primary action scrolls to the four-stage chooser. Each stage links to its detail page and
+  only offers its curated lesson/simulation when the corresponding API lists it. No sample scores,
+  fabricated progress or invented dialogue. Demo profile selection stays on Home; the legacy solo
+  enrollment form stays at `/lab/solo` as in the current 2.0 route contract.
+- Learn: reuse the same four-stage chooser before a collapsed Nursery House progress disclosure.
+  Stage detail separates reading and practice into two panels; disabled items retain their labels.
+- Navigation: inline desktop links, an explicit mobile/tablet menu with expanded state, keyboard
+  activation and Escape-to-close; legacy session pages retain their progress steps with a quieter header.
+- Report: keep the separate Critical Safety result and add practice-again/home actions after review.
+- Reuse the existing `pf-card`, `pf-link`, `Async` and profile controls. Introduce only shared control,
+  card and panel radii plus one subtle preview shadow. No dependencies or new asset pipeline.
+- Design search: the initial children's-app/claymorphism recommendation did not fit this audience.
+  A narrower Minimalism & Swiss Style result supplied spacing/hierarchy guidance only; the supplied
+  brand and pixel scenes determine the actual color, typography and illustration treatment.
+
+Verification for this update is recorded in the pull request. Browser checks use mocked APIs; a
+production build does not establish database, Docker or real-model behavior.
+
 Scope: T-050–T-056, FR-CASE-02, FR-I18N-01, PRD §5.2. The implementation source for tokens is `apps/web/app/globals.css`.
 
 ## Direction

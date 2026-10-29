@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { t } from "../lib/i18n";
+import { CORE_PATH } from "../lib/learning-path";
 
 // The 2.0 endpoints are not in docs/openapi.yaml yet, so Prism cannot serve them: mock every /v1 call here.
 // Re-point these at the real API (or Prism) once streams A, B and C have merged and the contract is regenerated.
@@ -8,7 +9,10 @@ const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers
 const data: Record<string, unknown> = {
   "/v1/learning-paths": { release_id: "r1", stages: [1, 2, 3, 4].map((n) => ({ stage: n, title_th: `Stage ${n}`, summary_th: "Summary", objectives: [
     { id: `OBJ-${n}-01`, title_th: `Objective ${n}`, dimension: "discovery", unit_ids: ["KB-1"], story_ids: ["gs-a-postpartum-warning"] }] })) },
-  "/v1/knowledge/units": { release_id: "r1", items: [{ id: "KB-1", version: "1", title_th: "Unit one", care_stage: "postpartum", domain: 3, has_lens: true }] },
+  "/v1/knowledge/units": { release_id: "r1", items: [
+    { id: "KB-1", version: "1", title_th: "Unit one", care_stage: "postpartum", domain: 3, has_lens: true },
+    ...CORE_PATH.map((core) => ({ id: core.units[0], version: "1", title_th: `Core unit ${core.stage}`, care_stage: "postpartum", domain: core.stage, has_lens: true })),
+  ] },
   "/v1/knowledge/units/KB-1": {
     id: "KB-1", version: "1", title_th: "Unit one", care_stage: "postpartum", domain: 3, evidence_status: "synthesis", review_basis: "knowledge_base_2026",
     reviewed_on: null, claims: [{ id: "C1", type: "safety", text_th: "Claim", sources: [{ source_id: "S07", title: "Source", url: "https://example.org", locator: "4.2" }] }],
@@ -45,7 +49,7 @@ async function expectNoSeriousViolations(page: Page) {
 }
 
 const pages: Array<[string, string, string]> = [
-  ["Home", "/", t("platform.home.pillarsTitle")],
+  ["Home", "/", t("platform.home.stagesTitle")],
   ["Learn", "/learn", "Stage 1"],
   ["Learn stage", "/learn/1", t("platform.learn.units")],
   ["Lab", "/lab", t("platform.lab.featured")],
@@ -73,6 +77,7 @@ for (const [name, path, ready] of pages) {
 test("top navigation shows the five family destinations and the institution link, not legacy routes", async ({ page }) => {
   await mock(page);
   await page.goto("/");
+  await page.getByRole("button", { name: t("platform.nav.openMenu") }).click();
   const nav = page.getByRole("navigation", { name: t("nav.label") });
   for (const key of ["home", "learn", "lab", "passport", "knowledge", "institution"]) {
     await expect(nav.getByRole("link", { name: t(`platform.nav.${key}`) })).toBeVisible();
@@ -99,7 +104,7 @@ test("disclosures open by keyboard and preserve archived routes and objective pr
   await page.goto("/lab");
   const core = page.getByRole("region", { name: t("platform.lab.featured") });
   await expect(core.getByRole("heading", { level: 3 })).toHaveText([
-    "thai-elements-family", "thai-birth-conversation", "gs-a-postpartum-warning", "gs-b-thai-recovery", "thai-milk-family"]);
+    "thai-elements-family", "thai-birth-conversation", "gs-a-postpartum-warning", "thai-milk-family"]);
   await expect(page.getByRole("heading", { name: "first-night", exact: true })).not.toBeVisible();
   await page.locator("summary", { hasText: t("platform.lab.otherStories") }).focus();
   await page.keyboard.press("Enter");
@@ -117,3 +122,48 @@ test("disclosures open by keyboard and preserve archived routes and objective pr
   await page.keyboard.press("Enter");
   await expect(source).toBeVisible();
 });
+
+for (const width of [360, 844, 1440]) {
+  test(`four-stage entry and navigation at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await mock(page);
+    await page.goto("/");
+    const stages = page.getByRole("region", { name: t("platform.home.stagesTitle") });
+    await expect(stages.getByRole("heading", { level: 3 })).toHaveText(["Stage 1", "Stage 2", "Stage 3", "Stage 4"]);
+    for (const core of CORE_PATH) {
+      const context = `${t("platform.learn.stageLabel")} ${core.stage}`;
+      const simulation = stages.getByRole("link", { name: `${t("platform.home.trySimulation")} ${context}`, exact: true });
+      const lesson = stages.getByRole("link", { name: `${t("platform.home.readLesson")} ${context}`, exact: true });
+      await expect(simulation).toHaveAttribute("href", `/simulate/${core.stories[0]}`);
+      await expect(lesson).toHaveAttribute("href", `/knowledge/${core.units[0]}`);
+      await expect(simulation.locator("xpath=ancestor::li[1]").getByRole("link")).toHaveCount(3);
+    }
+    await page.getByRole("link", { name: t("platform.home.ctaStart"), exact: true }).click();
+    await expect(page).toHaveURL(/#stages$/);
+    await expect(stages.getByRole("heading", { level: 2 })).toBeInViewport();
+    if (width < 1200) {
+      const toggle = page.getByRole("button", { name: t("platform.nav.openMenu") });
+      const menu = page.getByRole("navigation", { name: t("nav.label") });
+      await expect(menu).toBeHidden();
+      await toggle.focus();
+      await page.keyboard.press("Enter");
+      await expect(toggle).toHaveAttribute("aria-expanded", "true");
+      await menu.getByRole("link", { name: t("platform.nav.learn"), exact: true }).focus();
+      await page.keyboard.press("Escape");
+      await expect(toggle).toBeFocused();
+      await expect(menu).toBeHidden();
+      await toggle.click();
+      await menu.getByRole("link", { name: t("platform.nav.learn"), exact: true }).click();
+      await expect(page).toHaveURL(/\/learn$/);
+      await expect(menu).toBeHidden();
+      await page.goto("/");
+    }
+    await page.evaluate(() => document.fonts.ready);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expectNoSeriousViolations(page);
+    await page.screenshot({ path: testInfo.outputPath("four-stages.png"), fullPage: true });
+    await page.evaluate(() => { document.documentElement.style.fontSize = "32px"; });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}
